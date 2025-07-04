@@ -7,6 +7,11 @@ edition = "2024"
 axum = "0.7.5"
 tokio = { version = "1.46.0", features = ["full"] }
 serde = { version = "1.0.219", features = ["derive"] }
-sqlx = { version = "0.8.6", features = [ "runtime-tokio", "sqlite" ] }
+sqlx = { version = "0.8.6", features = [ "runtime-tokio", "mysql" ] }
 tower-http = { version = "0.5.2", features = ["cors"] }
 dotenvy = "0.15.7"
+sea-orm = { version = "1.1.0", features = [ "sqlx-mysql", "runtime-tokio-native-tls", "macros" ] }
+migration = { path = "migration" }
+
+[workspace]
+members = ["migration"]

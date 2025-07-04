@@ -1,14 +1,16 @@
 use axum::{Router, response::Html, routing::get};
+use migration::{Migrator, MigratorTrait};
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
 
 mod database;
+mod entities;
 mod handlers;
-mod models;
 
 #[tokio::main]
 async fn main() {
     let db_pool = database::init_db().await;
+    Migrator::up(&db_pool, None).await.unwrap();
 
     let cors = CorsLayer::new().allow_origin(Any);
 
@@ -18,7 +20,7 @@ async fn main() {
         .with_state(db_pool)
         .layer(cors);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     println!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
