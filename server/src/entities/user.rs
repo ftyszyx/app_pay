@@ -8,9 +8,15 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(unique)]
     pub username: String,
-    #[serde(skip_serializing)] // Never expose password hash
+    #[serde(skip_serializing)]
     pub password: String,
     pub created_at: DateTime,
+    #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
+    pub balance: Decimal,
+    pub inviter_id: Option<i32>,
+    pub invite_count: i32,
+    #[sea_orm(column_type = "Decimal(Some((10, 2)))")]
+    pub invite_rebate_total: Decimal,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

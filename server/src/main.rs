@@ -17,18 +17,17 @@ async fn main() {
         .await
         .expect("Database connection failed");
     Migrator::up(&db_pool, None).await.unwrap();
-
     let cors = CorsLayer::new().allow_origin(Any);
 
     let app = Router::new()
         .route("/", get(handler))
         .route("/api/products", get(handlers::product::get_products))
-        .route("/api/auth/login", post(handlers::auth::login))
-        .route("/api/auth/register", post(handlers::auth::register))
+        .route("/api/register", post(handlers::auth::register))
+        .route("/api/login", post(handlers::auth::login))
         .with_state(db_pool)
         .layer(cors);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
