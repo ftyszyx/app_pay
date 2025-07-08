@@ -11,19 +11,22 @@ services:
     restart: unless-stopped
 
   db:
-    image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    image: postgres:17-alpine
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - ./deploy/mysql/init:/docker-entrypoint-initdb.d
-      - ./deploy/mysql/data:/var/lib/mysql
-      - ./deploy/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./deploy/postgres/data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+

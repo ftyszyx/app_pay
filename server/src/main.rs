@@ -1,4 +1,8 @@
-use axum::{Router, response::Html, routing::get};
+use axum::{
+    Router,
+    response::Html,
+    routing::{get, post},
+};
 use migration::{Migrator, MigratorTrait};
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
@@ -9,14 +13,18 @@ mod handlers;
 
 #[tokio::main]
 async fn main() {
-    let db_pool = database::init_db().await;
+    let db_pool = database::init_db()
+        .await
+        .expect("Database connection failed");
     Migrator::up(&db_pool, None).await.unwrap();
 
     let cors = CorsLayer::new().allow_origin(Any);
 
     let app = Router::new()
         .route("/", get(handler))
-        .route("/api/products", get(handlers::get_products))
+        .route("/api/products", get(handlers::product::get_products))
+        .route("/api/auth/login", post(handlers::auth::login))
+        .route("/api/auth/register", post(handlers::auth::register))
         .with_state(db_pool)
         .layer(cors);
 

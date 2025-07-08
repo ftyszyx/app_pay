@@ -1,8 +1,8 @@
 # Stage 1: Build
 FROM rust:1.87-slim as builder
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y pkg-config libssl-dev
+# Install build dependencies, including postgresql client
+RUN apt-get update && apt-get install -y pkg-config libssl-dev libpq-dev
 
 WORKDIR /usr/src/app
 
