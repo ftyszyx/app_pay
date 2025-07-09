@@ -8,7 +8,7 @@ name = "migration"
 path = "src/lib.rs"
 
 [dependencies]
-sea-orm = "1.1.0"
-sea-orm-migration = { version = "1.1.0", features = ["runtime-tokio-native-tls", "sqlx-postgres"] }
+sea-orm = "1.1.13"
+sea-orm-migration = { version = "1.1.13", features = ["runtime-tokio-native-tls", "sqlx-postgres"] }
 async-std = { version = "1", features = ["attributes", "tokio1"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

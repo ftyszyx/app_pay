@@ -1,5 +1,5 @@
 [package]
-name = "backend"
+name = "app_server"
 version = "0.1.0"
 edition = "2024"
 
@@ -10,7 +10,7 @@ serde = { version = "1.0.219", features = ["derive"] }
 sqlx = { version = "0.8.6", features = [ "runtime-tokio", "mysql" ] }
 tower-http = { version = "0.5.2", features = ["cors"] }
 dotenvy = "0.15.7"
-sea-orm = { version = "1.1.0", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros", "with-rust-decimal" ] }
+sea-orm = { version = "1.1.13", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros"] }
 migration = { path = "migration" }
 bcrypt = "0.15"
 jsonwebtoken = "9.3"

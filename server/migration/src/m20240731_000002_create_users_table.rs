@@ -31,6 +31,10 @@ impl MigrationTrait for Migration {
                             .default(Expr::current_timestamp())
                             .not_null(),
                     )
+                    .col(ColumnDef::new(User::Balance).decimal().not_null())
+                    .col(ColumnDef::new(User::InviterId).integer().not_null())
+                    .col(ColumnDef::new(User::InviteCount).integer().not_null())
+                    .col(ColumnDef::new(User::InviteRebateTotal).decimal().not_null())
                     .to_owned(),
             )
             .await
@@ -49,5 +53,9 @@ enum User {
     Id,
     Username,
     Password,
+    Balance,
+    InviterId,
+    InviteCount,
+    InviteRebateTotal,
     CreatedAt,
 }
