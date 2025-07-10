@@ -39,3 +39,6 @@ pay for app
 
 前端规则
 样式使用tailwind
+
+日志记录功能
+swagger api管理功能

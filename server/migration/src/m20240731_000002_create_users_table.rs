@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use crate::m20240801_000003_create_role_table::Role;
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -35,6 +37,15 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(User::InviterId).integer().not_null())
                     .col(ColumnDef::new(User::InviteCount).integer().not_null())
                     .col(ColumnDef::new(User::InviteRebateTotal).decimal().not_null())
+                    .col(ColumnDef::new(User::RoleId).integer().null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_user_role_id")
+                            .from(User::Table, User::RoleId)
+                            .to(Role::Table, Role::Id)
+                            .on_delete(ForeignKeyAction::SetNull)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
@@ -48,7 +59,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum User {
+pub enum User {
     Table,
     Id,
     Username,
@@ -58,4 +69,5 @@ enum User {
     InviteCount,
     InviteRebateTotal,
     CreatedAt,
+    RoleId,
 }
