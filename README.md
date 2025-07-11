@@ -40,5 +40,55 @@ pay for app
 前端规则
 样式使用tailwind
 
-日志记录功能
-swagger api管理功能
+相当于是一个商城：
+https://github.com/macrozheng/mall
+
+
+日志记录功能(ok)
+swagger api管理功能(ok)
+
+商品分类表：
+id
+类型名
+排序值
+状态：正常，下架
+
+
+商品表：
+id
+商品分类
+商品名
+图片url
+标签
+单价
+排序
+状态：上架，下架
+发货模式：自动发货，手动发货
+商品介绍：json 
+
+
+优惠券表：
+id
+优惠码
+状态： 启用，末启用
+适用范围：json 
+优惠类型：打折，固定优惠
+优惠信息：json
+过期时间 
+
+订单表：
+id
+状态：已支付，未支付，支付中
+订单号
+user_id:
+商品信息：json 
+支付方式：wechat,alipay
+原价
+优惠券：json
+最终价
+备注
+交易时间
+
+
+
+
