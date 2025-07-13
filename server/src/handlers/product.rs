@@ -1,4 +1,4 @@
-use crate::entities::product;
+use crate::entities::products;
 use axum::{Json, extract::State, http::StatusCode};
 use sea_orm::{DatabaseConnection, EntityTrait};
 
@@ -7,7 +7,7 @@ use sea_orm::{DatabaseConnection, EntityTrait};
     get,
     path = "/api/admin/products",
     responses(
-        (status = 200, description = "List of products", body = [product::Model])
+        (status = 200, description = "List of products", body = [products::Model])
     ),
     security(
         ("api_key" = [])
@@ -15,8 +15,8 @@ use sea_orm::{DatabaseConnection, EntityTrait};
 )]
 pub async fn get_products(
     State(db_pool): State<DatabaseConnection>,
-) -> Result<Json<Vec<product::Model>>, StatusCode> {
-    let products = product::Entity::find()
+) -> Result<Json<Vec<products::Model>>, StatusCode> {
+    let products = products::Entity::find()
         .all(&db_pool)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

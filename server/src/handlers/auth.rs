@@ -8,7 +8,7 @@ use std::env;
 use tracing::info;
 use utoipa::ToSchema;
 
-use crate::entities::{role, user};
+use crate::entities::{roles, user};
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -56,8 +56,8 @@ pub async fn register(
     let hashed_password =
         hash(&payload.password, DEFAULT_COST).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let user_role = role::Entity::find()
-        .filter(role::Column::Name.eq("user"))
+    let user_role = roles::Entity::find()
+        .filter(roles::Column::Name.eq("user"))
         .one(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
@@ -97,7 +97,7 @@ pub async fn login(
 ) -> Result<Json<AuthResponse>, StatusCode> {
     let user = user::Entity::find()
         .filter(user::Column::Username.eq(&payload.username))
-        .find_also_related(role::Entity)
+        .find_also_related(roles::Entity)
         .one(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?

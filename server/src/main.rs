@@ -1,28 +1,15 @@
-use axum::{
-    Router, middleware,
-    response::Html,
-    routing::{get, post},
-};
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::{env, net::SocketAddr};
-use tower_http::{
-    cors::{Any, CorsLayer},
-    trace::TraceLayer,
-};
-use tracing_appender::rolling;
 use tracing_subscriber::{fmt::time::FormatTime, layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::{
     Modify, OpenApi,
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 };
-use utoipa_swagger_ui::SwaggerUi;
-
-use crate::handlers::middleware::auth;
-
 mod database;
 mod entities;
 mod handlers;
+mod router;
 
 struct East8Timer;
 
@@ -42,7 +29,7 @@ impl FormatTime for East8Timer {
         handlers::product::get_products,
     ),
     components(
-        schemas(handlers::auth::AuthPayload, handlers::auth::AuthResponse, entities::product::Model)
+        schemas(handlers::auth::AuthPayload, handlers::auth::AuthResponse, entities::products::Model)
     ),
     modifiers(&SecurityAddon),
     tags(
@@ -67,7 +54,7 @@ impl Modify for SecurityAddon {
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
-    let file_appender = rolling::daily("logs", "app.log");
+    let file_appender = tracing_appender::rolling::daily("logs", "app.log");
     let (non_blocking_appender, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::registry()
         .with(
@@ -87,31 +74,12 @@ async fn main() {
         .await
         .expect("Database connection failed");
     Migrator::up(&db_pool, None).await.unwrap();
-    let cors = CorsLayer::new().allow_origin(Any);
 
-    let admin_routes = Router::new()
-        .route("/products", get(handlers::product::get_products))
-        .route_layer(middleware::from_fn(auth));
-
-    // build our application with a route
-    let app = Router::new()
-        .route("/", get(handler))
-        .route("/api/register", post(handlers::auth::register))
-        .route("/api/login", post(handlers::auth::login))
-        .nest("/api/admin", admin_routes)
-        // add swagger ui
-        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-        .with_state(db_pool)
-        .layer(cors)
-        .layer(TraceLayer::new_for_http());
+    let app = router::create_router(db_pool);
 
     let listen_port = env::var("LISTEN_PORT").unwrap().parse().unwrap();
     let addr = SocketAddr::from(([127, 0, 0, 1], listen_port));
     tracing::debug!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
 }
