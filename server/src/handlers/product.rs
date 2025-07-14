@@ -1,5 +1,6 @@
-use crate::entities::products;
-use axum::{Json, extract::State, http::StatusCode};
+use crate::handlers::response::ApiResponse;
+use axum::{extract::State, http::StatusCode, response::IntoResponse};
+use entity::products;
 use sea_orm::{DatabaseConnection, EntityTrait};
 
 /// Get all products
@@ -7,7 +8,7 @@ use sea_orm::{DatabaseConnection, EntityTrait};
     get,
     path = "/api/admin/products",
     responses(
-        (status = 200, description = "List of products", body = [products::Model])
+        (status = 200, description = "List of products", body = ApiResponse<Vec<products::Model>>)
     ),
     security(
         ("api_key" = [])
@@ -15,11 +16,14 @@ use sea_orm::{DatabaseConnection, EntityTrait};
 )]
 pub async fn get_products(
     State(db_pool): State<DatabaseConnection>,
-) -> Result<Json<Vec<products::Model>>, StatusCode> {
-    let products = products::Entity::find()
-        .all(&db_pool)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+) -> impl IntoResponse {
+    let products_result = products::Entity::find().all(&db_pool).await;
 
-    Ok(Json(products))
+    match products_result {
+        Ok(products) => ApiResponse::success(products),
+        Err(e) => ApiResponse::<Vec<products::Model>>::error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            e.to_string(),
+        ),
+    }
 }

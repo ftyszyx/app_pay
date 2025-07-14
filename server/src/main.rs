@@ -6,8 +6,12 @@ use utoipa::{
     Modify, OpenApi,
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 };
+use crate::handlers::response::ApiResponse;
+use crate::handlers::auth::AuthResponse;
+use entity::products;
+
+mod my_error;
 mod database;
-mod entities;
 mod handlers;
 mod router;
 
@@ -29,7 +33,13 @@ impl FormatTime for East8Timer {
         handlers::product::get_products,
     ),
     components(
-        schemas(handlers::auth::AuthPayload, handlers::auth::AuthResponse, entities::products::Model)
+        schemas(
+            handlers::auth::AuthPayload, 
+            AuthResponse, 
+            products::Model,
+            ApiResponse<AuthResponse>,
+            ApiResponse<Vec<products::Model>>
+        )
     ),
     modifiers(&SecurityAddon),
     tags(
@@ -76,10 +86,9 @@ async fn main() {
     Migrator::up(&db_pool, None).await.unwrap();
 
     let app = router::create_router(db_pool);
-
     let listen_port = env::var("LISTEN_PORT").unwrap().parse().unwrap();
     let addr = SocketAddr::from(([127, 0, 0, 1], listen_port));
-    tracing::debug!("listening on {}", addr);
+    tracing::info!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

@@ -1,6 +1,6 @@
 use axum::{extract::State, Json};
 use sea_orm::{DatabaseConnection, EntityTrait};
-use crate::entities::products;
+use entity::products;
 
 pub async fn get_all_products(
     State(db): State<DatabaseConnection>,

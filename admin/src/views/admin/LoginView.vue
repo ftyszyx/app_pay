@@ -42,18 +42,6 @@
             </svg>
           </span>
         </div>
-         <div class="flex items-center space-x-2">
-           <input
-            type="text"
-            placeholder="验证码"
-            v-model="captchaAnswer"
-            required
-            class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div class="px-4 py-2 font-mono text-lg text-green-400 bg-gray-800 rounded-md">
-            {{ num1 }} x {{ num2 }} = ?
-          </div>
-        </div>
         <button
           type="submit"
           class="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
@@ -72,11 +60,6 @@ import { useAuthStore } from '@/stores/auth'
 
 const username = ref('admin')
 const password = ref('password')
-const captchaAnswer = ref('')
-
-const num1 = ref(0)
-const num2 = ref(0)
-
 const showPassword = ref(false)
 
 const router = useRouter()
@@ -84,31 +67,16 @@ const authStore = useAuthStore()
 
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'))
 
-const generateCaptcha = () => {
-  num1.value = Math.floor(Math.random() * 10) + 1
-  num2.value = Math.floor(Math.random() * 10) + 1
-}
-
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleLogin = () => {
-  if (username.value !== 'admin' || password.value !== 'password') {
-    alert('Invalid username or password!')
-    return
-  }
-  if (parseInt(captchaAnswer.value) !== num1.value * num2.value) {
-    alert('Incorrect verification code!')
-    generateCaptcha()
-    captchaAnswer.value = ''
-    return
-  }
-  authStore.login()
-  router.push('/admin/dashboard')
+const handleLogin = async () => {
+    await authStore.login({username: username.value, password: password.value})
+    router.push('/admin/dashboard')
 }
 
 onMounted(() => {
-  generateCaptcha()
+  // generateCaptcha() // Removed captcha logic
 })
 </script> 

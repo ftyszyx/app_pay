@@ -1,5 +1,5 @@
-use axum::{Json, extract::State, http::StatusCode};
-use bcrypt::{DEFAULT_COST, hash, verify};
+use axum::{extract::State, http::StatusCode, Json, response::IntoResponse};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
 use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
@@ -8,7 +8,9 @@ use std::env;
 use tracing::info;
 use utoipa::ToSchema;
 
-use crate::entities::{roles, user};
+use crate::handlers::response::ApiResponse;
+use crate::{my_error };
+use entity::{roles, user};
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -34,7 +36,7 @@ struct Claims {
     path = "/api/register",
     request_body = AuthPayload,
     responses(
-        (status = 200, description = "User created successfully", body = AuthResponse),
+        (status = 200, description = "User created successfully", body = ApiResponse<AuthResponse>),
         (status = 409, description = "User already exists"),
         (status = 500, description = "Internal server error")
     )
@@ -42,26 +44,39 @@ struct Claims {
 pub async fn register(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<AuthPayload>,
-) -> Result<Json<AuthResponse>, StatusCode> {
-    if user::Entity::find()
-        .filter(user::Column::Username.eq(&payload.username))
-        .one(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .is_some()
-    {
-        return Err(StatusCode::CONFLICT);
+) -> impl IntoResponse {
+    let user_exists = user::Entity::find().filter(user::Column::Username.eq(&payload.username)) .one(&db) .await;
+
+    match user_exists {
+        Ok(Some(_)) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::UserAlreadyExists);
+        }
+        Err(_) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
+        }
+        Ok(None) => {}
     }
 
-    let hashed_password =
-        hash(&payload.password, DEFAULT_COST).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let hashed_password = match hash(&payload.password, DEFAULT_COST) {
+        Ok(h) => h,
+        Err(msg) => {
+            return ApiResponse::<AuthResponse>::error_with_message(msg.to_string());
+        }
+    };
 
-    let user_role = roles::Entity::find()
+    let user_role = match roles::Entity::find()
         .filter(roles::Column::Name.eq("user"))
         .one(&db)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    {
+        Ok(Some(role)) => role,
+        Ok(None) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DefaultRoleNotFound);
+        }
+        Err(_) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
+        }
+    };
 
     let new_user = user::ActiveModel {
         username: Set(payload.username),
@@ -70,14 +85,20 @@ pub async fn register(
         ..Default::default()
     };
 
-    let saved_user = new_user
-        .insert(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let saved_user = match new_user.insert(&db).await {
+        Ok(user) => user,
+        Err(_) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
+        }
+    };
 
     info!("User registered: {}", saved_user.username);
-    let token = create_jwt(saved_user.id, "user".to_string())?;
-    Ok(Json(AuthResponse { token }))
+    match create_jwt(saved_user.id, "user".to_string()) {
+        Ok(token) => ApiResponse::success(AuthResponse { token }),
+        Err(_) => {
+            ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::TokenCreationFailed)
+        }
+    }
 }
 
 /// Login as an existing user
@@ -86,7 +107,7 @@ pub async fn register(
     path = "/api/login",
     request_body = AuthPayload,
     responses(
-        (status = 200, description = "Login successful", body = AuthResponse),
+        (status = 200, description = "Login successful", body = ApiResponse<AuthResponse>),
         (status = 401, description = "Unauthorized"),
         (status = 500, description = "Internal server error")
     )
@@ -94,26 +115,36 @@ pub async fn register(
 pub async fn login(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<AuthPayload>,
-) -> Result<Json<AuthResponse>, StatusCode> {
-    let user = user::Entity::find()
+) -> impl IntoResponse {
+    let user_result = user::Entity::find()
         .filter(user::Column::Username.eq(&payload.username))
         .find_also_related(roles::Entity)
         .one(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+        .await;
 
-    let (user_model, role_model) = user;
+    let (user_model, role_model) = match user_result {
+        Ok(Some(user)) => user,
+        Ok(None) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::UserNotFound);
+        }
+        Err(_) => {
+            return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
+        }
+    };
 
     if !verify(&payload.password, &user_model.password).unwrap_or(false) {
-        return Err(StatusCode::UNAUTHORIZED);
+        return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::UserOrPasswordError);
     }
 
     let role_name = role_model.map_or("user".to_string(), |r| r.name);
 
     info!("User logged in: {}", user_model.username);
-    let token = create_jwt(user_model.id, role_name)?;
-    Ok(Json(AuthResponse { token }))
+    match create_jwt(user_model.id, role_name) {
+        Ok(token) => ApiResponse::success(AuthResponse { token }),
+        Err(_) => {
+            ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::TokenCreationFailed)
+        }
+    }
 }
 
 fn create_jwt(user_id: i32, role: String) -> Result<String, StatusCode> {
