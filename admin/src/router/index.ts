@@ -4,51 +4,64 @@ import DashboardView from '@/views/admin/DashboardView.vue'
 import ProductAdminView from '@/views/admin/ProductAdminView.vue'
 import OrderAdminView from '@/views/admin/OrderAdminView.vue'
 import UserAdminView from '@/views/admin/UserAdminView.vue'
-import LoginView from '@/views/admin/LoginView.vue'
+import LoginView from '@/views/auth/LoginView.vue'
+import RegisterView from '@/views/auth/RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
+import { RouteName, RoutePath } from '@/types'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
-            name: 'home',
-            component: () => import('@/views/HomeView.vue')
+            component: () => import('@/layouts/HomeLayout.vue'),
+            children: [
+                {
+                    path: '',
+                    name: RouteName.Home,
+                    component: () => import('@/views/HomeView.vue')
+                },
+                {
+                    path: RoutePath.Products,
+                    name: RouteName.Products,
+                    component: () => import('@/views/ProductsView.vue')
+                }
+            ]
         },
         {
-            path: '/products',
-            name: 'products',
-            component: () => import('@/views/ProductsView.vue')
-        },
-        {
-            path: '/login',
-            name: 'login',
+            path: RoutePath.Login,
+            name: RouteName.Login,
             component: LoginView
         },
         {
-            path: '/admin',
+            path: RoutePath.Register,
+            name: RouteName.Register,
+            component: RegisterView
+        },
+        {
+            path: RoutePath.Admin,
             component: AdminLayout,
             meta: { requiresAuth: true },
-            redirect: '/admin/dashboard',
+            redirect: RoutePath.AdminDashboard,
             children: [
                 {
-                    path: 'dashboard',
-                    name: 'admin-dashboard',
+                    path: RoutePath.AdminDashboard,
+                    name: RouteName.AdminDashboard,
                     component: DashboardView
                 },
                 {
-                    path: 'products',
-                    name: 'admin-products',
+                    path: RoutePath.AdminProducts,
+                    name: RouteName.AdminProducts,
                     component: ProductAdminView
                 },
                 {
-                    path: 'orders',
-                    name: 'admin-orders',
+                    path: RoutePath.AdminOrders,
+                    name: RouteName.AdminOrders,
                     component: OrderAdminView
                 },
                 {
-                    path: 'users',
-                    name: 'admin-users',
+                    path: RoutePath.AdminUsers,
+                    name: RouteName.AdminUsers,
                     component: UserAdminView
                 }
             ]

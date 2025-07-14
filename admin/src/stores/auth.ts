@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import type { AuthPayload } from '@/types'
+import type { AuthPayload, RegisterPayload } from '@/types'
 import { ref } from 'vue'
-import { sentLogin } from '@/apis'
+import { sentLogin, sentRegister } from '@/apis'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token'))
@@ -25,9 +25,13 @@ export const useAuthStore = defineStore('auth', () => {
     setToken(response.token)
   }
 
+  async function register(payload: RegisterPayload) {
+    await sentRegister(payload)
+  }
+
   function logout() {
     clearToken()
   }
 
-  return { token, isAuthenticated, login, logout }
+  return { token, isAuthenticated, login, logout, register }
 }) 
