@@ -1,5 +1,6 @@
+
 -- 角色
-DROP TABLE IF EXISTS "roles";
+DROP TABLE IF EXISTS "roles" CASCADE;
 CREATE TABLE "roles" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR NOT NULL UNIQUE,
@@ -9,22 +10,22 @@ CREATE TABLE "roles" (
 INSERT INTO "roles" ("name") VALUES ('admin'), ('user');
 
 -- 用户
-DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS "user" CASCADE;
 CREATE TABLE "user" (
     "id" SERIAL PRIMARY KEY,
-    "username" VARCHAR NOT NULL UNIQUE,
-    "password" VARCHAR NOT NULL,
+    "username" VARCHAR(255) NOT NULL UNIQUE,
+    "password" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "balance" DECIMAL NOT NULL,
-    "inviter_id" INTEGER NOT NULL,
-    "invite_count" INTEGER NOT NULL,
-    "invite_rebate_total" DECIMAL NOT NULL,
+    "balance" BIGINT NOT NULL DEFAULT 0,
+    "inviter_id" INTEGER ,
+    "invite_count" INTEGER NOT NULL DEFAULT 0,
+    "invite_rebate_total" BIGINT NOT NULL DEFAULT 0,
     "role_id" INTEGER,
     CONSTRAINT "fk_user_role_id" FOREIGN KEY ("role_id") REFERENCES "roles" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- 产品分类
-DROP TABLE IF EXISTS "product_categories";
+DROP TABLE IF EXISTS "product_categories" CASCADE;
 CREATE TABLE "product_categories" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
@@ -35,7 +36,7 @@ CREATE TABLE "product_categories" (
 );
 
 -- 产品
-DROP TABLE IF EXISTS "products";
+DROP TABLE IF EXISTS "products" CASCADE;
 CREATE TABLE "products" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR NOT NULL,
@@ -58,7 +59,7 @@ CREATE TABLE "products" (
 
 
 -- 订单
-DROP TABLE IF EXISTS "orders";
+DROP TABLE IF EXISTS "orders" CASCADE;
 CREATE TABLE "orders" (
     "id" SERIAL PRIMARY KEY,
     "order_sn" VARCHAR NOT NULL UNIQUE,
@@ -77,7 +78,7 @@ CREATE TABLE "orders" (
 );
 
 -- 注册码
-DROP TABLE IF EXISTS "registration_codes";
+DROP TABLE IF EXISTS "registration_codes" CASCADE;
 CREATE TABLE "reg_codes" (
     "id" SERIAL PRIMARY KEY,
     "code" VARCHAR NOT NULL UNIQUE,
@@ -97,7 +98,7 @@ CREATE TABLE "reg_codes" (
 );
 
 --优惠券 
-DROP TABLE IF EXISTS "coupons";
+DROP TABLE IF EXISTS "coupons" CASCADE;
 CREATE TABLE "coupons" (
     "id" SERIAL PRIMARY KEY,
     "code" VARCHAR NOT NULL UNIQUE,

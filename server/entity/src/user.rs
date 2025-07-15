@@ -13,13 +13,13 @@ pub struct Model {
     pub password: String,
     #[schema(value_type = String)]
     pub created_at: DateTime,
-    #[schema(value_type = f64)]
-    pub balance: f64,
-    pub inviter_id: i32,
+    #[schema(value_type = i64)]
+    pub balance: i64,
+    pub inviter_id: Option<i32>,
     pub invite_count: i32,
-    #[schema(value_type = f64)]
-    pub invite_rebate_total: f64,
-    pub role_id: Option<i32>,
+    #[schema(value_type = i64)]
+    pub invite_rebate_total: i64,
+    pub role_id: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

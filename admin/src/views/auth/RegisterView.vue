@@ -6,16 +6,16 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-center text-white">Create Account</h2>
+      <h2 class="text-2xl font-bold text-center text-white">注册</h2>
       <form @submit.prevent="handleRegister" class="space-y-6">
         <div>
-          <input type="text" placeholder="Username" v-model="username" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="text" placeholder="用户名" v-model="username" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div class="relative">
-          <input :type="passwordFieldType" placeholder="Password" v-model="password" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input :type="passwordFieldType" placeholder="密码" v-model="password" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div class="relative">
-          <input :type="passwordFieldType" placeholder="Confirm Password" v-model="confirmPassword" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input :type="passwordFieldType" placeholder="确认密码" v-model="confirmPassword" required class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <button type="submit" class="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500">
           注册

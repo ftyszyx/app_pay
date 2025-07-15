@@ -51,7 +51,8 @@ pub async fn register(
         Ok(Some(_)) => {
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::UserAlreadyExists);
         }
-        Err(_) => {
+        Err(error) => {
+            tracing::error!("Error checking user existence: {:?}", error);
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
         }
         Ok(None) => {}
@@ -73,7 +74,8 @@ pub async fn register(
         Ok(None) => {
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DefaultRoleNotFound);
         }
-        Err(_) => {
+        Err(err) => {
+            tracing::error!("Error getting user role: {:?}", err);
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
         }
     };
@@ -81,13 +83,15 @@ pub async fn register(
     let new_user = user::ActiveModel {
         username: Set(payload.username),
         password: Set(hashed_password),
-        role_id: Set(Some(user_role.id)),
+        role_id: Set(user_role.id),
         ..Default::default()
     };
+    tracing::info!("new_user: {:?}", new_user);
 
     let saved_user = match new_user.insert(&db).await {
         Ok(user) => user,
-        Err(_) => {
+        Err(err) => {
+            tracing::error!("Error inserting user: {:?}", err);
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
         }
     };
@@ -95,7 +99,8 @@ pub async fn register(
     info!("User registered: {}", saved_user.username);
     match create_jwt(saved_user.id, "user".to_string()) {
         Ok(token) => ApiResponse::success(AuthResponse { token }),
-        Err(_) => {
+        Err(err) => {
+            tracing::error!("Error creating JWT: {:?}", err);
             ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::TokenCreationFailed)
         }
     }
@@ -127,7 +132,8 @@ pub async fn login(
         Ok(None) => {
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::UserNotFound);
         }
-        Err(_) => {
+        Err(err) => {
+            tracing::error!("Error getting user: {:?}", err);
             return ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::DatabaseError);
         }
     };
@@ -141,7 +147,8 @@ pub async fn login(
     info!("User logged in: {}", user_model.username);
     match create_jwt(user_model.id, role_name) {
         Ok(token) => ApiResponse::success(AuthResponse { token }),
-        Err(_) => {
+        Err(err) => {
+            tracing::error!("Error creating JWT: {:?}", err);
             ApiResponse::<AuthResponse>::error_with_code(my_error::ErrorCode::TokenCreationFailed)
         }
     }

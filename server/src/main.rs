@@ -69,15 +69,12 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "app_server=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "error".into()),
+        )
+        .with(
+            tracing_subscriber::fmt::layer() .with_timer(East8Timer) .with_ansi(false) .with_writer(non_blocking_appender),
         )
         .with(tracing_subscriber::fmt::layer().with_timer(East8Timer))
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_ansi(false)
-                .with_timer(East8Timer)
-                .with_writer(non_blocking_appender),
-        )
         .init();
 
     let db_pool = database::init_db()
