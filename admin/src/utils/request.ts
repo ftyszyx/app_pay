@@ -26,10 +26,11 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
         consoleLog(`[response] ${response.config.method} ${response.config.baseURL}${response.config.url} \nData: ${JSON.stringify(response.data)}`)
-    if(response.data.code&&response.data.code==0){
-      return response.data.data
+        const data = response.data.data
+    if(data.code==0){
+      return data
     }else{
-      const message = response.data.data.message
+      const message = data.message
       ElMessage.error(message)
       consoleError(message)
       return Promise.reject(message)

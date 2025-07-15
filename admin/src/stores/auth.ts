@@ -21,12 +21,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(payload: AuthPayload) {
     const response = await sentLogin(payload)
-    if(!response) throw new Error('Login failed: no token received')
     setToken(response.token)
   }
 
   async function register(payload: RegisterPayload) {
-    await sentRegister(payload)
+    const response = await sentRegister(payload)
+    setToken(response.token)
   }
 
   function logout() {

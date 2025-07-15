@@ -17,12 +17,12 @@
           />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-center text-white">欢迎登录</h2>
+      <h2 class="text-2xl font-bold text-center text-white">欢迎</h2>
       <form @submit.prevent="handleLogin" class="space-y-6">
         <div>
           <input
             type="text"
-            placeholder="admin"
+            placeholder="用户名"
             v-model="username"
             required
             class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -31,7 +31,7 @@
         <div class="relative">
           <input
             :type="passwordFieldType"
-            placeholder="••••••••"
+            placeholder="密码"
             v-model="password"
             required
             class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -62,8 +62,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { RoutePath } from '@/types'
 
-const username = ref('admin')
-const password = ref('password')
+const username = ref('')
+const password = ref('')
 const showPassword = ref(false)
 
 const router = useRouter()

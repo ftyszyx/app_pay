@@ -52,7 +52,7 @@ const handleRegister = async () => {
   }
   try {
     await authStore.register({ username: username.value, password: password.value })
-    router.push(RoutePath.Login)
+    router.push(RoutePath.AdminDashboard)
   } catch (error) {
     ElMessage.error('注册失败，请重试')
     console.error(error)
