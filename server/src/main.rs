@@ -2,14 +2,6 @@ use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::{env, net::SocketAddr};
 use tracing_subscriber::{fmt::time::FormatTime, layer::SubscriberExt, util::SubscriberInitExt};
-use utoipa::{
-    Modify, OpenApi,
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-};
-use crate::handlers::response::ApiResponse;
-use crate::handlers::auth::AuthResponse;
-use entity::{products };
-
 pub mod constants;
 mod database;
 pub mod my_error;
@@ -27,43 +19,6 @@ impl FormatTime for East8Timer {
     }
 }
 
-#[derive(OpenApi)]
-#[openapi(
-    paths(
-        handlers::auth::register,
-        handlers::auth::login,
-        handlers::product::get_products,
-        // Add user handlers here later
-    ),
-    components(
-        schemas(
-            handlers::auth::AuthPayload, 
-            AuthResponse, 
-            products::Model,
-            types::user_types::User,
-            ApiResponse<AuthResponse>,
-            ApiResponse<Vec<products::Model>>
-        )
-    ),
-    modifiers(&SecurityAddon),
-    tags(
-        (name = "app-pay", description = "App Pay API")
-    )
-)]
-struct ApiDoc;
-
-struct SecurityAddon;
-
-impl Modify for SecurityAddon {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        if let Some(components) = openapi.components.as_mut() {
-            components.add_security_scheme(
-                "api_key",
-                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Authorization"))),
-            )
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() {

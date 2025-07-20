@@ -7,38 +7,15 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
     Set,
 };
-use serde::{Deserialize, Serialize};
 use std::env;
 use tracing::info;
-use utoipa::ToSchema;
-
 use crate::handlers::middleware::Claims;
 use crate::handlers::response::ApiResponse;
+use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
 use crate::{constants, my_error};
 use entity::invite_records;
 use entity::roles;
 use entity::users;
-
-#[derive(Deserialize, ToSchema)]
-pub struct AuthPayload {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct AuthResponse {
-    token: String,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct UserResponse {
-    id: i32,
-    username: String,
-    role: String,
-    balance: i64,
-    invite_count: i32,
-    invite_rebate_total: i64,
-}
 
 /// Register a new user
 #[utoipa::path(

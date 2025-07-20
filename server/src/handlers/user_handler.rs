@@ -3,6 +3,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use chrono::Utc;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
     QueryOrder, Set,
@@ -43,6 +44,19 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
     })
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/admin/users",
+    request_body = UserCreatePayload,
+    responses(
+        (status = 200, description = "User created successfully", body = ApiResponse<UserInfo>),
+        (status = 409, description = "User already exists"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<UserCreatePayload>,
@@ -66,6 +80,14 @@ pub async fn create_user(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/users",
+    responses(
+        (status = 200, description = "List of users", body = ApiResponse<UserListResponse>),
+        (status = 500, description = "Internal server error")
+    )
+)]
 pub async fn get_users_list(
     State(db): State<DatabaseConnection>,
     Query(params): Query<ListUsersParams>,
@@ -103,6 +125,18 @@ pub async fn get_users_list(
     ApiResponse::success(UserListResponse { list, total })
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/admin/users/{id}",
+    responses(
+        (status = 200, description = "User found", body = ApiResponse<UserInfo>),
+        (status = 404, description = "User not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
 pub async fn get_user_by_id(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
@@ -117,6 +151,19 @@ pub async fn get_user_by_id(
     }
 }
 
+#[utoipa::path(
+    put,
+    path = "/api/admin/users/{id}",
+    request_body = UserUpdatePayload,
+    responses(
+        (status = 200, description = "User updated successfully", body = ApiResponse<UserInfo>),
+        (status = 404, description = "User not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
 pub async fn update_user(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
@@ -149,18 +196,30 @@ pub async fn update_user(
     }
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/admin/users/{id}",
+    responses(
+        (status = 200, description = "User deleted successfully"),
+        (status = 404, description = "User not found"),
+        (status = 500, description = "Internal server error")
+    ),
+    security(
+        ("api_key" = [])
+    )
+)]
 pub async fn delete_user(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
 ) -> impl IntoResponse {
-    match users::Entity::delete_by_id(id).exec(&db).await {
-        Ok(res) => {
-            if res.rows_affected == 1 {
-                ApiResponse::success(())
-            } else {
-                ApiResponse::<()>::error_with_code(ErrorCode::UserNotFound)
-            }
-        }
-        Err(_) => ApiResponse::<()>::error_with_code(ErrorCode::DatabaseError),
+    let mut user: users::ActiveModel = match users::Entity::find_by_id(id).one(&db).await {
+        Ok(Some(user)) => user.into(),
+        Ok(None) => return ApiResponse::<()>::error_with_code(ErrorCode::UserNotFound),
+        Err(db_err) => return ApiResponse::<()>::error_with_message(db_err.to_string()),
+    };
+    user.deleted_at = Set(Some(Utc::now().naive_utc()));
+    match user.update(&db).await {
+        Ok(_) => ApiResponse::success(()),
+        Err(db_err) => ApiResponse::<()>::error_with_message(db_err.to_string()),
     }
 }

@@ -1,9 +1,9 @@
 
 pub mod auth;
 pub mod middleware;
-pub mod product;
 pub mod product_handler;
 pub mod response;
+pub mod role_handler;
 pub mod user_handler;
 
 pub async fn handler() -> axum::response::Html<&'static str> {

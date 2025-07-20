@@ -2,6 +2,26 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
 
+#[derive(Deserialize, ToSchema)]
+pub struct AuthPayload {
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct AuthResponse {
+    pub token: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct UserResponse {
+    pub id: i32,
+    pub username: String,
+    pub role: String,
+    pub balance: i64,
+    pub invite_count: i32,
+    pub invite_rebate_total: i64,
+}
 
 #[derive(Deserialize, ToSchema)]
 pub struct UserCreatePayload {
