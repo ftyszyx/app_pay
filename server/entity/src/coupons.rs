@@ -2,31 +2,52 @@
 
 // 优惠券
 use sea_orm::entity::prelude::*;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "coupons")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub code: String,
+    pub name: String,
     pub status: i16,
-    pub scope_type: i16,
     pub discount_type: i16,
-    #[sea_orm(column_type = "JsonBinary", nullable)]
-    pub scope_info: Option<Json>,
-    #[sea_orm(column_type = "JsonBinary")]
-    pub discount_info: Json,
-    #[schema(value_type = String)]
-    pub expires_at: Option<DateTimeWithTimeZone>,
-    #[schema(value_type = String)]
+    pub discount_value: i64,
+    pub min_purchase_amount: i64,
+    pub start_time: Option<DateTimeWithTimeZone>,
+    pub end_time: Option<DateTimeWithTimeZone>,
+    pub usage_limit: i32,
+    pub scope_type: i16,
     pub created_at: DateTimeWithTimeZone,
-    #[schema(value_type = String)]
     pub updated_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::coupons_apps::Entity")]
+    CouponsApps,
+    #[sea_orm(has_many = "super::coupons_products::Entity")]
+    CouponsProducts,
+    #[sea_orm(has_many = "super::order_coupons::Entity")]
+    OrderCoupons,
+}
+
+impl Related<super::coupons_apps::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CouponsApps.def()
+    }
+}
+
+impl Related<super::coupons_products::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CouponsProducts.def()
+    }
+}
+
+impl Related<super::order_coupons::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::OrderCoupons.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

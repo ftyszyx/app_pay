@@ -4,18 +4,19 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use jsonwebtoken::{DecodingKey, Validation, decode};
+use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::env;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: i32,
-    role: String,
-    exp: usize,
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Claims {
+    pub sub: i32,
+    pub role: String,
+    pub exp: usize,
 }
 
-pub async fn auth(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
+pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
     let token = req
         .headers()
         .get("Authorization")
@@ -36,10 +37,6 @@ pub async fn auth(req: Request<Body>, next: Next) -> Result<Response, StatusCode
         &Validation::default(),
     )
     .map_err(|_| StatusCode::UNAUTHORIZED)?;
-
-    if decoded.claims.role != "admin" {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
+    req.extensions_mut().insert(decoded.claims);
     Ok(next.run(req).await)
 }

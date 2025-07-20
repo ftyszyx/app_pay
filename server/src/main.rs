@@ -8,12 +8,14 @@ use utoipa::{
 };
 use crate::handlers::response::ApiResponse;
 use crate::handlers::auth::AuthResponse;
-use entity::products;
+use entity::{products };
 
-mod my_error;
+pub mod constants;
 mod database;
+pub mod my_error;
 mod handlers;
 mod router;
+mod types;
 
 struct East8Timer;
 
@@ -31,12 +33,14 @@ impl FormatTime for East8Timer {
         handlers::auth::register,
         handlers::auth::login,
         handlers::product::get_products,
+        // Add user handlers here later
     ),
     components(
         schemas(
             handlers::auth::AuthPayload, 
             AuthResponse, 
             products::Model,
+            types::user_types::User,
             ApiResponse<AuthResponse>,
             ApiResponse<Vec<products::Model>>
         )
