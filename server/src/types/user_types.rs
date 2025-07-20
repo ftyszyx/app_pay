@@ -51,12 +51,6 @@ pub struct UserInfo {
     pub created_at: String,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct ListUsersParams {
-    pub page: Option<u64>,
-    pub page_size: Option<u64>,
-    pub username: Option<String>,
-}
 
 #[derive(Serialize, ToSchema)]
 pub struct UserListResponse {
@@ -69,3 +63,8 @@ pub struct User {
     pub id: i32,
     pub username: String,
 } 
+
+#[derive(Deserialize, ToSchema)]
+pub struct ListUsersParams{
+    pub username: Option<String>,
+}

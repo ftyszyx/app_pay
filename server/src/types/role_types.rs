@@ -18,3 +18,8 @@ pub struct RoleListResponse {
     pub list: Vec<entity::roles::Model>,
     pub total: u64,
 } 
+
+#[derive(Deserialize,ToSchema)]
+pub struct ListRolesParams {
+    pub name: Option<String>,
+}

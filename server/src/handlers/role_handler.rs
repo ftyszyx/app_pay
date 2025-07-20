@@ -1,19 +1,13 @@
+use crate::types::common::ListParams;
 use crate::{handlers::response::ApiResponse, my_error::ErrorCode};
-use crate::types::role_types::{RoleCreatePayload, RoleListResponse, RoleUpdatePayload};
+use crate::types::role_types::{ListRolesParams, RoleCreatePayload, RoleListResponse, RoleUpdatePayload};
 use axum::{
     extract::{Path, Query, State},
     response::IntoResponse,
     Json,
 };
 use entity::roles;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder, Set};
-use serde::Deserialize;
-
-#[derive(Deserialize)]
-pub struct ListRolesParams {
-    pub page: Option<u64>,
-    pub page_size: Option<u64>,
-}
+use sea_orm::{ActiveModelTrait,ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder, Set,QueryFilter};
 
 #[utoipa::path(
     post,
@@ -52,12 +46,18 @@ pub async fn create_role(
 )]
 pub async fn get_roles_list(
     State(db): State<DatabaseConnection>,
-    Query(params): Query<ListRolesParams>,
+    Query(params): Query<ListParams>,
+    Json(payload): Json<ListRolesParams>,
 ) -> impl IntoResponse {
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(10);
-    let paginator = roles::Entity::find()
-        .order_by_asc(roles::Column::Id)
+    let mut query = roles::Entity::find() .order_by_asc(roles::Column::Id);
+    if let Some(name) = payload.name {
+        if !name.is_empty() {
+            query = query.filter(roles::Column::Name.contains(&name));
+        }
+    }
+    let paginator = query
         .paginate(&db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
     match paginator.fetch_page(page - 1).await {
@@ -71,8 +71,6 @@ pub async fn get_roles_list(
     path = "/api/admin/roles/{id}",
     responses(
         (status = 200, description = "Role found", body = ApiResponse<roles::Model>),
-        (status = 404, description = "Role not found"),
-        (status = 500, description = "Internal server error")
     ),
     security(
         ("api_key" = [])
@@ -93,11 +91,7 @@ pub async fn get_role_by_id(
     put,
     path = "/api/admin/roles/{id}",
     request_body = RoleUpdatePayload,
-    responses(
-        (status = 200, description = "Role updated successfully", body = ApiResponse<roles::Model>),
-        (status = 404, description = "Role not found"),
-        (status = 500, description = "Internal server error")
-    ),
+    responses( (status = 200, description = "Role updated successfully", body = ApiResponse<roles::Model>),),
     security(
         ("api_key" = [])
     )
@@ -127,11 +121,7 @@ pub async fn update_role(
 #[utoipa::path(
     delete,
     path = "/api/admin/roles/{id}",
-    responses(
-        (status = 200, description = "Role deleted successfully"),
-        (status = 404, description = "Role not found"),
-        (status = 500, description = "Internal server error")
-    ),
+    responses( (status = 200, description = "Role deleted successfully")),
     security(
         ("api_key" = [])
     )

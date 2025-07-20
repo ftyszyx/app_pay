@@ -1,4 +1,5 @@
 use sea_orm::DbErr;
+use serde::Deserialize;
 use std::fmt;
 
 #[derive(Debug)]
@@ -20,4 +21,11 @@ impl From<DbErr> for AppError {
     fn from(err: DbErr) -> Self {
         AppError::DatabaseError(err)
     }
+}
+
+
+#[derive(Deserialize)]
+pub struct ListParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
 }

@@ -1,23 +1,26 @@
+use crate::types::common::{AppError, ListParams};
+use crate::types::user_types::{UserCreatePayload, UserInfo, UserListResponse, UserUpdatePayload};
+use crate::{
+    constants, handlers::response::ApiResponse, my_error::ErrorCode,
+    types::user_types::ListUsersParams,
+};
 use axum::{
+    Json,
     extract::{Path, Query, State},
     response::IntoResponse,
-    Json,
 };
 use chrono::Utc;
+use entity::{invite_records, roles, users};
+use futures::future::join_all;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
     QueryOrder, Set,
 };
 use uuid::Uuid;
-use crate::{constants, handlers::response::ApiResponse, my_error::ErrorCode};
-use entity::{invite_records, roles, users};
-use futures::future::join_all;
-use crate::types::user_types::{ListUsersParams, UserCreatePayload, UserInfo, UserListResponse, UserUpdatePayload};
-use crate::types::common::AppError;
 
 pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<UserInfo, AppError> {
     let (role_id, role_name) = {
-       match roles::Entity::find_by_id(u.role_id).one(db).await {
+        match roles::Entity::find_by_id(u.role_id).one(db).await {
             Ok(Some(role)) => (role.id, role.name),
             Ok(None) => return Err(AppError::UserNotFound),
             Err(e) => return Err(e.into()),
@@ -48,11 +51,7 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
     post,
     path = "/api/admin/users",
     request_body = UserCreatePayload,
-    responses(
-        (status = 200, description = "User created successfully", body = ApiResponse<UserInfo>),
-        (status = 409, description = "User already exists"),
-        (status = 500, description = "Internal server error")
-    ),
+    responses( (status = 200, description = "User created successfully", body = ApiResponse<UserInfo>),),
     security(
         ("api_key" = [])
     )
@@ -83,14 +82,12 @@ pub async fn create_user(
 #[utoipa::path(
     get,
     path = "/api/users",
-    responses(
-        (status = 200, description = "List of users", body = ApiResponse<UserListResponse>),
-        (status = 500, description = "Internal server error")
-    )
+    responses( (status = 200, description = "List of users", body = ApiResponse<UserListResponse>),)
 )]
 pub async fn get_users_list(
     State(db): State<DatabaseConnection>,
-    Query(params): Query<ListUsersParams>,
+    Query(params): Query<ListParams>,
+    Json(payload): Json<ListUsersParams>,
 ) -> impl IntoResponse {
     // Implementation for getting a paginated and filtered list of users
     let page = params.page.unwrap_or(1);
@@ -98,7 +95,7 @@ pub async fn get_users_list(
 
     let mut query = users::Entity::find().order_by_desc(users::Column::Id);
 
-    if let Some(username) = params.username {
+    if let Some(username) = payload.username {
         if !username.is_empty() {
             query = query.filter(users::Column::Username.contains(&username));
         }
@@ -118,7 +115,7 @@ pub async fn get_users_list(
         match result {
             Ok(user_info) => list.push(user_info),
             Err(app_err) => {
-                return ApiResponse::<UserListResponse>::error_with_message(app_err.to_string())
+                return ApiResponse::<UserListResponse>::error_with_message(app_err.to_string());
             }
         }
     }
@@ -128,11 +125,7 @@ pub async fn get_users_list(
 #[utoipa::path(
     get,
     path = "/api/admin/users/{id}",
-    responses(
-        (status = 200, description = "User found", body = ApiResponse<UserInfo>),
-        (status = 404, description = "User not found"),
-        (status = 500, description = "Internal server error")
-    ),
+    responses( (status = 200, description = "User found", body = ApiResponse<UserInfo>),),
     security(
         ("api_key" = [])
     )
@@ -157,8 +150,6 @@ pub async fn get_user_by_id(
     request_body = UserUpdatePayload,
     responses(
         (status = 200, description = "User updated successfully", body = ApiResponse<UserInfo>),
-        (status = 404, description = "User not found"),
-        (status = 500, description = "Internal server error")
     ),
     security(
         ("api_key" = [])
@@ -199,11 +190,7 @@ pub async fn update_user(
 #[utoipa::path(
     delete,
     path = "/api/admin/users/{id}",
-    responses(
-        (status = 200, description = "User deleted successfully"),
-        (status = 404, description = "User not found"),
-        (status = 500, description = "Internal server error")
-    ),
+    responses( (status = 200, description = "User deleted successfully"),),
     security(
         ("api_key" = [])
     )
