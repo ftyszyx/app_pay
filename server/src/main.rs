@@ -1,11 +1,13 @@
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::{env, net::SocketAddr};
+use tracing_appender::rolling;
 use tracing_subscriber::{fmt::time::FormatTime, layer::SubscriberExt, util::SubscriberInitExt};
+
 pub mod constants;
 mod database;
-pub mod my_error;
 mod handlers;
+pub mod my_error;
 mod router;
 mod types;
 
@@ -15,15 +17,14 @@ impl FormatTime for East8Timer {
     fn format_time(&self, w: &mut tracing_subscriber::fmt::format::Writer<'_>) -> std::fmt::Result {
         let east8 = FixedOffset::east_opt(8 * 3600).unwrap();
         let now = Utc::now().with_timezone(&east8);
-        write!(w, "{}", now.format("%Y-%m-%dT%H:%M:%S"))
+        write!(w, "{}", now.format("%Y-%m-%d %H:%M:%S%.3f"))
     }
 }
-
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
-    let file_appender = tracing_appender::rolling::daily("logs", "app.log");
+    let file_appender = rolling::daily("logs", "app.log");
     let (non_blocking_appender, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::registry()
         .with(
@@ -31,7 +32,10 @@ async fn main() {
                 .unwrap_or_else(|_| "error".into()),
         )
         .with(
-            tracing_subscriber::fmt::layer() .with_timer(East8Timer) .with_ansi(false) .with_writer(non_blocking_appender),
+            tracing_subscriber::fmt::layer()
+                .with_timer(East8Timer)
+                .with_ansi(false)
+                .with_writer(non_blocking_appender),
         )
         .with(tracing_subscriber::fmt::layer().with_timer(East8Timer))
         .init();

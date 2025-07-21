@@ -90,6 +90,7 @@ CREATE TABLE "pay_methods" (
     "remark" TEXT,
     "config" JSONB,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "chk_status_range" CHECK ("status" IN (0, 1))
 );
 COMMENT ON COLUMN "pay_methods"."status" IS '0: 禁用 1: 启用';
@@ -139,6 +140,7 @@ CREATE TABLE "coupons" (
     "scope_type" SMALLINT NOT NULL DEFAULT 0, -- 优惠券范围类型 0: 所有商品 1: 指定应用 2: 指定商品
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "chk_discount_type_range" CHECK ("discount_type" IN (0, 1)),
     CONSTRAINT "chk_scope_type_range" CHECK ("scope_type" IN (0, 1, 2)),
     CONSTRAINT "chk_min_purchase_amount_positive" CHECK ("min_purchase_amount" >= 0),
@@ -217,6 +219,7 @@ CREATE TABLE "reg_codes" (
     "binding_time" TIMESTAMPTZ, -- 绑定时间
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "fk_reg_code_app_id" FOREIGN KEY ("app_id") REFERENCES "apps" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX idx_reg_codes_app_id ON "reg_codes" ("app_id");

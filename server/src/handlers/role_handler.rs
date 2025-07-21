@@ -1,13 +1,18 @@
-use crate::types::common::ListParams;
+use crate::types::common::ListParamsReq;
+use crate::types::role_types::{
+    ListRolesParams, RoleCreatePayload, RoleListResponse, RoleUpdatePayload,
+};
 use crate::{handlers::response::ApiResponse, my_error::ErrorCode};
-use crate::types::role_types::{ListRolesParams, RoleCreatePayload, RoleListResponse, RoleUpdatePayload};
 use axum::{
+    Json,
     extract::{Path, Query, State},
     response::IntoResponse,
-    Json,
 };
 use entity::roles;
-use sea_orm::{ActiveModelTrait,ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryOrder, Set,QueryFilter};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    QueryOrder, Set,
+};
 
 #[utoipa::path(
     post,
@@ -46,19 +51,18 @@ pub async fn create_role(
 )]
 pub async fn get_roles_list(
     State(db): State<DatabaseConnection>,
-    Query(params): Query<ListParams>,
+    Query(params): Query<ListParamsReq>,
     Json(payload): Json<ListRolesParams>,
 ) -> impl IntoResponse {
     let page = params.page.unwrap_or(1);
     let page_size = params.page_size.unwrap_or(10);
-    let mut query = roles::Entity::find() .order_by_asc(roles::Column::Id);
+    let mut query = roles::Entity::find().order_by_asc(roles::Column::Id);
     if let Some(name) = payload.name {
         if !name.is_empty() {
             query = query.filter(roles::Column::Name.contains(&name));
         }
     }
-    let paginator = query
-        .paginate(&db, page_size);
+    let paginator = query.paginate(&db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
     match paginator.fetch_page(page - 1).await {
         Ok(list) => ApiResponse::success(RoleListResponse { list, total }),
@@ -140,4 +144,4 @@ pub async fn delete_role(
         }
         Err(err) => ApiResponse::<()>::error_with_message(err.to_string()),
     }
-} 
+}

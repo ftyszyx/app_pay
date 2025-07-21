@@ -1,51 +1,18 @@
-use crate::types::common::{AppError, ListParams};
-use crate::types::user_types::{UserCreatePayload, UserInfo, UserListResponse, UserUpdatePayload};
-use crate::{
-    constants, handlers::response::ApiResponse, my_error::ErrorCode,
-    types::user_types::ListUsersParams,
-};
+use crate::types::common::{AppError, ListParamsReq, PagingResponse};
+use crate::types::user_types::{UserCreatePayload, UserInfo, UserUpdatePayload, model_to_info};
+use crate::{constants, handlers::response::ApiResponse, types::user_types::ListUsersParams};
 use axum::{
     Json,
     extract::{Path, Query, State},
-    response::IntoResponse,
 };
 use chrono::Utc;
-use entity::{invite_records, roles, users};
+use entity::users;
 use futures::future::join_all;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
     QueryOrder, Set,
 };
 use uuid::Uuid;
-
-pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<UserInfo, AppError> {
-    let (role_id, role_name) = {
-        match roles::Entity::find_by_id(u.role_id).one(db).await {
-            Ok(Some(role)) => (role.id, role.name),
-            Ok(None) => return Err(AppError::UserNotFound),
-            Err(e) => return Err(e.into()),
-        }
-    };
-
-    let invite_count = invite_records::Entity::find()
-        .filter(invite_records::Column::InviterId.eq(u.id))
-        .count(db)
-        .await? as i32;
-    let balance = u.balance.to_string();
-    let invite_rebate_total = u.invite_rebate_total;
-    let created_at = u.created_at.format("%Y-%m-%d %H:%M:%S").to_string();
-    Ok(UserInfo {
-        id: u.id,
-        username: u.username,
-        balance,
-        inviter_id: u.inviter_id,
-        invite_count,
-        invite_rebate_total,
-        role_id,
-        role_name,
-        created_at,
-    })
-}
 
 #[utoipa::path(
     post,
@@ -59,7 +26,7 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<UserCreatePayload>,
-) -> impl IntoResponse {
+) -> Result<ApiResponse<UserInfo>, AppError> {
     let user_id = Uuid::new_v4().to_string();
     let new_user = users::ActiveModel {
         user_id: Set(user_id),
@@ -69,30 +36,23 @@ pub async fn create_user(
         role_id: Set(payload.role_id.unwrap_or(constants::DEFAULT_ROLE_ID)),
         ..Default::default()
     };
-
-    match new_user.insert(&db).await {
-        Ok(user) => match model_to_info(user, &db).await {
-            Ok(user_info) => ApiResponse::success(user_info),
-            Err(app_err) => ApiResponse::<UserInfo>::error_with_message(app_err.to_string()),
-        },
-        Err(_) => ApiResponse::<UserInfo>::error_with_code(ErrorCode::UserAlreadyExists),
-    }
+    let new_user = new_user.insert(&db).await?;
+    let user_info = model_to_info(new_user, &db).await?;
+    Ok(ApiResponse::success(user_info))
 }
 
 #[utoipa::path(
     get,
     path = "/api/users",
-    responses( (status = 200, description = "List of users", body = ApiResponse<UserListResponse>),)
+    responses( (status = 200, description = "List of users", body = ApiResponse<PagingResponse<UserInfo>>),)
 )]
 pub async fn get_users_list(
     State(db): State<DatabaseConnection>,
-    Query(params): Query<ListParams>,
+    Query(params): Query<ListParamsReq>,
     Json(payload): Json<ListUsersParams>,
-) -> impl IntoResponse {
-    // Implementation for getting a paginated and filtered list of users
-    let page = params.page.unwrap_or(1);
-    let page_size = params.page_size.unwrap_or(10);
-
+) -> Result<ApiResponse<PagingResponse<UserInfo>>, AppError> {
+    let page = params.page;
+    let page_size = params.page_size;
     let mut query = users::Entity::find().order_by_desc(users::Column::Id);
 
     if let Some(username) = payload.username {
@@ -100,7 +60,6 @@ pub async fn get_users_list(
             query = query.filter(users::Column::Username.contains(&username));
         }
     }
-
     let paginator = query.paginate(&db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
     let models = paginator.fetch_page(page - 1).await.unwrap_or_default();
@@ -109,39 +68,23 @@ pub async fn get_users_list(
         .map(|model| model_to_info(model, &db))
         .collect();
     let results = join_all(futures).await;
-
-    let mut list = Vec::with_capacity(results.len());
-    for result in results {
-        match result {
-            Ok(user_info) => list.push(user_info),
-            Err(app_err) => {
-                return ApiResponse::<UserListResponse>::error_with_message(app_err.to_string());
-            }
-        }
-    }
-    ApiResponse::success(UserListResponse { list, total })
+    let list = results.into_iter().map(|result| result.ok()).collect();
+    ApiResponse::success(PagingResponse { list, total, page })
 }
 
 #[utoipa::path(
     get,
     path = "/api/admin/users/{id}",
     responses( (status = 200, description = "User found", body = ApiResponse<UserInfo>),),
-    security(
-        ("api_key" = [])
-    )
 )]
 pub async fn get_user_by_id(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
-) -> impl IntoResponse {
-    match users::Entity::find_by_id(id).one(&db).await {
-        Ok(Some(user)) => match model_to_info(user, &db).await {
-            Ok(user_info) => ApiResponse::success(user_info),
-            Err(app_err) => ApiResponse::<UserInfo>::error_with_message(app_err.to_string()),
-        },
-        Ok(None) => ApiResponse::<UserInfo>::error_with_code(ErrorCode::UserNotFound),
-        Err(db_err) => ApiResponse::<UserInfo>::error_with_message(db_err.to_string()),
-    }
+) -> Result<ApiResponse<UserInfo>, AppError> {
+    let user = users::Entity::find_by_id(id).one(&db).await?;
+    let user = user.ok_or(AppError::UserNotFound)?;
+    let user_info = model_to_info(user, &db).await?;
+    Ok(ApiResponse::success(user_info))
 }
 
 #[utoipa::path(
@@ -151,20 +94,15 @@ pub async fn get_user_by_id(
     responses(
         (status = 200, description = "User updated successfully", body = ApiResponse<UserInfo>),
     ),
-    security(
-        ("api_key" = [])
-    )
 )]
 pub async fn update_user(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
     Json(payload): Json<UserUpdatePayload>,
-) -> impl IntoResponse {
-    let mut user: users::ActiveModel = match users::Entity::find_by_id(id).one(&db).await {
-        Ok(Some(user_model)) => user_model.into(),
-        _ => return ApiResponse::<UserInfo>::error_with_code(ErrorCode::UserNotFound),
-    };
-
+) -> Result<ApiResponse<UserInfo>, AppError> {
+    let user = users::Entity::find_by_id(id).one(&db).await?;
+    let user = user.ok_or(AppError::UserNotFound)?;
+    let mut user: users::ActiveModel = user.into();
     if let Some(username) = payload.username {
         user.username = Set(username);
     }
@@ -177,36 +115,25 @@ pub async fn update_user(
     if let Some(balance) = payload.balance {
         user.balance = Set(balance);
     }
-
-    match user.update(&db).await {
-        Ok(user) => match model_to_info(user, &db).await {
-            Ok(user_info) => ApiResponse::success(user_info),
-            Err(app_err) => ApiResponse::<UserInfo>::error_with_message(app_err.to_string()),
-        },
-        Err(db_err) => ApiResponse::<UserInfo>::error_with_message(db_err.to_string()),
-    }
+    let user = user.update(&db).await?;
+    let user_info = model_to_info(user, &db).await?;
+    Ok(ApiResponse::success(user_info))
 }
 
 #[utoipa::path(
     delete,
     path = "/api/admin/users/{id}",
     responses( (status = 200, description = "User deleted successfully"),),
-    security(
-        ("api_key" = [])
-    )
+    security( ("api_key" = []))
 )]
 pub async fn delete_user(
     State(db): State<DatabaseConnection>,
     Path(id): Path<i32>,
-) -> impl IntoResponse {
-    let mut user: users::ActiveModel = match users::Entity::find_by_id(id).one(&db).await {
-        Ok(Some(user)) => user.into(),
-        Ok(None) => return ApiResponse::<()>::error_with_code(ErrorCode::UserNotFound),
-        Err(db_err) => return ApiResponse::<()>::error_with_message(db_err.to_string()),
-    };
+) -> Result<ApiResponse<()>, AppError> {
+    let user = users::Entity::find_by_id(id).one(&db).await?;
+    let user = user.ok_or(AppError::UserNotFound)?;
+    let mut user: users::ActiveModel = user.into();
     user.deleted_at = Set(Some(Utc::now().naive_utc()));
-    match user.update(&db).await {
-        Ok(_) => ApiResponse::success(()),
-        Err(db_err) => ApiResponse::<()>::error_with_message(db_err.to_string()),
-    }
+    user.update(&db).await?;
+    Ok(ApiResponse::success(()))
 }

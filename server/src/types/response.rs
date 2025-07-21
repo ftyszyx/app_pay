@@ -1,5 +1,5 @@
 use crate::my_error::ErrorCode;
-use axum::{http::StatusCode, response::IntoResponse, Json};
+use axum::{Json, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -8,6 +8,7 @@ pub struct ApiResponse<T> {
     pub code: u16,
     pub message: String,
     pub data: Option<T>,
+    pub success: bool,
 }
 
 impl<T: Serialize> ApiResponse<T> {
@@ -17,6 +18,7 @@ impl<T: Serialize> ApiResponse<T> {
             code,
             message: message.to_string(),
             data: Some(data),
+            success: true,
         }
     }
 
@@ -26,6 +28,7 @@ impl<T: Serialize> ApiResponse<T> {
             code,
             message: message.to_string(),
             data: None,
+            success: false,
         }
     }
 
@@ -35,6 +38,7 @@ impl<T: Serialize> ApiResponse<T> {
             code,
             message,
             data: None,
+            success: false,
         }
     }
 }

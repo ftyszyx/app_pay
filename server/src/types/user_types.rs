@@ -1,9 +1,9 @@
+use crate::types::common::AppError;
+use entity::{invite_records, roles, users};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
-use entity::{invite_records, roles, users};
-use crate::types::common::AppError;
-use sea_orm::{DatabaseConnection,EntityTrait,QueryFilter,ColumnTrait,PaginatorTrait};
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -54,7 +54,6 @@ pub struct UserInfo {
     pub created_at: String,
 }
 
-
 pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<UserInfo, AppError> {
     let (role_id, role_name) = {
         match roles::Entity::find_by_id(u.role_id).one(db).await {
@@ -64,7 +63,8 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
         }
     };
 
-    let invite_count = invite_records::Entity::find().filter(invite_records::Column::InviterId.eq(u.id))
+    let invite_count = invite_records::Entity::find()
+        .filter(invite_records::Column::InviterId.eq(u.id))
         .count(db)
         .await? as i32;
     let balance = u.balance.to_string();
@@ -83,19 +83,13 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
     })
 }
 
-#[derive(Serialize, ToSchema)]
-pub struct UserListResponse {
-    pub list: Vec<UserInfo>,
-    pub total: u64,
-}
-
 #[derive(ToSchema, Serialize)]
 pub struct User {
     pub id: i32,
     pub username: String,
-} 
+}
 
 #[derive(Deserialize, ToSchema)]
-pub struct ListUsersParams{
+pub struct ListUsersParams {
     pub username: Option<String>,
 }
