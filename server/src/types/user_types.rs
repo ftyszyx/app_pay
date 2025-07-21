@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
+use entity::{invite_records, roles, users};
+use crate::types::common::AppError;
+use sea_orm::{DatabaseConnection,EntityTrait,QueryFilter,ColumnTrait,PaginatorTrait};
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -51,6 +54,34 @@ pub struct UserInfo {
     pub created_at: String,
 }
 
+
+pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<UserInfo, AppError> {
+    let (role_id, role_name) = {
+        match roles::Entity::find_by_id(u.role_id).one(db).await {
+            Ok(Some(role)) => (role.id, role.name),
+            Ok(None) => return Err(AppError::UserNotFound),
+            Err(e) => return Err(e.into()),
+        }
+    };
+
+    let invite_count = invite_records::Entity::find().filter(invite_records::Column::InviterId.eq(u.id))
+        .count(db)
+        .await? as i32;
+    let balance = u.balance.to_string();
+    let invite_rebate_total = u.invite_rebate_total;
+    let created_at = u.created_at.format("%Y-%m-%d %H:%M:%S").to_string();
+    Ok(UserInfo {
+        id: u.id,
+        username: u.username,
+        balance,
+        inviter_id: u.inviter_id,
+        invite_count,
+        invite_rebate_total,
+        role_id,
+        role_name,
+        created_at,
+    })
+}
 
 #[derive(Serialize, ToSchema)]
 pub struct UserListResponse {

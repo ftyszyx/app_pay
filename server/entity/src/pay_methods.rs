@@ -1,6 +1,8 @@
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel,Serialize,ToSchema  )]
 #[sea_orm(table_name = "pay_methods")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -9,7 +11,7 @@ pub struct Model {
     pub status: i16,
     pub remark: Option<String>,
     pub config: Option<Json>,
-    pub created_at: DateTimeWithTimeZone,
+    pub created_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

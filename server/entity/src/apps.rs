@@ -1,6 +1,8 @@
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "apps")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -14,8 +16,8 @@ pub struct Model {
     pub app_update_info: Option<String>,
     pub sort_order: i32,
     pub status: i16,
-    pub created_at: DateTimeWithTimeZone,
-    pub updated_at: DateTimeWithTimeZone,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
     pub deleted_at: Option<DateTime>,
 }
 

@@ -55,6 +55,9 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/admin/users/{id}", get(handlers::user_handler::get_user_by_id))
         .route("/admin/users/{id}", put(handlers::user_handler::update_user))
         .route("/admin/users/{id}", delete(handlers::user_handler::delete_user))
+        .route_layer(middleware::from_fn(auth));
+
+    let role_routes = Router::new()
         .route("/admin/roles", post(handlers::role_handler::create_role))
         .route("/admin/roles", get(handlers::role_handler::get_roles_list))
         .route( "/admin/roles/{id}", get(handlers::role_handler::get_role_by_id),)
@@ -72,6 +75,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/api/login", post(handlers::auth::login))
         .nest("/api", user_routes)
         .nest("/api", products_routes)
+        .nest("/api", role_routes)
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db_pool)
         .layer(cors)
