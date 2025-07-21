@@ -1,6 +1,10 @@
 pub mod auth;
 pub mod middleware;
 pub mod app_handler;
+// pub  mod base_handler;
+pub mod crud_macro;
+pub mod app_handler_macro;
+// pub mod app_handler_base;
 // pub  mod user_handler;
 // pub  mod role_handler;
 // pub  mod product_handler;
