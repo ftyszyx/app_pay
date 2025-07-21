@@ -2,7 +2,7 @@ use crate::types::common::ListParamsReq;
 use crate::types::role_types::{
     ListRolesParams, RoleCreatePayload, RoleListResponse, RoleUpdatePayload,
 };
-use crate::{handlers::response::ApiResponse, my_error::ErrorCode};
+use crate::{my_error::ErrorCode, types::response::ApiResponse};
 use axum::{
     Json,
     extract::{Path, Query, State},
@@ -54,9 +54,11 @@ pub async fn get_roles_list(
     Query(params): Query<ListParamsReq>,
     Json(payload): Json<ListRolesParams>,
 ) -> impl IntoResponse {
-    let page = params.page.unwrap_or(1);
-    let page_size = params.page_size.unwrap_or(10);
-    let mut query = roles::Entity::find().order_by_asc(roles::Column::Id);
+    let page = params.page;
+    let page_size = params.page_size;
+    let mut query = roles::Entity::find()
+        .filter(roles::Column::DeletedAt.is_null())
+        .order_by_asc(roles::Column::Id);
     if let Some(name) = payload.name {
         if !name.is_empty() {
             query = query.filter(roles::Column::Name.contains(&name));

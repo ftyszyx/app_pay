@@ -1,5 +1,5 @@
 use sea_orm::DbErr;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use utoipa::ToSchema;
 
@@ -32,7 +32,7 @@ pub struct ListParamsReq {
     pub page_size: u64,
 }
 
-#[derive(Debug, ToSchema)]
+#[derive(Debug, ToSchema, Serialize)]
 pub struct PagingResponse<T> {
     pub list: Vec<T>,
     pub page: u64,

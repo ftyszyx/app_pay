@@ -11,7 +11,7 @@ use sea_orm::{
 use serde_json::json;
 
 use crate::{
-    handlers::response::ApiResponse,
+    types::response::ApiResponse,
     types::{app_types::*, common::*},
 };
 

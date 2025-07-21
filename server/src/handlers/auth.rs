@@ -1,7 +1,14 @@
+use crate::handlers::middleware::Claims;
+use crate::types::response::ApiResponse;
+use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
+use crate::{constants, my_error};
 use axum::Extension;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bcrypt::{DEFAULT_COST, hash, verify};
 use chrono::{Duration, Utc};
+use entity::invite_records;
+use entity::roles;
+use entity::users;
 use jsonwebtoken::{EncodingKey, Header, encode};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
@@ -9,13 +16,6 @@ use sea_orm::{
 };
 use std::env;
 use tracing::info;
-use crate::handlers::middleware::Claims;
-use crate::handlers::response::ApiResponse;
-use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
-use crate::{constants, my_error};
-use entity::invite_records;
-use entity::roles;
-use entity::users;
 
 /// Register a new user
 #[utoipa::path(

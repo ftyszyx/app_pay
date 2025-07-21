@@ -1,9 +1,10 @@
 use crate::types::common::{AppError, ListParamsReq, PagingResponse};
 use crate::types::user_types::{UserCreatePayload, UserInfo, UserUpdatePayload, model_to_info};
-use crate::{constants, handlers::response::ApiResponse, types::user_types::ListUsersParams};
+use crate::{constants, types::response::ApiResponse, types::user_types::ListUsersParams};
 use axum::{
     Json,
     extract::{Path, Query, State},
+    response::IntoResponse,
 };
 use chrono::Utc;
 use entity::users;
@@ -26,7 +27,7 @@ use uuid::Uuid;
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<UserCreatePayload>,
-) -> Result<ApiResponse<UserInfo>, AppError> {
+) -> impl IntoResponse {
     let user_id = Uuid::new_v4().to_string();
     let new_user = users::ActiveModel {
         user_id: Set(user_id),
@@ -36,9 +37,10 @@ pub async fn create_user(
         role_id: Set(payload.role_id.unwrap_or(constants::DEFAULT_ROLE_ID)),
         ..Default::default()
     };
-    let new_user = new_user.insert(&db).await?;
-    let user_info = model_to_info(new_user, &db).await?;
-    Ok(ApiResponse::success(user_info))
+    match new_user.insert(&db).await {
+        Ok(user) => ApiResponse::success(model_to_info(user, &db).await?),
+        Err(err) => ApiResponse::<users::Model>::error_with_message(err.to_string()),
+    }
 }
 
 #[utoipa::path(
@@ -68,8 +70,11 @@ pub async fn get_users_list(
         .map(|model| model_to_info(model, &db))
         .collect();
     let results = join_all(futures).await;
-    let list = results.into_iter().map(|result| result.ok()).collect();
-    ApiResponse::success(PagingResponse { list, total, page })
+    let list: Vec<UserInfo> = results
+        .into_iter()
+        .filter_map(|result| result.ok())
+        .collect();
+    Ok(ApiResponse::success(PagingResponse { list, total, page }))
 }
 
 #[utoipa::path(
