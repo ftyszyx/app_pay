@@ -10,6 +10,7 @@ mod handlers;
 pub mod my_error;
 mod router;
 mod types;
+// mod my_macro;
 
 struct East8Timer;
 

@@ -1,3 +1,5 @@
+use axum::{response::{IntoResponse, Response}};
+use crate::types::response::ApiResponse;
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -6,17 +8,21 @@ use utoipa::ToSchema;
 #[derive(Debug)]
 pub enum AppError {
     DatabaseError(DbErr),
-    UserNotFound,
-    AppNotFound,
+    DataNotFound,
 }
 
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             AppError::DatabaseError(e) => write!(f, "Database Error: {}", e),
-            AppError::UserNotFound => write!(f, "User not found"),
-            AppError::AppNotFound => write!(f, "App not found"),
+            AppError::DataNotFound => write!(f, "App not found"),
         }
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        ApiResponse::<()>::error_with_message(self.to_string()).into_response()
     }
 }
 
@@ -38,3 +44,4 @@ pub struct PagingResponse<T> {
     pub page: u64,
     pub total: u64,
 }
+

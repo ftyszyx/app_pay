@@ -58,7 +58,7 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
     let (role_id, role_name) = {
         match roles::Entity::find_by_id(u.role_id).one(db).await {
             Ok(Some(role)) => (role.id, role.name),
-            Ok(None) => return Err(AppError::UserNotFound),
+            Ok(None) => return Err(AppError::DataNotFound),
             Err(e) => return Err(e.into()),
         }
     };

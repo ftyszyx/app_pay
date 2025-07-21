@@ -29,7 +29,7 @@ use sea_orm::{
 pub async fn create_role(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<RoleCreatePayload>,
-) -> impl IntoResponse {
+) -> Result<ApiResponse<roles::Model>, AppError>{
     let new_role = roles::ActiveModel {
         name: Set(payload.name),
         remark: Set(payload.remark),

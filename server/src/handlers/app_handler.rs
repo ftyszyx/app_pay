@@ -59,7 +59,7 @@ pub async fn update_app(
     Json(req): Json<UpdateAppReq>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
     let app = apps::Entity::find_by_id(req.id).one(&db).await?;
-    let app = app.ok_or(AppError::AppNotFound)?;
+    let app = app.ok_or(AppError::DataNotFound)?;
     let mut app: apps::ActiveModel = app.into_active_model();
     if let Some(name) = req.name {
         app.name = Set(name);
@@ -106,7 +106,7 @@ pub async fn delete_app(
     Path(id): Path<i32>,
 ) -> Result<ApiResponse<serde_json::Value>, AppError> {
     let app = apps::Entity::find_by_id(id).one(&db).await?;
-    let app = app.ok_or(AppError::AppNotFound)?;
+    let app = app.ok_or(AppError::DataNotFound)?;
     let mut app: apps::ActiveModel = app.into_active_model();
     app.deleted_at = Set(Some(Utc::now().naive_utc()));
     app.update(&db).await?;
@@ -160,6 +160,6 @@ pub async fn get_app_by_id(
         .filter(apps::Column::DeletedAt.is_null())
         .one(&db)
         .await?;
-    let app = app.ok_or(AppError::AppNotFound)?;
+    let app = app.ok_or(AppError::DataNotFound)?;
     Ok(ApiResponse::success(app))
 }

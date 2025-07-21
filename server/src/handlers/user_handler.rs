@@ -27,7 +27,7 @@ use uuid::Uuid;
 pub async fn create_user(
     State(db): State<DatabaseConnection>,
     Json(payload): Json<UserCreatePayload>,
-) -> impl IntoResponse {
+) -> Result<ApiResponse<UserInfo>, AppError> {
     let user_id = Uuid::new_v4().to_string();
     let new_user = users::ActiveModel {
         user_id: Set(user_id),
@@ -37,10 +37,9 @@ pub async fn create_user(
         role_id: Set(payload.role_id.unwrap_or(constants::DEFAULT_ROLE_ID)),
         ..Default::default()
     };
-    match new_user.insert(&db).await {
-        Ok(user) => ApiResponse::success(model_to_info(user, &db).await?),
-        Err(err) => ApiResponse::<users::Model>::error_with_message(err.to_string()),
-    }
+    let user = new_user.insert(&db).await?;
+    let user_info = model_to_info(user, &db).await?;
+    Ok(ApiResponse::success(user_info))
 }
 
 #[utoipa::path(
