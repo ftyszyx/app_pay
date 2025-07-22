@@ -1,10 +1,11 @@
-use crate::types::common::AppError;
 use entity::{invite_records, roles, users};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
 use validator::Validate;
+
+use crate::types::error::AppError;
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -59,7 +60,7 @@ pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<U
     let (role_id, role_name) = {
         match roles::Entity::find_by_id(u.role_id).one(db).await {
             Ok(Some(role)) => (role.id, role.name),
-            Ok(None) => return Err(AppError::DataNotFound),
+            Ok(None) => return Err(AppError::not_found("role", Some(u.role_id))),
             Err(e) => return Err(e.into()),
         }
     };

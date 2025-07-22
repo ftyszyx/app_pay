@@ -1,4 +1,5 @@
 use validator::Validate;
+use crate::types::error::AppError;
 
 pub trait CrudOperations: Sized {
     type Entity: sea_orm::EntityTrait;
@@ -26,18 +27,18 @@ pub trait CrudOperations: Sized {
     ) -> <Self::Entity as sea_orm::EntityTrait>::ActiveModel;
     fn build_query(payload: Self::ListPayload) -> sea_orm::Select<Self::Entity>;
 
-    fn data_out_hook(model: &mut Self::Model) -> Result<(), crate::types::common::AppError> {
-        Ok(())
-    }
+    // fn data_out_hook(model: &mut Self::Model) -> Result<(), AppError> {
+    //     Ok(())
+    // }
 
     // 可选的钩子方法
-    fn before_add(_payload: &Self::CreatePayload) -> Result<(), crate::types::common::AppError> {
+    fn before_add(_payload: &Self::CreatePayload) -> Result<(), AppError> {
         _payload.validate()?;
         tracing::info!("before add : {} data: {:?}", Self::table_name(), _payload);
         Ok(())
     }
 
-    fn after_add(_model: &Self::Model) -> Result<(), crate::types::common::AppError> {
+    fn after_add(_model: &Self::Model) -> Result<(), AppError> {
         tracing::info!("after add : {} data: {:?}", Self::table_name(), _model);
         Ok(())
     }
@@ -45,7 +46,7 @@ pub trait CrudOperations: Sized {
     fn before_update(
         _id: i32,
         _payload: &Self::UpdatePayload,
-    ) -> Result<(), crate::types::common::AppError> {
+    ) -> Result<(), AppError> {
         _payload.validate()?;
         tracing::info!(
             "before update : {} data: {:?}",
@@ -55,17 +56,17 @@ pub trait CrudOperations: Sized {
         Ok(())
     }
 
-    fn after_update(_model: &Self::Model) -> Result<(), crate::types::common::AppError> {
+    fn after_update(_model: &Self::Model) -> Result<(), AppError> {
         tracing::info!("after update : {} data: {:?}", Self::table_name(), _model);
         Ok(())
     }
 
-    fn before_delete(_id: i32) -> Result<(), crate::types::common::AppError> {
+    fn before_delete(_id: i32) -> Result<(), AppError> {
         tracing::info!("before delete : {} data: {}", Self::table_name(), _id);
         Ok(())
     }
 
-    fn after_delete(_id: i32) -> Result<(), crate::types::common::AppError> {
+    fn after_delete(_id: i32) -> Result<(), AppError> {
         tracing::info!("after delete : {} data: {}", Self::table_name(), _id);
         Ok(())
     }

@@ -1,48 +1,28 @@
+use axum::{response::IntoResponse};
 use sea_orm::DbErr;
-use serde::{Deserialize, Serialize};
 use std::fmt;
-use utoipa::ToSchema;
+
+use crate::types::response::ApiResponse;
+
+
 /// 改进的错误处理系统
 #[derive(Debug)]
 pub enum AppError {
     /// 数据库相关错误
     Database(DbErr),
     /// 资源未找到错误
-    NotFound {
-        resource: String,
-        id: Option<i32>,
-    },
+    NotFound { resource: String, id: Option<i32>, },
     /// 验证错误
-    Validation {
-        field: String,
-        message: String,
-    },
-
+    Validation { field: String, message: String, },
     /// 认证失败
-    AuthFailed {
-        reason: String,
-    },
-
+    AuthFailed { reason: String, },
     /// 权限不足
-    Forbidden {
-        action: String,
-    },
-
+    Forbidden { action: String, },
     /// 业务逻辑错误
-    BusinessLogic {
-        code: String,
-        message: String,
-    },
-
+    BusinessLogic { code: String, message: String, },
     /// 外部服务错误
-    ExternalService {
-        service: String,
-        error: String,
-    },
-
-    // 保持向后兼容
-    DataNotFound,
-    Other(String),
+    ExternalService { service: String, error: String, },
+    Message(String),
 }
 
 impl AppError {
@@ -77,30 +57,17 @@ impl AppError {
         }
     }
 
-    /// 获取HTTP状态码
-    pub fn status_code(&self) -> StatusCode {
-        match self {
-            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::NotFound { .. } | Self::DataNotFound => StatusCode::NOT_FOUND,
-            Self::Validation { .. } => StatusCode::BAD_REQUEST,
-            Self::AuthFailed { .. } => StatusCode::UNAUTHORIZED,
-            Self::Forbidden { .. } => StatusCode::FORBIDDEN,
-            Self::BusinessLogic { .. } => StatusCode::BAD_REQUEST,
-            Self::ExternalService { .. } => StatusCode::BAD_GATEWAY,
-            Self::Other(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
     /// 获取错误代码
     pub fn error_code(&self) -> u16 {
         match self {
-            Self::Database(_) => 5001,
-            Self::NotFound { .. } | Self::DataNotFound => 4004,
-            Self::Validation { .. } => 4001,
-            Self::AuthFailed { .. } => 4010,
-            Self::Forbidden { .. } => 4030,
-            Self::BusinessLogic { .. } => 4002,
-            Self::ExternalService { .. } => 5020,
+            Self::Database(_) => crate::constants::APP_OTHER,
+            Self::NotFound { .. } => crate::constants::APP_NOT_FOUND,
+            Self::Validation { .. } => crate::constants::APP_VALIDATION_ERROR,
+            Self::AuthFailed { .. } => crate::constants::APP_AUTH_FAILED,
+            Self::Forbidden { .. } => crate::constants::APP_FORBIDDEN,
+            Self::BusinessLogic { .. } => crate::constants::APP_BUSINESS_LOGIC,
+            Self::ExternalService { .. } => crate::constants::APP_EXTERNAL_SERVICE,
+            Self::Message(_) => crate::constants::APP_OTHER,
         }
     }
 }
@@ -124,25 +91,22 @@ impl fmt::Display for AppError {
             Self::ExternalService { service, error } => {
                 write!(f, "External service '{}' error: {}", service, error)
             }
-            Self::DataNotFound => write!(f, "Data not found"),
+            Self::Message(message) => write!(f, "{}", message),
         }
     }
 }
 
 impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        let status_code = self.status_code();
+    fn into_response(self) -> axum::response::Response {
         let error_code = self.error_code();
         let message = self.to_string();
-
         let response = ApiResponse::<()> {
             code: error_code,
             message,
             data: None,
             success: false,
         };
-
-        (status_code, axum::Json(response)).into_response()
+        return  response.into_response()
     }
 }
 
@@ -163,7 +127,6 @@ impl From<DbErr> for AppError {
     }
 }
 
-// 为bcrypt错误添加转换
 impl From<bcrypt::BcryptError> for AppError {
     fn from(err: bcrypt::BcryptError) -> Self {
         tracing::error!("Password hashing error: {}", err);

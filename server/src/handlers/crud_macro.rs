@@ -10,9 +10,10 @@ macro_rules! impl_crud_handlers {
         $update_payload:ty,
         $list_payload:ty,
         $model_name:literal,
-        $filter_deleted:tt
+        $fake_delete:tt
     ) => {
-        use crate::types::common::{AppError, ListParamsReq, PagingResponse};
+        use crate::types::common::{ ListParamsReq, PagingResponse};
+        use crate::types::error::AppError;
         use crate::types::response::ApiResponse;
         use axum::{
             extract::{Path, Query, State},
@@ -62,26 +63,8 @@ macro_rules! impl_crud_handlers {
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             let app = $handler::update_model(req, app);
             let app = app.update(&db).await?;
+            $handler::after_update(&app)?;
             Ok(ApiResponse::success(app))
-        }
-
-        #[utoipa::path(
-            delete,
-            path = concat!("/api/admin/", $model_name, "/{id}"),
-            security(("api_key" = [])),
-            responses((status = 200, description = "Success", body = serde_json::Value))
-        )]
-        pub async fn fake_delete(
-            State(db): State<sea_orm::DatabaseConnection>,
-            Path(id): Path<i32>,
-        ) -> Result<ApiResponse<()>, AppError> {
-            $handler::before_delete(id)?;
-            let app = <$entity>::find_by_id(id).one(&db).await?;
-            let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            let mut app: <$entity as EntityTrait>::ActiveModel = app.into_active_model();
-            app.deleted_at = Set(Some(Utc::now().naive_utc()));
-            app.update(&db).await?;
-            Ok(ApiResponse::success(()))
         }
 
         #[utoipa::path(
@@ -97,7 +80,8 @@ macro_rules! impl_crud_handlers {
             $handler::before_delete(id)?;
             let app = <$entity>::find_by_id(id).one(&db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            app.into_active_model().delete(&db).await?;
+            crate::apply_delted!($fake_delete, app, &db);
+            $handler::after_delete(id)?;
             Ok(ApiResponse::success(()))
         }
 
@@ -136,7 +120,7 @@ macro_rules! impl_crud_handlers {
             State(db): State<sea_orm::DatabaseConnection>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<<$entity as EntityTrait>::Model>, AppError> {
-            let query = crate::apply_deleted_filter!($filter_deleted, <$entity>::find_by_id(id), $entity);
+            let query = crate::apply_deleted_filter!($fake_delete, <$entity>::find_by_id(id), $entity);
             let app = query.one(&db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             Ok(ApiResponse::success(app))
@@ -152,5 +136,17 @@ macro_rules! apply_deleted_filter {
     };
     (false, $query:expr, $entity:ty) => {
         $query
+    };
+}
+
+#[macro_export]
+macro_rules! apply_delted {
+    (true, $app:expr, $db:expr) => {
+            let mut app= $app.into_active_model();
+            app.deleted_at = Set(Some(Utc::now().naive_utc()));
+            app.update($db).await?;
+    };
+    (false, $app:expr, $db:expr) => {
+            $app.into_active_model().delete($db).await?;
     };
 }

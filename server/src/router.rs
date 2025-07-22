@@ -21,31 +21,31 @@ use utoipa::{
         handlers::app_handler::get_list,
         handlers::app_handler::get_by_id,
         handlers::app_handler::update,
-        handlers::app_handler::fake_delete,
+        handlers::app_handler::delete,
         //users
         handlers::user_handler::add,
         handlers::user_handler::get_by_id,
         handlers::user_handler::update,
-        handlers::user_handler::fake_delete,
+        handlers::user_handler::delete,
         handlers::user_handler::get_list,
         //role
         handlers::role_handler::add,
         handlers::role_handler::get_list,
         handlers::role_handler::get_by_id,
         handlers::role_handler::update,
-        handlers::role_handler::fake_delete,
+        handlers::role_handler::delete,
         //products
         handlers::product_handler::add,
         handlers::product_handler::get_list,
         handlers::product_handler::get_by_id,
         handlers::product_handler::update,
-        handlers::product_handler::fake_delete,
+        handlers::product_handler::delete,
         //pay_methods
         handlers::pay_method_handler::add,
         handlers::pay_method_handler::get_list,
         handlers::pay_method_handler::get_by_id,
         handlers::pay_method_handler::update,
-        handlers::pay_method_handler::fake_delete,
+        handlers::pay_method_handler::delete,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -70,7 +70,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/users/list", post(handlers::user_handler::get_list))
         .route("/users/{id}", get(handlers::user_handler::get_by_id))
         .route("/users/{id}", put(handlers::user_handler::update))
-        .route("/users/{id}", delete(handlers::user_handler::fake_delete))
+        .route("/users/{id}", delete(handlers::user_handler::delete))
         .route_layer(middleware::from_fn(auth));
 
     let app_routes = Router::new()
@@ -78,7 +78,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/apps/list", get(handlers::app_handler::get_list))
         .route("/apps/{id}", get(handlers::app_handler::get_by_id))
         .route("/apps/{id}", put(handlers::app_handler::update))
-        .route("/apps/{id}", delete(handlers::app_handler::fake_delete))
+        .route("/apps/{id}", delete(handlers::app_handler::delete))
         .route_layer(middleware::from_fn(auth));
 
     let role_routes = Router::new()
@@ -86,7 +86,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/roles/list", get(handlers::role_handler::get_list))
         .route("/roles/{id}", get(handlers::role_handler::get_by_id))
         .route("/roles/{id}", put(handlers::role_handler::update))
-        .route("/roles/{id}", delete(handlers::role_handler::fake_delete))
+        .route("/roles/{id}", delete(handlers::role_handler::delete))
         .route_layer(middleware::from_fn(auth));
 
     let product_routes = Router::new()
@@ -96,7 +96,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/products/{id}", put(handlers::product_handler::update))
         .route(
             "/products/{id}",
-            delete(handlers::product_handler::fake_delete),
+            delete(handlers::product_handler::delete),
         )
         .route_layer(middleware::from_fn(auth));
 
@@ -116,7 +116,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         )
         .route(
             "/pay_methods/{id}",
-            delete(handlers::pay_method_handler::fake_delete),
+            delete(handlers::pay_method_handler::delete),
         )
         .route_layer(middleware::from_fn(auth));
 

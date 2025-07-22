@@ -1,7 +1,6 @@
 use crate::types::product_types::*;
 use entity::products;
 
-// Product Handler - 使用新的统一CRUD架构
 crate::impl_crud_handlers!(
     ProductHandler,
     products::Entity,

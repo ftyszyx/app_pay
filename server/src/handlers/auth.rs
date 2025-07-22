@@ -1,10 +1,9 @@
 use crate::handlers::middleware::Claims;
-use crate::types::common::AppError;
-use crate::types::response::ApiResponse;
+use crate::types::{error::AppError, response::ApiResponse};
 use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
-use crate::{constants, my_error};
+use crate::{constants};
 use axum::Extension;
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{Json, extract::State, http::StatusCode};
 use bcrypt::{DEFAULT_COST, hash, verify};
 use chrono::{Duration, Utc};
 use entity::invite_records;
@@ -38,7 +37,7 @@ pub async fn register(
         .one(&db)
         .await?;
     if user_exists.is_some() {
-        return Err(AppError::already_exists("user", None));
+        return Err(AppError::Message("user already exists".to_string()));
     }
 
     let hashed_password = hash(&payload.password, DEFAULT_COST)
