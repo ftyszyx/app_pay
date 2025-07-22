@@ -19,7 +19,7 @@ impl CrudOperations for RoleHandler {
     type Model = roles::Model;
     type CreatePayload = RoleCreatePayload;
     type UpdatePayload = RoleUpdatePayload;
-    type ListPayload = ListRolesParams;
+    type SearchPayLoad = ListRolesParams;
     fn table_name() -> &'static str {
         "roles"
     }
@@ -40,7 +40,7 @@ impl CrudOperations for RoleHandler {
         role
     }
 
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<Self::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<Self::Entity> {
         let mut query = roles::Entity::find()
             .filter(roles::Column::DeletedAt.is_null())
             .order_by_asc(roles::Column::Id);

@@ -8,7 +8,8 @@ macro_rules! impl_crud_handlers {
         $model:ty,
         $create_payload:ty,
         $update_payload:ty,
-        $list_payload:ty,
+        $search_payload:ty,
+        $search_result:ty,
         $model_name:literal,
         $fake_delete:tt
     ) => {
@@ -89,13 +90,13 @@ macro_rules! impl_crud_handlers {
             post,
             path = concat!("/api/admin/", $model_name, "/list"),
             security(("api_key" = [])),
-            request_body = $list_payload,
+            request_body = $search_payload,
             responses((status = 200, description = "Success", body = PagingResponse<$model>))
         )]
         pub async fn get_list(
             State(db): State<sea_orm::DatabaseConnection>,
             Query(params): Query<ListParamsReq>,
-            Json(payload): Json<$list_payload>,
+            Json(payload): Json<$search_payload>,
         ) -> Result<ApiResponse<PagingResponse<$model>>, AppError> {
             let page = params.page;
             let page_size = params.page_size;
@@ -119,25 +120,25 @@ macro_rules! impl_crud_handlers {
         pub async fn get_by_id(
             State(db): State<sea_orm::DatabaseConnection>,
             Path(id): Path<i32>,
-        ) -> Result<ApiResponse<<$entity as EntityTrait>::Model>, AppError> {
-            let query = crate::apply_deleted_filter!($fake_delete, <$entity>::find_by_id(id), $entity);
+        ) -> Result<ApiResponse<$search_result>, AppError> {
+            let query = $handler::build_query_by_id(id);
             let app = query.one(&db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            Ok(ApiResponse::success(app))
+            Ok(ApiResponse::success(app.into()))
         }
     };
 }
 
-// 条件编译宏优化
-#[macro_export]
-macro_rules! apply_deleted_filter {
-    (true, $query:expr, $entity:ty) => {
-        $query.filter(<$entity as EntityTrait>::Column::DeletedAt.is_null())
-    };
-    (false, $query:expr, $entity:ty) => {
-        $query
-    };
-}
+// // 条件编译宏优化
+// #[macro_export]
+// macro_rules! apply_deleted_filter {
+//     (true, $query:expr, $entity:ty) => {
+//         $query.filter(<$entity as EntityTrait>::Column::DeletedAt.is_null())
+//     };
+//     (false, $query:expr, $entity:ty) => {
+//         $query
+//     };
+// }
 
 #[macro_export]
 macro_rules! apply_delted {

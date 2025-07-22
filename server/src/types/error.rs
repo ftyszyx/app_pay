@@ -7,6 +7,7 @@ use crate::types::response::ApiResponse;
 
 /// 改进的错误处理系统
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum AppError {
     /// 数据库相关错误
     Database(DbErr),
@@ -25,6 +26,7 @@ pub enum AppError {
     Message(String),
 }
 
+#[allow(dead_code)]
 impl AppError {
     /// 创建验证错误的便捷方法
     pub fn validation(field: impl Into<String>, message: impl Into<String>) -> Self {

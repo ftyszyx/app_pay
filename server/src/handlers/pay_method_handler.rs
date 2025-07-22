@@ -18,7 +18,7 @@ impl CrudOperations for PayMethodHandler {
     type Model = pay_methods::Model;
     type CreatePayload = PayMethodCreatePayload;
     type UpdatePayload = PayMethodUpdatePayload;
-    type ListPayload = ListPayMethodsParams;
+    type SearchPayLoad = ListPayMethodsParams;
 
     fn table_name() -> &'static str {
         "pay_methods"
@@ -42,7 +42,7 @@ impl CrudOperations for PayMethodHandler {
         model
     }
 
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<Self::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<Self::Entity> {
         let mut query = pay_methods::Entity::find()
             .filter(pay_methods::Column::DeletedAt.is_null())
             .order_by_asc(pay_methods::Column::Id);

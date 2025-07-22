@@ -20,14 +20,15 @@ impl<T: Serialize> ApiResponse<T> {
         }
     }
 
-    // pub fn error_with_message(message: String) -> Self {
-    //     Self {
-    //         code: crate::constants::APP_OTHER,
-    //         message,
-    //         data: None,
-    //         success: false,
-    //     }
-    // }
+    #[allow(dead_code)]
+    pub fn error_with_message(message: String) -> Self {
+        Self {
+            code: crate::constants::APP_OTHER,
+            message,
+            data: None,
+            success: false,
+        }
+    }
 }
 
 impl<T: Serialize> IntoResponse for ApiResponse<T> {

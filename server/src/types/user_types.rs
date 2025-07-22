@@ -1,7 +1,6 @@
 use entity::{invite_records, roles, users};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 use utoipa::ToSchema;
 use validator::Validate;
 
@@ -43,47 +42,35 @@ pub struct UserUpdatePayload {
     pub balance: Option<i64>,
 }
 
-#[derive(FromRow, Serialize, ToSchema, Debug)]
+#[derive(Deserialize, Serialize, ToSchema, Debug)]
 pub struct UserInfo {
     pub id: i32,
     pub username: String,
     pub balance: String,
     pub inviter_id: Option<i32>,
-    pub invite_count: i32,
+    pub invite_count: u64,
     pub invite_rebate_total: i64,
     pub role_id: i32,
     pub role_name: String,
     pub created_at: String,
 }
 
-pub async fn model_to_info(u: users::Model, db: &DatabaseConnection) -> Result<UserInfo, AppError> {
-    let (role_id, role_name) = {
-        match roles::Entity::find_by_id(u.role_id).one(db).await {
-            Ok(Some(role)) => (role.id, role.name),
-            Ok(None) => return Err(AppError::not_found("role", Some(u.role_id))),
-            Err(e) => return Err(e.into()),
+impl From<(users::Model,roles::Model)> for UserInfo {
+    fn from((u,r): (users::Model,roles::Model)) -> Self {
+        Self{
+            id: u.id,
+            username: u.username,
+            balance: u.balance.to_string(),
+            inviter_id: u.inviter_id,
+            invite_count: 0,
+            invite_rebate_total: 0,
+            role_id: u.role_id,
+            role_name: r.name,
+            created_at: u.created_at.format("%Y-%m-%d %H:%M:%S").to_string(),
         }
-    };
-
-    let invite_count = invite_records::Entity::find()
-        .filter(invite_records::Column::InviterId.eq(u.id))
-        .count(db)
-        .await? as i32;
-    let balance = u.balance.to_string();
-    let invite_rebate_total = u.invite_rebate_total;
-    let created_at = u.created_at.format("%Y-%m-%d %H:%M:%S").to_string();
-    Ok(UserInfo {
-        id: u.id,
-        username: u.username,
-        balance,
-        inviter_id: u.inviter_id,
-        invite_count,
-        invite_rebate_total,
-        role_id,
-        role_name,
-        created_at,
-    })
+    }
 }
+
 
 #[derive(ToSchema, Serialize)]
 pub struct User {
@@ -92,6 +79,7 @@ pub struct User {
 }
 
 #[derive(Deserialize, ToSchema, Debug)]
-pub struct ListUsersParams {
+pub struct SearchUsersParams {
     pub username: Option<String>,
+    pub id: Option<i32>,
 }

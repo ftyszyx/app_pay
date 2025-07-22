@@ -1,4 +1,5 @@
 use crate::types::user_types::*;
+use entity::roles;
 use entity::users;
 
 // User Handler - 使用新的统一CRUD架构
@@ -9,7 +10,8 @@ crate::impl_crud_handlers!(
     users::Model,
     UserCreatePayload,
     UserUpdatePayload,
-    ListUsersParams,
+    SearchUsersParams,
+    UserInfo,
     "users",
     true
 );
@@ -18,9 +20,11 @@ impl CrudOperations for UserHandler {
     type Entity = users::Entity;
     type CreatePayload = UserCreatePayload;
     type UpdatePayload = UserUpdatePayload;
-    type ListPayload = ListUsersParams;
+    type SearchPayLoad = SearchUsersParams;
+    type SearchResult = UserInfo;
     type ActiveModel = users::ActiveModel;
     type Model = users::Model;
+    type QueryResult = sea_orm::SelectTwo<users::Entity,roles::Entity>;
     fn table_name() -> &'static str {
         "users"
     }
@@ -51,10 +55,15 @@ impl CrudOperations for UserHandler {
         user
     }
 
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<users::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> Self::QueryResult {
         let mut query = users::Entity::find()
+            .find_also_related(roles::Entity)
             .filter(users::Column::DeletedAt.is_null())
             .order_by_asc(users::Column::Id);
+
+        if let Some(id) = payload.id {
+            query = query.filter(users::Column::Id.eq(id));
+        }
 
         if let Some(username) = payload.username {
             if !username.is_empty() {
@@ -63,4 +72,28 @@ impl CrudOperations for UserHandler {
         }
         query
     }
+
+    fn build_query_by_id(id: i32) -> Self::QueryResult {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id),
+            ..Default::default()
+        })
+    }
+
+    fn build_query_by_str_id(id: String) -> Self::QueryResult {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id.to_string()),
+            ..Default::default()
+        })
+    }
+}
+
+pub async fn test_get_by_id(
+    State(db): State<sea_orm::DatabaseConnection>,
+    Path(id): Path<i32>,
+) -> Result<ApiResponse<UserInfo>, AppError> {
+    let query = UserHandler::build_query_by_id(id);
+    let app = query.one(&db).await?;
+    let app = app.ok_or_else(|| AppError::not_found("user".to_string(), Some(id)))?;
+    Ok(ApiResponse::success(app))
 }

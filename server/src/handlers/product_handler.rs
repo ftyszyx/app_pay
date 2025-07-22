@@ -17,7 +17,7 @@ impl CrudOperations for ProductHandler {
     type Entity = products::Entity;
     type CreatePayload = ProductCreatePayload;
     type UpdatePayload = ProductUpdatePayload;
-    type ListPayload = ListProductsParams;
+    type SearchPayLoad = ListProductsParams;
     type ActiveModel = products::ActiveModel;
     type Model = products::Model;
 
@@ -75,7 +75,7 @@ impl CrudOperations for ProductHandler {
         product
     }
 
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<products::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<products::Entity> {
         let mut query = products::Entity::find()
             .filter(products::Column::DeletedAt.is_null())
             .order_by_desc(products::Column::CreatedAt);

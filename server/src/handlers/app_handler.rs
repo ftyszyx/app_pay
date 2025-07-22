@@ -18,7 +18,7 @@ impl CrudOperations for AppHandler {
     type Entity = apps::Entity;
     type CreatePayload = AddAppReq;
     type UpdatePayload = UpdateAppReq;
-    type ListPayload = ListAppsParams;
+    type SearchPayLoad = ListAppsParams;
     type ActiveModel = apps::ActiveModel;
     type Model = apps::Model;
     fn table_name() -> &'static str {
@@ -73,7 +73,7 @@ impl CrudOperations for AppHandler {
         app
     }
 
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<apps::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<apps::Entity> {
         let mut query = apps::Entity::find()
             .filter(apps::Column::DeletedAt.is_null())
             .order_by_desc(apps::Column::CreatedAt);

@@ -13,7 +13,9 @@ pub trait CrudOperations: Sized {
         + utoipa::ToSchema
         + std::fmt::Debug
         + validator::Validate;
-    type ListPayload: serde::de::DeserializeOwned + utoipa::ToSchema + std::fmt::Debug;
+    type SearchPayLoad: serde::de::DeserializeOwned + utoipa::ToSchema + std::fmt::Debug;
+    type SearchResult: serde::de::DeserializeOwned + utoipa::ToSchema+std::fmt::Debug ;
+    type QueryResult: Send+Sync;
 
     fn table_name() -> &'static str;
 
@@ -25,11 +27,9 @@ pub trait CrudOperations: Sized {
         payload: Self::UpdatePayload,
         model: <Self::Entity as sea_orm::EntityTrait>::Model,
     ) -> <Self::Entity as sea_orm::EntityTrait>::ActiveModel;
-    fn build_query(payload: Self::ListPayload) -> sea_orm::Select<Self::Entity>;
-
-    // fn data_out_hook(model: &mut Self::Model) -> Result<(), AppError> {
-    //     Ok(())
-    // }
+    fn build_query(payload: Self::SearchPayLoad) -> Self::QueryResult;
+    fn build_query_by_id(id: i32) -> Self::QueryResult;
+    fn build_query_by_str_id(id: String) -> Self::QueryResult;
 
     // 可选的钩子方法
     fn before_add(_payload: &Self::CreatePayload) -> Result<(), AppError> {
