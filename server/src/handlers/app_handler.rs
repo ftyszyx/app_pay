@@ -1,34 +1,9 @@
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-};
-use chrono::Utc;
+crate::import_crud_macro!();
+use crate::types::app_types::*;
 use entity::apps;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter,
-    QueryOrder, Set,
-};
-use serde_json::json;
 
-use crate::{
-    types::response::ApiResponse,
-    types::{app_types::*, common::*},
-};
-
-#[utoipa::path(
-    post,
-    path = "/api/admin/apps",
-    security( ("api_key" = [])),
-    request_body = AddAppReq,
-    responses(
-        (status = 200, description = "Success", body = apps::Model),
-    )
-)]
-pub async fn add_app(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Json(req): Json<AddAppReq>,
-) -> Result<ApiResponse<apps::Model>, AppError> {
-    let new_app = apps::ActiveModel {
+fn create_app_model(req: AddAppReq) -> apps::ActiveModel {
+    apps::ActiveModel {
         name: Set(req.name),
         app_id: Set(req.app_id),
         app_vername: Set(req.app_vername),
@@ -37,29 +12,13 @@ pub async fn add_app(
         app_res_url: Set(req.app_res_url),
         app_update_info: Set(req.app_update_info),
         sort_order: Set(req.sort_order),
+        created_at: Set(Utc::now().naive_utc()),
         status: Set(req.status),
         ..Default::default()
-    };
-
-    let app = new_app.insert(&db).await?;
-    Ok(ApiResponse::success(app))
+    }
 }
 
-#[utoipa::path(
-    put,
-    path = "/api/admin/apps/{id}",
-    security( ("api_key" = [])),
-    request_body = UpdateAppReq,
-    responses(
-        (status = 200, description = "Success", body = apps::Model),
-    )
-)]
-pub async fn update_app(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Json(req): Json<UpdateAppReq>,
-) -> Result<ApiResponse<apps::Model>, AppError> {
-    let app = apps::Entity::find_by_id(req.id).one(&db).await?;
-    let app = app.ok_or(AppError::DataNotFound)?;
+fn update_app_model(req: UpdateAppReq, app: apps::Model) -> apps::ActiveModel {
     let mut app: apps::ActiveModel = app.into_active_model();
     if let Some(name) = req.name {
         app.name = Set(name);
@@ -88,78 +47,45 @@ pub async fn update_app(
     if let Some(status) = req.status {
         app.status = Set(status);
     }
-
-    let app = app.update(&db).await?;
-    Ok(ApiResponse::success(app))
+    app
 }
 
-#[utoipa::path(
-    delete,
-    path = "/api/admin/apps/{id}",
-    security( ("api_key" = [])),
-    responses(
-        (status = 200, description = "Success", body = serde_json::Value),
-    )
-)]
-pub async fn delete_app(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Path(id): Path<i32>,
-) -> Result<ApiResponse<serde_json::Value>, AppError> {
-    let app = apps::Entity::find_by_id(id).one(&db).await?;
-    let app = app.ok_or(AppError::DataNotFound)?;
-    let mut app: apps::ActiveModel = app.into_active_model();
-    app.deleted_at = Set(Some(Utc::now().naive_utc()));
-    app.update(&db).await?;
-    Ok(ApiResponse::success(json!({ "message": "success" })))
-}
-
-#[utoipa::path(
-    get,
-    path = "/api/admin/apps",
-    security( ("api_key" = [])),
-    responses(
-        (status = 200, description = "Success", body = PagingResponse<apps::Model>),
-    )
-)]
-pub async fn get_app_list(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Query(params): Query<ListParamsReq>,
-    Json(payload): Json<ListAppsParams>,
-) -> Result<ApiResponse<PagingResponse<apps::Model>>, AppError> {
-    let page = params.page;
-    let page_size = params.page_size;
+fn get_app_list_query(payload: ListAppsParams) -> sea_orm::Select<apps::Entity> {
     let mut query = apps::Entity::find()
         .filter(apps::Column::DeletedAt.is_null())
         .order_by_desc(apps::Column::CreatedAt);
     if let Some(name) = payload.name.filter(|n| !n.is_empty()) {
         query = query.filter(apps::Column::Name.contains(&name));
     }
-    let paginator = query.paginate(&db, page_size);
-    let total = paginator.num_items().await.unwrap_or(0);
-    let apps = paginator.fetch_page(page - 1).await?;
-    Ok(ApiResponse::success(PagingResponse {
-        list: apps,
-        total,
-        page,
-    }))
+    query
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/admin/apps/{id}",
-    security( ("api_key" = [])),
-    responses(
-        (status = 200, description = "Success", body = apps::Model),
-    )
-)]
-pub async fn get_app_by_id(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Path(id): Path<i32>,
-) -> Result<ApiResponse<apps::Model>, AppError> {
-    let app = apps::Entity::find_by_id(id)
-        .filter(apps::Column::DeletedAt.is_null())
-        .one(&db)
-        .await?;
-    let app = app.ok_or(AppError::DataNotFound)?;
-    Ok(ApiResponse::success(app))
-}
+// 使用宏生成 add_app 函数
+crate::impl_add_handler!(
+    app,
+    apps::Entity,
+    AddAppReq,
+    apps::ActiveModel,
+    apps::Model,
+    create_app_model
+);
+
+crate::impl_update_handler!(
+    app,
+    apps::Entity,
+    UpdateAppReq,
+    apps::ActiveModel,
+    apps::Model,
+    update_app_model
+);
+
+crate::impl_fake_delete_handler!(app, apps::Entity, apps::ActiveModel, apps::Model);
+
+crate::impl_get_handler!(
+    app,
+    apps::Entity,
+    ListAppsParams,
+    apps::Model,
+    get_app_list_query
+);
+crate::impl_get_by_id_handler!(app, apps::Entity, apps::Model, true);

@@ -13,7 +13,7 @@ pub struct Model {
     pub product_id: String,
     pub add_valid_days: i32,
     pub image_url: Option<String>,
-    pub tags: Option<Json>,
+    pub tags: Option<String>,
     pub status: i16,
     #[serde(with = "chrono::serde::ts_seconds_option")]
     #[schema(example = "2025-07-18T00:00:00+08:00")]

@@ -67,7 +67,7 @@ CREATE TABLE "products" (
     "product_id" VARCHAR(255) NOT NULL UNIQUE,
     "add_valid_days" INTEGER NOT NULL DEFAULT 0, -- 添加有效天数>0
     "image_url" VARCHAR,
-    "tags" JSONB,
+    "tags" TEXT,
     "status" SMALLINT NOT NULL DEFAULT 0,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,

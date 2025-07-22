@@ -1,7 +1,8 @@
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "users")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -25,11 +26,7 @@ pub enum Relation {
         to = "super::roles::Column::Id"
     )]
     Roles,
-    #[sea_orm(
-        belongs_to = "Entity",
-        from = "Column::InviterId",
-        to = "Column::Id"
-    )]
+    #[sea_orm(belongs_to = "Entity", from = "Column::InviterId", to = "Column::Id")]
     SelfRef,
     #[sea_orm(has_many = "Entity")]
     InvitedUsers,
@@ -64,4 +61,4 @@ impl Related<Entity> for Entity {
     }
 }
 
-impl ActiveModelBehavior for ActiveModel {} 
+impl ActiveModelBehavior for ActiveModel {}

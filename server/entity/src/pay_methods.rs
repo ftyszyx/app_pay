@@ -2,7 +2,7 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel,Serialize,ToSchema  )]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "pay_methods")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -12,6 +12,7 @@ pub struct Model {
     pub remark: Option<String>,
     pub config: Option<Json>,
     pub created_at: DateTime,
+    pub deleted_at: Option<DateTime>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -26,4 +27,4 @@ impl Related<super::orders::Entity> for Entity {
     }
 }
 
-impl ActiveModelBehavior for ActiveModel {} 
+impl ActiveModelBehavior for ActiveModel {}

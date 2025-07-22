@@ -9,7 +9,7 @@ pub struct ProductCreatePayload {
     pub product_id: String,
     pub add_valid_days: i32,
     pub image_url: Option<String>,
-    pub tags: Option<serde_json::Value>,
+    pub tags: Option<String>,
     pub status: i16,
     pub remark: Option<String>,
 }
@@ -22,7 +22,7 @@ pub struct ProductUpdatePayload {
     pub product_id: Option<String>,
     pub add_valid_days: Option<i32>,
     pub image_url: Option<String>,
-    pub tags: Option<serde_json::Value>,
+    pub tags: Option<String>,
     pub status: Option<i16>,
     pub remark: Option<String>,
 }
@@ -36,5 +36,4 @@ pub struct ProductListResponse {
 #[derive(Deserialize, ToSchema)]
 pub struct ListProductsParams {
     pub name: Option<String>,
-    pub app_id: Option<i32>,
-} 
+}
