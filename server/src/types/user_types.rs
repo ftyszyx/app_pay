@@ -4,6 +4,7 @@ use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, Quer
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
+use validator::Validate;
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -22,18 +23,18 @@ pub struct UserResponse {
     pub username: String,
     pub role: String,
     pub balance: i64,
-    pub invite_count: i32,
+    pub invite_count: u64,
     pub invite_rebate_total: i64,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct UserCreatePayload {
     pub username: String,
     pub password: String,
     pub role_id: Option<i32>,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct UserUpdatePayload {
     pub username: Option<String>,
     pub password: Option<String>,
@@ -89,7 +90,7 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct ListUsersParams {
     pub username: Option<String>,
 }

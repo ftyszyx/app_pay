@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use validator::Validate;
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct ProductCreatePayload {
     pub name: String,
     pub price: i32,
@@ -14,7 +15,7 @@ pub struct ProductCreatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct ProductUpdatePayload {
     pub name: Option<String>,
     pub price: Option<i32>,
@@ -27,13 +28,13 @@ pub struct ProductUpdatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToSchema, Debug)]
 pub struct ProductListResponse {
     pub list: Vec<entity::products::Model>,
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct ListProductsParams {
     pub name: Option<String>,
 }

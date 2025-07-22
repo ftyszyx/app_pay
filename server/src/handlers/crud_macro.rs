@@ -1,177 +1,150 @@
+// 统一的CRUD宏 - 完整实现
 #[macro_export]
-macro_rules! import_crud_macro {
-    () => {
+macro_rules! impl_crud_handlers {
+    (
+        $handler:ident,
+        $entity:ty,
+        $active_model:ty,
+        $model:ty,
+        $create_payload:ty,
+        $update_payload:ty,
+        $list_payload:ty,
+        $model_name:literal,
+        $filter_deleted:tt
+    ) => {
         use crate::types::common::{AppError, ListParamsReq, PagingResponse};
         use crate::types::response::ApiResponse;
         use axum::{
-            Json,
             extract::{Path, Query, State},
+            Json,
         };
         use chrono::Utc;
         use sea_orm::{
             ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait,
             QueryFilter, QueryOrder, Set,
         };
-    };
-}
+        use crate::types::crud::CrudOperations;
 
-#[macro_export]
-macro_rules! impl_add_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $req_type:ty,
-        $active_model:ty,
-        $model:ty,
-        $create_fn:ident
-    ) => {
-        #[utoipa::path( post,
-                                    path = concat!("/api/admin/",stringify!($model_name)),
-                                    security( ("api_key" = [])),
-                                    request_body = $req_type,
-                                    responses(
-                                            (status = 200, description = "Success", body = $model),
-                                        )
-                                    )]
+        pub struct $handler;
+
+        #[utoipa::path(
+            post,
+            path = concat!("/api/admin/", $model_name),
+            security(("api_key" = [])),
+            request_body = $create_payload,
+            responses((status = 200, description = "Success", body = $model))
+        )]
         pub async fn add(
             State(db): State<sea_orm::DatabaseConnection>,
-            Json(req): Json<$req_type>,
+            Json(req): Json<$create_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
-            let new_entity: $active_model = $create_fn(req);
+            $handler::before_add(&req)?;
+            let new_entity = $handler::create_model(req);
             let entity = new_entity.insert(&db).await?;
+            $handler::after_add(&entity)?;
             Ok(ApiResponse::success(entity))
         }
-    };
-}
 
-#[macro_export]
-macro_rules! impl_update_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $req_type:ty,
-        $active_model:ty,
-        $model:ty,
-        $update_fn:ident
-    ) => {
         #[utoipa::path(
-                                    put,
-                                    path = concat!("/api/admin/",stringify!($model_name),"/{id}"),
-                                    security( ("api_key" = [])),
-                                    request_body = $req_type,
-                                    responses(
-                                        (status = 200, description = "Success", body = $model),
-                                    )
-                                )]
+            put,
+            path = concat!("/api/admin/", $model_name, "/{id}"),
+            security(("api_key" = [])),
+            request_body = $update_payload,
+            responses((status = 200, description = "Success", body = $model))
+        )]
         pub async fn update(
             State(db): State<sea_orm::DatabaseConnection>,
             Path(id): Path<i32>,
-            Json(req): Json<$req_type>,
+            Json(req): Json<$update_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
+            $handler::before_update(id, &req)?;
             let app = <$entity>::find_by_id(id).one(&db).await?;
-            let app = app.ok_or(AppError::DataNotFound)?;
-            let app = $update_fn(req, app);
+            let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
+            let app = $handler::update_model(req, app);
             let app = app.update(&db).await?;
             Ok(ApiResponse::success(app))
         }
-    };
-}
 
-#[macro_export]
-macro_rules! impl_delete_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $active_model:ty,
-        $model:ty,
-    ) => {
         #[utoipa::path(
-                            delete,
-                            path = concat!("/api/admin/",stringify!($model_name),"/{id}"),
-                            security( ("api_key" = [])),
-                            responses(
-                                (status = 200, description = "Success", body = serde_json::Value),
-                            )
-                        )]
-        pub async fn delete(
-            State(db): State<sea_orm::DatabaseConnection>,
-            Path(id): Path<i32>,
-        ) -> Result<ApiResponse<()>, AppError> {
-            let app = <$entity>::find_by_id(id).one(&db).await?;
-            let app = app.ok_or(AppError::DataNotFound)?;
-            let app = app.delete(&db).await?;
-            Ok(ApiResponse::success(()))
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! impl_fake_delete_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $active_model:ty,
-        $model:ty
-    ) => {
-        #[utoipa::path(
-                    delete,
-                    path = concat!("/api/admin/",stringify!($model_name),"/{id}"),
-                    security( ("api_key" = [])),
-                    responses( (status = 200, description = "Success", body = serde_json::Value),
-                    )
-                )]
+            delete,
+            path = concat!("/api/admin/", $model_name, "/{id}"),
+            security(("api_key" = [])),
+            responses((status = 200, description = "Success", body = serde_json::Value))
+        )]
         pub async fn fake_delete(
             State(db): State<sea_orm::DatabaseConnection>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<()>, AppError> {
+            $handler::before_delete(id)?;
             let app = <$entity>::find_by_id(id).one(&db).await?;
-            let app = app.ok_or(AppError::DataNotFound)?;
-            let mut app: $active_model = app.into_active_model();
+            let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
+            let mut app: <$entity as EntityTrait>::ActiveModel = app.into_active_model();
             app.deleted_at = Set(Some(Utc::now().naive_utc()));
-             app.update(&db).await?;
+            app.update(&db).await?;
             Ok(ApiResponse::success(()))
         }
-    };
-}
 
-#[macro_export]
-macro_rules! impl_get_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $req_type:ty,
-        $model:ty,
-        $query_fn:ident
-    ) => {
         #[utoipa::path(
-                    post,
-                    path = concat!("/api/admin/",stringify!($model_name),"list"),
-                    security( ("api_key" = [])),
-                    responses(
-                        (status = 200, description = "Success", body = PagingResponse<$model>),
-                    )
-                )]
+            delete,
+            path= concat!("/api/admin/",$model_name,"/{id}"),
+            security(("api_key" = [])),
+            responses((status = 200, description = "Success", body = serde_json::Value))
+        )]
+        pub async fn delete(
+            State(db): State<sea_orm::DatabaseConnection>,
+            Path(id): Path<i32>,
+        ) -> Result<ApiResponse<()>, AppError> {
+            $handler::before_delete(id)?;
+            let app = <$entity>::find_by_id(id).one(&db).await?;
+            let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
+            app.into_active_model().delete(&db).await?;
+            Ok(ApiResponse::success(()))
+        }
+
+        #[utoipa::path(
+            post,
+            path = concat!("/api/admin/", $model_name, "/list"),
+            security(("api_key" = [])),
+            request_body = $list_payload,
+            responses((status = 200, description = "Success", body = PagingResponse<$model>))
+        )]
         pub async fn get_list(
             State(db): State<sea_orm::DatabaseConnection>,
             Query(params): Query<ListParamsReq>,
-            Json(payload): Json<$req_type>,
+            Json(payload): Json<$list_payload>,
         ) -> Result<ApiResponse<PagingResponse<$model>>, AppError> {
             let page = params.page;
             let page_size = params.page_size;
-            let query = $query_fn(payload);
+            let query = $handler::build_query(payload);
             let paginator = query.paginate(&db, page_size);
             let total = paginator.num_items().await.unwrap_or(0);
-            let apps = paginator.fetch_page(page - 1).await?;
-            let list: Vec<$model> = apps.into_iter().collect();
+            let list = paginator.fetch_page(page - 1).await?;
             Ok(ApiResponse::success(PagingResponse {
                 list,
                 total,
                 page,
             }))
         }
+
+        #[utoipa::path(
+            get,
+            path = concat!("/api/admin/", $model_name, "/{id}"),
+            security(("api_key" = [])),
+            responses((status = 200, description = "Success", body = $model))
+        )]
+        pub async fn get_by_id(
+            State(db): State<sea_orm::DatabaseConnection>,
+            Path(id): Path<i32>,
+        ) -> Result<ApiResponse<<$entity as EntityTrait>::Model>, AppError> {
+            let query = crate::apply_deleted_filter!($filter_deleted, <$entity>::find_by_id(id), $entity);
+            let app = query.one(&db).await?;
+            let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
+            Ok(ApiResponse::success(app))
+        }
     };
 }
 
+// 条件编译宏优化
 #[macro_export]
 macro_rules! apply_deleted_filter {
     (true, $query:expr, $entity:ty) => {
@@ -179,33 +152,5 @@ macro_rules! apply_deleted_filter {
     };
     (false, $query:expr, $entity:ty) => {
         $query
-    };
-}
-
-#[macro_export]
-macro_rules! impl_get_by_id_handler {
-    (
-        $model_name:ident,
-        $entity:ty,
-        $model:ty,
-        $filter_deleted:tt // 改为 tt (token tree) 以支持 true/false 字面量
-    ) => {
-        #[utoipa::path(
-                                    get,
-                                    path = concat!("/api/admin/",stringify!($model_name),"/{id}"),
-                                    security( ("api_key" = [])),
-                                    responses(
-                                        (status = 200, description = "Success", body = $model),
-                                    )
-                                )]
-        pub async fn get_by_id(
-            State(db): State<sea_orm::DatabaseConnection>,
-            Path(id): Path<i32>,
-        ) -> Result<ApiResponse<$model>, AppError> {
-              let query = crate::apply_deleted_filter!($filter_deleted, <$entity>::find_by_id(id), $entity);
-            let app = query .one(&db) .await?;
-             let app = app.ok_or(AppError::DataNotFound)?;
-            Ok(ApiResponse::success(app))
-        }
     };
 }

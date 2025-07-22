@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use validator::Validate;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct AddAppReq {
     pub name: String,
     pub app_id: String,
@@ -14,7 +15,7 @@ pub struct AddAppReq {
     pub status: i16,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct UpdateAppReq {
     pub id: i32,
     pub name: Option<String>,
@@ -32,9 +33,9 @@ pub struct UpdateAppReq {
 pub struct AppListResponse {
     pub list: Vec<entity::apps::Model>,
     pub total: u64,
-} 
+}
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, Debug)]
 pub struct ListAppsParams {
     pub name: Option<String>,
 }
