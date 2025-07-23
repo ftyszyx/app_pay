@@ -28,6 +28,7 @@ impl FormatTime for East8Timer {
 
 fn init_redis() -> RedisCache {
     let redis_url = env::var("REDIS_URL").unwrap();
+    tracing::info!("init redis: {}", redis_url);
     let redis = RedisCache::new(&redis_url).unwrap();
     redis
 }
