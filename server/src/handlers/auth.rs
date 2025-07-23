@@ -1,18 +1,15 @@
-use crate::handlers::middleware::Claims;
 use crate::types::common::AppState;
-use crate::types::{error::AppError, response::ApiResponse};
+use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
+use crate::utils::jwt::create_jwt;
 use crate::{constants};
 use axum::Extension;
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{Json, extract::State};
 use bcrypt::{DEFAULT_COST, hash, verify};
-use chrono::{Duration, Utc};
 use entity::invite_records;
 use entity::roles;
 use entity::users;
-use jsonwebtoken::{EncodingKey, Header, encode};
 use sea_orm::{ ActiveModelTrait, ColumnTrait,  EntityTrait, PaginatorTrait, QueryFilter, Set, };
-use std::env;
 use tracing::info;
 
 /// Register a new user
@@ -77,6 +74,7 @@ pub async fn login(
     let user_result = users::Entity::find()
         .filter(users::Column::Username.eq(&payload.username))
         .find_also_related(roles::Entity)
+        .find_also_related(roles::Entity)
         .one(&state.db)
         .await?;
     let user_result = user_result.ok_or(AppError::NotFound {
@@ -138,25 +136,3 @@ pub async fn get_current_user(
     Ok(ApiResponse::success(response))
 }
 
-fn create_jwt(user_id: i32, role: String) -> Result<String, StatusCode> {
-    let secret = env::var("JWT_SECRET").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    let expire: u32 = env::var("JWT_EXPIRE")
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .parse()
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    let expiration = Utc::now()
-        .checked_add_signed(Duration::days(expire as i64))
-        .expect("valid timestamp")
-        .timestamp();
-    let claims = Claims {
-        sub: user_id,
-        role,
-        exp: expiration as usize,
-    };
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_ref()),
-    )
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-}

@@ -5,16 +5,9 @@ use axum::{
     response::Response,
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::{Deserialize, Serialize};
 use std::env;
+use crate::types::common::Claims;
 
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Claims {
-    pub sub: i32,
-    pub role: String,
-    pub exp: usize,
-}
 
 pub async fn auth(mut req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
     let token = req

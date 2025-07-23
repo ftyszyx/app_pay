@@ -32,3 +32,11 @@ pub struct AppState {
     pub db: sea_orm::DatabaseConnection,
     pub redis: Arc<RedisCache>,
 }
+
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Claims {
+    pub sub: i32,
+    pub role: String,
+    pub exp: usize,
+}
