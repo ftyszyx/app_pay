@@ -13,7 +13,7 @@ macro_rules! impl_crud_handlers {
         $model_name:literal,
         $fake_delete:tt
     ) => {
-        use crate::types::common::{ ListParamsReq, PagingResponse};
+        use crate::types::common::{ ListParamsReq, PagingResponse,AppState};
         use crate::types::error::AppError;
         use crate::types::response::ApiResponse;
         use axum::{
@@ -37,12 +37,12 @@ macro_rules! impl_crud_handlers {
             responses((status = 200, description = "Success", body = $model))
         )]
         pub async fn add(
-            State(db): State<sea_orm::DatabaseConnection>,
+            State(state): State<AppState>,
             Json(req): Json<$create_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
             $handler::before_add(&req)?;
             let new_entity = $handler::create_model(req)?;
-            let entity = new_entity.insert(&db).await?;
+            let entity = new_entity.insert(&state.db).await?;
             $handler::after_add(&entity)?;
             Ok(ApiResponse::success(entity))
         }
@@ -55,15 +55,15 @@ macro_rules! impl_crud_handlers {
             responses((status = 200, description = "Success", body = $model))
         )]
         pub async fn update(
-            State(db): State<sea_orm::DatabaseConnection>,
+            State(state): State<AppState>,
             Path(id): Path<i32>,
             Json(req): Json<$update_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
             $handler::before_update(id, &req)?;
-            let app = <$entity>::find_by_id(id).one(&db).await?;
+            let app = <$entity>::find_by_id(id).one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             let app = $handler::update_model(req, app)?;
-            let app = app.update(&db).await?;
+            let app = app.update(&state.db).await?;
             $handler::after_update(&app)?;
             Ok(ApiResponse::success(app))
         }
@@ -75,13 +75,13 @@ macro_rules! impl_crud_handlers {
             responses((status = 200, description = "Success", body = serde_json::Value))
         )]
         pub async fn delete(
-            State(db): State<sea_orm::DatabaseConnection>,
+            State(state): State<AppState>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<()>, AppError> {
             $handler::before_delete(id)?;
-            let app = <$entity>::find_by_id(id).one(&db).await?;
+            let app = <$entity>::find_by_id(id).one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            crate::apply_delted!($fake_delete, app, &db);
+            crate::apply_delted!($fake_delete, app, &state.db);
             $handler::after_delete(id)?;
             Ok(ApiResponse::success(()))
         }
@@ -94,14 +94,14 @@ macro_rules! impl_crud_handlers {
             responses((status = 200, description = "Success", body = PagingResponse<$search_result>))
         )]
         pub async fn get_list(
-            State(db): State<sea_orm::DatabaseConnection>,
+            State(state): State<AppState>,
             Query(params): Query<ListParamsReq>,
             Json(payload): Json<$search_payload>,
         ) -> Result<ApiResponse<PagingResponse<$search_result>>, AppError> {
             let page = params.page;
             let page_size = params.page_size;
             let query = $handler::build_query(payload)?;
-            let paginator = query.paginate(&db, page_size);
+            let paginator = query.paginate(&state.db, page_size);
             let total = paginator.num_items().await.unwrap_or(0);
             let list = paginator.fetch_page(page - 1).await?;
             let list = list.into_iter().filter_map(|item| <$search_result>::try_from(item).ok()).collect();
@@ -119,11 +119,11 @@ macro_rules! impl_crud_handlers {
             responses((status = 200, description = "Success", body = $model))
         )]
         pub async fn get_by_id(
-            State(db): State<sea_orm::DatabaseConnection>,
+            State(state): State<AppState>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<$search_result>, AppError> {
             let query = $handler::build_query_by_id(id)?;
-            let app = query.one(&db).await?;
+            let app = query.one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             let app = <$search_result>::try_from(app)?;
             Ok(ApiResponse::success(app))

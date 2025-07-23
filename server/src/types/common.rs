@@ -27,6 +27,7 @@ pub struct PagingResponse<T> {
 
 // 创建一个应用状态结构体来管理所有共享状态
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct AppState {
     pub db: sea_orm::DatabaseConnection,
     pub redis: Arc<RedisCache>,

@@ -1,13 +1,15 @@
 use crate::types::error::AppError;
-use redis::{AsyncCommands, Client, FromRedisValue, RedisError, ToRedisArgs};
+use redis::{AsyncCommands, Client, RedisError, aio::MultiplexedConnection};
 use serde::{Serialize, de::DeserializeOwned};
 use std::time::Duration;
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct RedisCache {
     client: Client,
 }
 
+#[allow(dead_code)]
 impl RedisCache {
     /// 创建一个新的 RedisCache 实例
     pub fn new(redis_url: &str) -> Result<Self, RedisError> {
@@ -15,17 +17,14 @@ impl RedisCache {
         Ok(Self { client })
     }
 
-    /// 获取一个异步连接
-    async fn get_conn(&self) -> Result<redis::aio::Connection, RedisError> {
-        self.client.get_async_connection().await
+    async fn get_conn(&self) -> Result<MultiplexedConnection, RedisError> {
+        self.client.get_multiplexed_async_connection().await
     }
 
-    /// 从缓存中获取一个值
     /// 值会从 JSON 字符串反序列化
     pub async fn get<T: DeserializeOwned>(&self, key: &str) -> Result<Option<T>, AppError> {
         let mut conn = self.get_conn().await?;
         let result: Option<String> = conn.get(key).await?;
-
         match result {
             Some(val_str) => {
                 let val: T = serde_json::from_str(&val_str)?;
@@ -35,8 +34,6 @@ impl RedisCache {
         }
     }
 
-    /// 向缓存中设置一个值
-    /// 值会被序列化为 JSON 字符串
     pub async fn set<T: Serialize>(
         &self,
         key: &str,
@@ -45,20 +42,18 @@ impl RedisCache {
     ) -> Result<(), AppError> {
         let mut conn = self.get_conn().await?;
         let val_str = serde_json::to_string(value)?;
-
         if let Some(duration) = ttl {
-            conn.set_ex(key, val_str, duration.as_secs() as usize)
-                .await?;
+            let _: () = conn.set_ex(key, val_str, duration.as_secs() as u64).await?;
         } else {
-            conn.set(key, val_str).await?;
+            let _: () = conn.set(key, val_str).await?;
         }
         Ok(())
     }
 
-    /// 从缓存中删除一个值
+    #[allow(dead_code)]
     pub async fn del(&self, key: &str) -> Result<(), AppError> {
         let mut conn = self.get_conn().await?;
-        conn.del(key).await?;
+        let _: () = conn.del(key).await?;
         Ok(())
     }
 }

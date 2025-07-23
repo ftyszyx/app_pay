@@ -1,4 +1,5 @@
 use crate::handlers::middleware::Claims;
+use crate::types::common::AppState;
 use crate::types::{error::AppError, response::ApiResponse};
 use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
 use crate::{constants};
@@ -10,10 +11,7 @@ use entity::invite_records;
 use entity::roles;
 use entity::users;
 use jsonwebtoken::{EncodingKey, Header, encode};
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
-    Set,
-};
+use sea_orm::{ ActiveModelTrait, ColumnTrait,  EntityTrait, PaginatorTrait, QueryFilter, Set, };
 use std::env;
 use tracing::info;
 
@@ -29,12 +27,12 @@ use tracing::info;
     )
 )]
 pub async fn register(
-    State(db): State<DatabaseConnection>,
+    State(state): State<AppState>,
     Json(payload): Json<AuthPayload>,
 ) -> Result<ApiResponse<AuthResponse>, AppError> {
     let user_exists = users::Entity::find()
         .filter(users::Column::Username.eq(&payload.username))
-        .one(&db)
+        .one(&state.db)
         .await?;
     if user_exists.is_some() {
         return Err(AppError::Message("user already exists".to_string()));
@@ -44,7 +42,7 @@ pub async fn register(
         .map_err(|_| AppError::auth_failed("Password hash failed"))?;
     let user_role = roles::Entity::find()
         .filter(roles::Column::Name.eq(constants::USER_ROLE))
-        .one(&db)
+        .one(&state.db)
         .await?;
     let user_role = user_role.ok_or(AppError::not_found("role", None))?;
     let new_user = users::ActiveModel {
@@ -53,7 +51,7 @@ pub async fn register(
         role_id: Set(user_role.id),
         ..Default::default()
     };
-    let saved_user = new_user.insert(&db).await?;
+    let saved_user = new_user.insert(&state.db).await?;
 
     info!("User registered: {}", saved_user.username);
     let token = create_jwt(saved_user.id, user_role.name)
@@ -73,13 +71,13 @@ pub async fn register(
     )
 )]
 pub async fn login(
-    State(db): State<DatabaseConnection>,
+    State(state): State<AppState>,
     Json(payload): Json<AuthPayload>,
 ) -> Result<ApiResponse<AuthResponse>, AppError> {
     let user_result = users::Entity::find()
         .filter(users::Column::Username.eq(&payload.username))
         .find_also_related(roles::Entity)
-        .one(&db)
+        .one(&state.db)
         .await?;
     let user_result = user_result.ok_or(AppError::NotFound {
         resource: "user".to_string(),
@@ -110,12 +108,12 @@ pub async fn login(
     )
 )]
 pub async fn get_current_user(
-    State(db): State<DatabaseConnection>,
+    State(state): State<AppState>,
     Extension(claims): Extension<Claims>,
 ) -> Result<ApiResponse<UserResponse>, AppError> {
     let user_with_role = users::Entity::find_by_id(claims.sub)
         .find_also_related(roles::Entity)
-        .one(&db)
+        .one(&state.db)
         .await?;
     let user_with_role = user_with_role.ok_or(AppError::NotFound {
         resource: "user".to_string(),
@@ -124,7 +122,7 @@ pub async fn get_current_user(
     //get invite count from invite records
     let invite_count = invite_records::Entity::find()
         .filter(invite_records::Column::InviterId.eq(claims.sub))
-        .count(&db)
+        .count(&state.db)
         .await
         .unwrap_or(0);
 
