@@ -41,7 +41,7 @@ macro_rules! impl_crud_handlers {
             Json(req): Json<$create_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
             $handler::before_add(&req)?;
-            let new_entity = $handler::create_model(req);
+            let new_entity = $handler::create_model(req)?;
             let entity = new_entity.insert(&db).await?;
             $handler::after_add(&entity)?;
             Ok(ApiResponse::success(entity))
@@ -62,7 +62,7 @@ macro_rules! impl_crud_handlers {
             $handler::before_update(id, &req)?;
             let app = <$entity>::find_by_id(id).one(&db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            let app = $handler::update_model(req, app);
+            let app = $handler::update_model(req, app)?;
             let app = app.update(&db).await?;
             $handler::after_update(&app)?;
             Ok(ApiResponse::success(app))
@@ -131,17 +131,6 @@ macro_rules! impl_crud_handlers {
     };
 }
 
-// // 条件编译宏优化
-// #[macro_export]
-// macro_rules! apply_deleted_filter {
-//     (true, $query:expr, $entity:ty) => {
-//         $query.filter(<$entity as EntityTrait>::Column::DeletedAt.is_null())
-//     };
-//     (false, $query:expr, $entity:ty) => {
-//         $query
-//     };
-// }
-
 #[macro_export]
 macro_rules! apply_delted {
     (true, $app:expr, $db:expr) => {
@@ -182,6 +171,12 @@ macro_rules! update_field_if_some {
     ($model:expr, $field:ident, $value:expr) => {
         if let Some(val) = $value {
             $model.$field = Set(val);
+        }
+    };
+    // -> 新增：处理 Option<T> 字段
+    ($model:expr, $field:ident, $value:expr, option) => {
+        if let Some(val) = $value {
+            $model.$field = Set(Some(val));
         }
     };
     // 需要特殊处理的赋值（例如哈希密码）

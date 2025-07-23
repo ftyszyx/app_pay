@@ -29,4 +29,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /etc/timezone:/etc/timezone
+    env_file:
+      - .env
+    ports:
+      - "6379:6379"
 

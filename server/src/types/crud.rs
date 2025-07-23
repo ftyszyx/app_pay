@@ -19,14 +19,12 @@ pub trait CrudOperations: Sized {
 
     fn table_name() -> &'static str;
 
-    fn create_model(
-        payload: Self::CreatePayload,
-    ) -> <Self::Entity as sea_orm::EntityTrait>::ActiveModel;
+    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError>;
 
     fn update_model(
         payload: Self::UpdatePayload,
         model: <Self::Entity as sea_orm::EntityTrait>::Model,
-    ) -> <Self::Entity as sea_orm::EntityTrait>::ActiveModel;
+    ) -> Result<Self::ActiveModel, AppError>;
 
     fn build_query(_: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         Err(AppError::Message("not implemented build_query".to_string()))

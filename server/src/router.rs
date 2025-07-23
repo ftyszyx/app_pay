@@ -1,9 +1,9 @@
 use crate::handlers::{self, middleware::auth};
+use crate::types::common::AppState;
 use axum::{
     Router, middleware,
     routing::{delete, get, post, put},
 };
-use sea_orm::DatabaseConnection;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use utoipa::{
@@ -63,7 +63,7 @@ impl Modify for SecurityAddon {
     }
 }
 
-pub fn create_router(db_pool: DatabaseConnection) -> Router {
+pub fn create_router(app_state: AppState) -> Router {
     let user_routes = Router::new()
         .route("/me", get(handlers::auth::get_current_user))
         .route("/users", post(handlers::user_handler::add))
@@ -94,10 +94,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .route("/products/list", get(handlers::product_handler::get_list))
         .route("/products/{id}", get(handlers::product_handler::get_by_id))
         .route("/products/{id}", put(handlers::product_handler::update))
-        .route(
-            "/products/{id}",
-            delete(handlers::product_handler::delete),
-        )
+        .route("/products/{id}", delete(handlers::product_handler::delete))
         .route_layer(middleware::from_fn(auth));
 
     let pay_method_routes = Router::new()
@@ -130,7 +127,7 @@ pub fn create_router(db_pool: DatabaseConnection) -> Router {
         .nest("/api/admin", role_routes)
         .nest("/api/admin", product_routes)
         .nest("/api/admin", pay_method_routes)
-        .with_state(db_pool)
+        .with_state(app_state)
         .layer(cors)
         .layer(TraceLayer::new_for_http())
 }

@@ -27,22 +27,25 @@ impl CrudOperations for PayMethodHandler {
         "pay_methods"
     }
 
-    fn create_model(payload: Self::CreatePayload) -> Self::ActiveModel {
-        pay_methods::ActiveModel {
+    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
+        Ok(pay_methods::ActiveModel {
             name: Set(payload.name),
             status: Set(payload.status),
             remark: Set(payload.remark),
             config: Set(payload.config),
             ..Default::default()
-        }
+        })
     }
 
-    fn update_model(payload: Self::UpdatePayload, model: Self::Model) -> Self::ActiveModel {
+    fn update_model(
+        payload: Self::UpdatePayload,
+        model: Self::Model,
+    ) -> Result<Self::ActiveModel, AppError> {
         let mut model: Self::ActiveModel = model.into_active_model();
         if let Some(name) = payload.name {
             model.name = Set(name);
         }
-        model
+        Ok(model)
     }
 
     fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {

@@ -28,8 +28,8 @@ impl CrudOperations for AppHandler {
         "apps"
     }
 
-    fn create_model(req: Self::CreatePayload) -> apps::ActiveModel {
-        apps::ActiveModel {
+    fn create_model(req: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
+        Ok(apps::ActiveModel {
             name: Set(req.name),
             app_id: Set(req.app_id),
             app_vername: Set(req.app_vername),
@@ -41,39 +41,24 @@ impl CrudOperations for AppHandler {
             created_at: Set(Utc::now().naive_utc()),
             status: Set(req.status),
             ..Default::default()
-        }
+        })
     }
 
-    fn update_model(req: Self::UpdatePayload, app: apps::Model) -> apps::ActiveModel {
+    fn update_model(
+        req: Self::UpdatePayload,
+        app: apps::Model,
+    ) -> Result<Self::ActiveModel, AppError> {
         let mut app: apps::ActiveModel = app.into_active_model();
-        if let Some(name) = req.name {
-            app.name = Set(name);
-        }
-        if let Some(app_id) = req.app_id {
-            app.app_id = Set(app_id);
-        }
-        if let Some(app_vername) = req.app_vername {
-            app.app_vername = Set(app_vername);
-        }
-        if let Some(app_vercode) = req.app_vercode {
-            app.app_vercode = Set(app_vercode);
-        }
-        if let Some(app_download_url) = req.app_download_url {
-            app.app_download_url = Set(app_download_url);
-        }
-        if let Some(app_res_url) = req.app_res_url {
-            app.app_res_url = Set(app_res_url);
-        }
-        if let Some(app_update_info) = req.app_update_info {
-            app.app_update_info = Set(Some(app_update_info));
-        }
-        if let Some(sort_order) = req.sort_order {
-            app.sort_order = Set(sort_order);
-        }
-        if let Some(status) = req.status {
-            app.status = Set(status);
-        }
-        app
+        crate::update_field_if_some!(app, name, req.name);
+        crate::update_field_if_some!(app, app_id, req.app_id);
+        crate::update_field_if_some!(app, app_vername, req.app_vername);
+        crate::update_field_if_some!(app, app_vercode, req.app_vercode);
+        crate::update_field_if_some!(app, app_download_url, req.app_download_url);
+        crate::update_field_if_some!(app, app_res_url, req.app_res_url);
+        crate::update_field_if_some!(app, app_update_info, req.app_update_info, option);
+        crate::update_field_if_some!(app, sort_order, req.sort_order);
+        crate::update_field_if_some!(app, status, req.status);
+        Ok(app)
     }
 
     fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
@@ -81,15 +66,9 @@ impl CrudOperations for AppHandler {
             .filter(apps::Column::DeletedAt.is_null())
             .order_by_desc(apps::Column::CreatedAt);
 
-        if let Some(name) = payload.name.filter(|n| !n.is_empty()) {
-            query = query.filter(apps::Column::Name.contains(&name));
-        }
-        if let Some(id) = payload.id {
-            query = query.filter(apps::Column::Id.eq(id));
-        }
-        if let Some(app_id) = payload.app_id.filter(|id| !id.is_empty()) {
-            query = query.filter(apps::Column::AppId.contains(&app_id));
-        }
+        crate::filter_if_some!(query, apps::Column::Name, payload.name, contains);
+        crate::filter_if_some!(query, apps::Column::Id, payload.id, eq);
+        crate::filter_if_some!(query, apps::Column::AppId, payload.app_id, contains);
         Ok(query)
     }
 

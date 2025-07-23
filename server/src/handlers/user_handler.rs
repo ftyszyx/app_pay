@@ -29,16 +29,20 @@ impl CrudOperations for UserHandler {
         "users"
     }
 
-    fn create_model(payload: Self::CreatePayload) -> users::ActiveModel {
-        users::ActiveModel {
+    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
+        let password = bcrypt::hash(payload.password, 10)?;
+        Ok(users::ActiveModel {
             username: Set(payload.username),
-            password: Set(bcrypt::hash(payload.password, 10).unwrap()),
+            password: Set(password),
             role_id: Set(payload.role_id.unwrap_or(crate::constants::DEFAULT_ROLE_ID)),
             ..Default::default()
-        }
+        })
     }
 
-    fn update_model(payload: Self::UpdatePayload, user: users::Model) -> users::ActiveModel {
+    fn update_model(
+        payload: Self::UpdatePayload,
+        user: users::Model,
+    ) -> Result<Self::ActiveModel, AppError> {
         let mut user: users::ActiveModel = user.into_active_model();
         crate::update_field_if_some!(user, username, payload.username);
         crate::update_field_if_some!(
@@ -49,7 +53,7 @@ impl CrudOperations for UserHandler {
         );
         crate::update_field_if_some!(user, role_id, payload.role_id);
         crate::update_field_if_some!(user, balance, payload.balance);
-        user
+        Ok(user)
     }
 
     fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {

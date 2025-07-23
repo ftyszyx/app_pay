@@ -28,8 +28,8 @@ impl CrudOperations for ProductHandler {
         "products"
     }
 
-    fn create_model(payload: Self::CreatePayload) -> products::ActiveModel {
-        products::ActiveModel {
+    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
+        Ok(products::ActiveModel {
             name: Set(payload.name),
             price: Set(payload.price),
             app_id: Set(payload.app_id),
@@ -40,42 +40,24 @@ impl CrudOperations for ProductHandler {
             status: Set(payload.status),
             remark: Set(payload.remark),
             ..Default::default()
-        }
+        })
     }
 
     fn update_model(
         payload: Self::UpdatePayload,
         product: products::Model,
-    ) -> products::ActiveModel {
+    ) -> Result<Self::ActiveModel, AppError> {
         let mut product: products::ActiveModel = product.into_active_model();
-        if let Some(name) = payload.name {
-            product.name = Set(name);
-        }
-        if let Some(price) = payload.price {
-            product.price = Set(price);
-        }
-        if let Some(app_id) = payload.app_id {
-            product.app_id = Set(app_id);
-        }
-        if let Some(product_id) = payload.product_id {
-            product.product_id = Set(product_id);
-        }
-        if let Some(add_valid_days) = payload.add_valid_days {
-            product.add_valid_days = Set(add_valid_days);
-        }
-        if let Some(image_url) = payload.image_url {
-            product.image_url = Set(Some(image_url));
-        }
-        if let Some(tags) = payload.tags {
-            product.tags = Set(Some(tags));
-        }
-        if let Some(status) = payload.status {
-            product.status = Set(status);
-        }
-        if let Some(remark) = payload.remark {
-            product.remark = Set(Some(remark));
-        }
-        product
+        crate::update_field_if_some!(product, name, payload.name);
+        crate::update_field_if_some!(product, price, payload.price);
+        crate::update_field_if_some!(product, app_id, payload.app_id);
+        crate::update_field_if_some!(product, product_id, payload.product_id);
+        crate::update_field_if_some!(product, add_valid_days, payload.add_valid_days);
+        crate::update_field_if_some!(product, image_url, payload.image_url, option);
+        crate::update_field_if_some!(product, tags, payload.tags, option);
+        crate::update_field_if_some!(product, remark, payload.remark, option);
+        crate::update_field_if_some!(product, status, payload.status);
+        Ok(product)
     }
 
     fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {

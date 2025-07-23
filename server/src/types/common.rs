@@ -1,4 +1,6 @@
+use crate::utils::redis_cache::RedisCache;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use utoipa::ToSchema;
 
 #[derive(Deserialize)]
@@ -21,4 +23,11 @@ pub struct PagingResponse<T> {
     pub list: Vec<T>,
     pub page: u64,
     pub total: u64,
+}
+
+// 创建一个应用状态结构体来管理所有共享状态
+#[derive(Clone)]
+pub struct AppState {
+    pub db: sea_orm::DatabaseConnection,
+    pub redis: Arc<RedisCache>,
 }

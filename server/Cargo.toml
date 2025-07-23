@@ -25,6 +25,7 @@ serde_json = "1.0.140"
 uuid = { version = "1.17.0", features = ["v4", "serde"] }
 validator= {version="0.20.0",features = ["derive"]}
 futures = "0.3.31"
+redis={version="0.32.4",features = ["tokio-comp", "json"] }
 
 [workspace]
 members = ["migration", "entity"]

@@ -20,5 +20,5 @@ FROM debian:12-slim as runner
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/target/release/app_server .
 EXPOSE 3000
-CMD ["./app_server"] 
-# CMD ["/bin/bash"]
+# CMD ["./app_server"] 
+CMD ["/bin/bash"]

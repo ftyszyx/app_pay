@@ -1,5 +1,8 @@
+use crate::types::common::AppState;
+use crate::utils::redis_cache::RedisCache;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
+use std::sync::Arc;
 use std::{env, net::SocketAddr};
 use tracing_appender::rolling;
 use tracing_subscriber::{fmt::time::FormatTime, layer::SubscriberExt, util::SubscriberInitExt};
@@ -21,6 +24,12 @@ impl FormatTime for East8Timer {
         let now = Utc::now().with_timezone(&east8);
         write!(w, "{}", now.format("%Y-%m-%d %H:%M:%S%.3f"))
     }
+}
+
+fn init_redis() -> Arc<RedisCache> {
+    let redis_url = env::var("REDIS_URL").unwrap();
+    let redis = RedisCache::new(&redis_url).unwrap();
+    Arc::new(redis)
 }
 
 #[tokio::main]
@@ -48,7 +57,13 @@ async fn main() {
         .expect("Database connection failed");
     Migrator::up(&db_pool, None).await.unwrap();
 
-    let app = router::create_router(db_pool);
+    let redis = init_redis();
+    let app_state = AppState {
+        db: db_pool,
+        redis: Arc::new(redis),
+    };
+
+    let app = router::create_router(app_state);
     let listen_port = env::var("LISTEN_PORT").unwrap().parse().unwrap();
     let addr = SocketAddr::from(([127, 0, 0, 1], listen_port));
     tracing::info!("listening on {}", addr);

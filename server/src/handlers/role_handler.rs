@@ -27,20 +27,23 @@ impl CrudOperations for RoleHandler {
         "roles"
     }
 
-    fn create_model(payload: Self::CreatePayload) -> Self::ActiveModel {
-        roles::ActiveModel {
+    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
+        Ok(roles::ActiveModel {
             name: Set(payload.name),
             remark: Set(payload.remark),
             ..Default::default()
-        }
+        })
     }
 
-    fn update_model(payload: Self::UpdatePayload, role: Self::Model) -> Self::ActiveModel {
+    fn update_model(
+        payload: Self::UpdatePayload,
+        role: Self::Model,
+    ) -> Result<Self::ActiveModel, AppError> {
         let mut role: Self::ActiveModel = role.into_active_model();
         if let Some(name) = payload.name {
             role.name = Set(name);
         }
-        role
+        Ok(role)
     }
 
     fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
