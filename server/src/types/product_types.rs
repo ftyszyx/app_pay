@@ -34,7 +34,9 @@ pub struct ProductListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListProductsParams {
+    pub id: Option<i32>,
+    pub product_id: Option<String>,
     pub name: Option<String>,
 }

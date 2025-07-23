@@ -19,7 +19,8 @@ pub struct PayMethodUpdatePayload {
     pub name: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListPayMethodsParams {
+    pub id: Option<i32>,
     pub name: Option<String>,
 }

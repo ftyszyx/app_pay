@@ -42,6 +42,7 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer().with_timer(East8Timer))
         .init();
 
+    tracing::info!("Starting server");
     let db_pool = database::init_db()
         .await
         .expect("Database connection failed");

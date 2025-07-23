@@ -1,8 +1,8 @@
 use sea_orm::entity::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
+#[derive(Deserialize, Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "apps")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -49,4 +49,4 @@ impl Related<super::coupons_apps::Entity> for Entity {
     }
 }
 
-impl ActiveModelBehavior for ActiveModel {} 
+impl ActiveModelBehavior for ActiveModel {}

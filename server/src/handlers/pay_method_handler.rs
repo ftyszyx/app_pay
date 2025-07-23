@@ -8,6 +8,7 @@ crate::impl_crud_handlers!(
     PayMethodCreatePayload,
     PayMethodUpdatePayload,
     ListPayMethodsParams,
+    pay_methods::Model,
     "pay_methods",
     true
 );
@@ -19,6 +20,8 @@ impl CrudOperations for PayMethodHandler {
     type CreatePayload = PayMethodCreatePayload;
     type UpdatePayload = PayMethodUpdatePayload;
     type SearchPayLoad = ListPayMethodsParams;
+    type SearchResult = pay_methods::Model;
+    type QueryResult = sea_orm::Select<pay_methods::Entity>;
 
     fn table_name() -> &'static str {
         "pay_methods"
@@ -42,13 +45,19 @@ impl CrudOperations for PayMethodHandler {
         model
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<Self::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = pay_methods::Entity::find()
             .filter(pay_methods::Column::DeletedAt.is_null())
             .order_by_asc(pay_methods::Column::Id);
-        if let Some(name) = payload.name {
-            query = query.filter(pay_methods::Column::Name.eq(name));
-        }
-        query
+        crate::filter_if_some!(query, pay_methods::Column::Name, payload.name, contains);
+        crate::filter_if_some!(query, pay_methods::Column::Id, payload.id, eq);
+        Ok(query)
+    }
+
+    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id),
+            ..Default::default()
+        })
     }
 }

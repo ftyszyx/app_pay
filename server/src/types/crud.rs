@@ -1,5 +1,5 @@
-use validator::Validate;
 use crate::types::error::AppError;
+use validator::Validate;
 
 pub trait CrudOperations: Sized {
     type Entity: sea_orm::EntityTrait;
@@ -14,8 +14,8 @@ pub trait CrudOperations: Sized {
         + std::fmt::Debug
         + validator::Validate;
     type SearchPayLoad: serde::de::DeserializeOwned + utoipa::ToSchema + std::fmt::Debug;
-    type SearchResult: serde::de::DeserializeOwned + utoipa::ToSchema+std::fmt::Debug ;
-    type QueryResult: Send+Sync;
+    type SearchResult: serde::de::DeserializeOwned + utoipa::ToSchema + std::fmt::Debug;
+    type QueryResult: Send + Sync;
 
     fn table_name() -> &'static str;
 
@@ -27,9 +27,15 @@ pub trait CrudOperations: Sized {
         payload: Self::UpdatePayload,
         model: <Self::Entity as sea_orm::EntityTrait>::Model,
     ) -> <Self::Entity as sea_orm::EntityTrait>::ActiveModel;
-    fn build_query(payload: Self::SearchPayLoad) -> Self::QueryResult;
-    fn build_query_by_id(id: i32) -> Self::QueryResult;
-    fn build_query_by_str_id(id: String) -> Self::QueryResult;
+
+    fn build_query(_: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
+        Err(AppError::Message("not implemented build_query".to_string()))
+    }
+    fn build_query_by_id(_id: i32) -> Result<Self::QueryResult, AppError> {
+        Err(AppError::Message(
+            "not implemented build_query_by_id".to_string(),
+        ))
+    }
 
     // 可选的钩子方法
     fn before_add(_payload: &Self::CreatePayload) -> Result<(), AppError> {
@@ -43,10 +49,7 @@ pub trait CrudOperations: Sized {
         Ok(())
     }
 
-    fn before_update(
-        _id: i32,
-        _payload: &Self::UpdatePayload,
-    ) -> Result<(), AppError> {
+    fn before_update(_id: i32, _payload: &Self::UpdatePayload) -> Result<(), AppError> {
         _payload.validate()?;
         tracing::info!(
             "before update : {} data: {:?}",

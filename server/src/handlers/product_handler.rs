@@ -9,6 +9,7 @@ crate::impl_crud_handlers!(
     ProductCreatePayload,
     ProductUpdatePayload,
     ListProductsParams,
+    products::Model,
     "products",
     true
 );
@@ -20,6 +21,8 @@ impl CrudOperations for ProductHandler {
     type SearchPayLoad = ListProductsParams;
     type ActiveModel = products::ActiveModel;
     type Model = products::Model;
+    type SearchResult = products::Model;
+    type QueryResult = sea_orm::Select<products::Entity>;
 
     fn table_name() -> &'static str {
         "products"
@@ -75,14 +78,26 @@ impl CrudOperations for ProductHandler {
         product
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<products::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = products::Entity::find()
             .filter(products::Column::DeletedAt.is_null())
             .order_by_desc(products::Column::CreatedAt);
 
-        if let Some(name) = payload.name.filter(|n| !n.is_empty()) {
-            query = query.filter(products::Column::Name.contains(&name));
-        }
-        query
+        crate::filter_if_some!(query, products::Column::Id, payload.id, eq);
+        crate::filter_if_some!(
+            query,
+            products::Column::ProductId,
+            payload.product_id,
+            contains
+        );
+        crate::filter_if_some!(query, products::Column::Name, payload.name, contains);
+        Ok(query)
+    }
+
+    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id),
+            ..Default::default()
+        })
     }
 }

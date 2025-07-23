@@ -1,8 +1,8 @@
 use sea_orm::entity::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
+#[derive(Deserialize, Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "pay_methods")]
 pub struct Model {
     #[sea_orm(primary_key)]

@@ -1,5 +1,4 @@
-use entity::{invite_records, roles, users};
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
+use entity::{roles, users};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
@@ -55,9 +54,11 @@ pub struct UserInfo {
     pub created_at: String,
 }
 
-impl From<(users::Model,roles::Model)> for UserInfo {
-    fn from((u,r): (users::Model,roles::Model)) -> Self {
-        Self{
+impl TryFrom<(users::Model, Option<roles::Model>)> for UserInfo {
+    type Error = AppError;
+    fn try_from((u, r): (users::Model, Option<roles::Model>)) -> Result<Self, Self::Error> {
+        let role = r.ok_or_else(|| AppError::Message("role not found".to_string()))?;
+        Ok(Self {
             id: u.id,
             username: u.username,
             balance: u.balance.to_string(),
@@ -65,12 +66,11 @@ impl From<(users::Model,roles::Model)> for UserInfo {
             invite_count: 0,
             invite_rebate_total: 0,
             role_id: u.role_id,
-            role_name: r.name,
+            role_name: role.name,
             created_at: u.created_at.format("%Y-%m-%d %H:%M:%S").to_string(),
-        }
+        })
     }
 }
-
 
 #[derive(ToSchema, Serialize)]
 pub struct User {
@@ -78,8 +78,9 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct SearchUsersParams {
     pub username: Option<String>,
     pub id: Option<i32>,
+    pub user_id: Option<String>,
 }

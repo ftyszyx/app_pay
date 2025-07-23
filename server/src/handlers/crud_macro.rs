@@ -91,19 +91,20 @@ macro_rules! impl_crud_handlers {
             path = concat!("/api/admin/", $model_name, "/list"),
             security(("api_key" = [])),
             request_body = $search_payload,
-            responses((status = 200, description = "Success", body = PagingResponse<$model>))
+            responses((status = 200, description = "Success", body = PagingResponse<$search_result>))
         )]
         pub async fn get_list(
             State(db): State<sea_orm::DatabaseConnection>,
             Query(params): Query<ListParamsReq>,
             Json(payload): Json<$search_payload>,
-        ) -> Result<ApiResponse<PagingResponse<$model>>, AppError> {
+        ) -> Result<ApiResponse<PagingResponse<$search_result>>, AppError> {
             let page = params.page;
             let page_size = params.page_size;
-            let query = $handler::build_query(payload);
+            let query = $handler::build_query(payload)?;
             let paginator = query.paginate(&db, page_size);
             let total = paginator.num_items().await.unwrap_or(0);
             let list = paginator.fetch_page(page - 1).await?;
+            let list = list.into_iter().filter_map(|item| <$search_result>::try_from(item).ok()).collect();
             Ok(ApiResponse::success(PagingResponse {
                 list,
                 total,
@@ -121,10 +122,11 @@ macro_rules! impl_crud_handlers {
             State(db): State<sea_orm::DatabaseConnection>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<$search_result>, AppError> {
-            let query = $handler::build_query_by_id(id);
+            let query = $handler::build_query_by_id(id)?;
             let app = query.one(&db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
-            Ok(ApiResponse::success(app.into()))
+            let app = <$search_result>::try_from(app)?;
+            Ok(ApiResponse::success(app))
         }
     };
 }
@@ -143,11 +145,49 @@ macro_rules! impl_crud_handlers {
 #[macro_export]
 macro_rules! apply_delted {
     (true, $app:expr, $db:expr) => {
-            let mut app= $app.into_active_model();
-            app.deleted_at = Set(Some(Utc::now().naive_utc()));
-            app.update($db).await?;
+        let mut app = $app.into_active_model();
+        app.deleted_at = Set(Some(Utc::now().naive_utc()));
+        app.update($db).await?;
     };
     (false, $app:expr, $db:expr) => {
-            $app.into_active_model().delete($db).await?;
+        $app.into_active_model().delete($db).await?;
+    };
+}
+
+#[macro_export]
+macro_rules! filter_if_some {
+    // 匹配 .eq() 这种单参数的 filter 方法
+    ($query:expr, $column:expr, $value:expr, eq) => {
+        if let Some(val) = $value {
+            $query = $query.filter($column.eq(val));
+        }
+    };
+    // 匹配 .contains() 这种需要引用的 filter 方法
+    ($query:expr, $column:expr, $value:expr, contains) => {
+        if let Some(val) = $value.filter(|s| !s.is_empty()) {
+            $query = $query.filter($column.contains(&val));
+        }
+    };
+    // 你可以根据需要添加更多模式，例如 `gt`, `lt` 等
+    ($query:expr, $column:expr, $value:expr, gt) => {
+        if let Some(val) = $value {
+            $query = $query.filter($column.gt(val));
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! update_field_if_some {
+    // 普通赋值
+    ($model:expr, $field:ident, $value:expr) => {
+        if let Some(val) = $value {
+            $model.$field = Set(val);
+        }
+    };
+    // 需要特殊处理的赋值（例如哈希密码）
+    ($model:expr, $field:ident, $value:expr, with $handler:expr) => {
+        if let Some(val) = $value {
+            $model.$field = Set($handler(val));
+        }
     };
 }

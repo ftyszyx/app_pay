@@ -19,7 +19,8 @@ pub struct RoleListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListRolesParams {
+    pub id: Option<i32>,
     pub name: Option<String>,
 }

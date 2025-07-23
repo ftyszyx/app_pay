@@ -10,6 +10,7 @@ crate::impl_crud_handlers!(
     AddAppReq,
     UpdateAppReq,
     ListAppsParams,
+    apps::Model,
     "apps",
     true
 );
@@ -20,7 +21,9 @@ impl CrudOperations for AppHandler {
     type UpdatePayload = UpdateAppReq;
     type SearchPayLoad = ListAppsParams;
     type ActiveModel = apps::ActiveModel;
+    type SearchResult = apps::Model;
     type Model = apps::Model;
+    type QueryResult = sea_orm::Select<apps::Entity>;
     fn table_name() -> &'static str {
         "apps"
     }
@@ -73,7 +76,7 @@ impl CrudOperations for AppHandler {
         app
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<apps::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = apps::Entity::find()
             .filter(apps::Column::DeletedAt.is_null())
             .order_by_desc(apps::Column::CreatedAt);
@@ -81,6 +84,19 @@ impl CrudOperations for AppHandler {
         if let Some(name) = payload.name.filter(|n| !n.is_empty()) {
             query = query.filter(apps::Column::Name.contains(&name));
         }
-        query
+        if let Some(id) = payload.id {
+            query = query.filter(apps::Column::Id.eq(id));
+        }
+        if let Some(app_id) = payload.app_id.filter(|id| !id.is_empty()) {
+            query = query.filter(apps::Column::AppId.contains(&app_id));
+        }
+        Ok(query)
+    }
+
+    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id),
+            ..Default::default()
+        })
     }
 }

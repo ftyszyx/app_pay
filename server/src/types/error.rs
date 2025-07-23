@@ -1,9 +1,8 @@
-use axum::{response::IntoResponse};
+use axum::response::IntoResponse;
 use sea_orm::DbErr;
-use std::fmt;
+use std::{convert::Infallible, fmt};
 
 use crate::types::response::ApiResponse;
-
 
 /// 改进的错误处理系统
 #[derive(Debug)]
@@ -12,17 +11,33 @@ pub enum AppError {
     /// 数据库相关错误
     Database(DbErr),
     /// 资源未找到错误
-    NotFound { resource: String, id: Option<i32>, },
+    NotFound {
+        resource: String,
+        id: Option<i32>,
+    },
     /// 验证错误
-    Validation { field: String, message: String, },
+    Validation {
+        field: String,
+        message: String,
+    },
     /// 认证失败
-    AuthFailed { reason: String, },
+    AuthFailed {
+        reason: String,
+    },
     /// 权限不足
-    Forbidden { action: String, },
+    Forbidden {
+        action: String,
+    },
     /// 业务逻辑错误
-    BusinessLogic { code: String, message: String, },
+    BusinessLogic {
+        code: String,
+        message: String,
+    },
     /// 外部服务错误
-    ExternalService { service: String, error: String, },
+    ExternalService {
+        service: String,
+        error: String,
+    },
     Message(String),
 }
 
@@ -108,7 +123,7 @@ impl IntoResponse for AppError {
             data: None,
             success: false,
         };
-        return  response.into_response()
+        return response.into_response();
     }
 }
 
@@ -136,5 +151,12 @@ impl From<bcrypt::BcryptError> for AppError {
             code: "PASSWORD_HASH_ERROR".to_string(),
             message: "Failed to hash password".to_string(),
         }
+    }
+}
+
+impl From<Infallible> for AppError {
+    fn from(err: Infallible) -> Self {
+        tracing::error!("Infallible error: {:?}", err);
+        Self::Message("Infallible error".to_string())
     }
 }

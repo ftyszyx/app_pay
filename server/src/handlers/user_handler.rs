@@ -24,7 +24,7 @@ impl CrudOperations for UserHandler {
     type SearchResult = UserInfo;
     type ActiveModel = users::ActiveModel;
     type Model = users::Model;
-    type QueryResult = sea_orm::SelectTwo<users::Entity,roles::Entity>;
+    type QueryResult = sea_orm::SelectTwo<users::Entity, roles::Entity>;
     fn table_name() -> &'static str {
         "users"
     }
@@ -40,60 +40,33 @@ impl CrudOperations for UserHandler {
 
     fn update_model(payload: Self::UpdatePayload, user: users::Model) -> users::ActiveModel {
         let mut user: users::ActiveModel = user.into_active_model();
-        if let Some(username) = payload.username {
-            user.username = Set(username);
-        }
-        if let Some(password) = payload.password {
-            user.password = Set(bcrypt::hash(password, 10).unwrap());
-        }
-        if let Some(role_id) = payload.role_id {
-            user.role_id = Set(role_id);
-        }
-        if let Some(balance) = payload.balance {
-            user.balance = Set(balance);
-        }
+        crate::update_field_if_some!(user, username, payload.username);
+        crate::update_field_if_some!(
+            user,
+            password,
+            payload.password,
+            with | p | bcrypt::hash(p, 10).unwrap()
+        );
+        crate::update_field_if_some!(user, role_id, payload.role_id);
+        crate::update_field_if_some!(user, balance, payload.balance);
         user
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> Self::QueryResult {
+    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = users::Entity::find()
             .find_also_related(roles::Entity)
             .filter(users::Column::DeletedAt.is_null())
             .order_by_asc(users::Column::Id);
-
-        if let Some(id) = payload.id {
-            query = query.filter(users::Column::Id.eq(id));
-        }
-
-        if let Some(username) = payload.username {
-            if !username.is_empty() {
-                query = query.filter(users::Column::Username.contains(&username));
-            }
-        }
-        query
+        crate::filter_if_some!(query, users::Column::Id, payload.id, eq);
+        crate::filter_if_some!(query, users::Column::Username, payload.username, contains);
+        crate::filter_if_some!(query, users::Column::UserId, payload.user_id, eq);
+        Ok(query)
     }
 
-    fn build_query_by_id(id: i32) -> Self::QueryResult {
+    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
         Self::build_query(Self::SearchPayLoad {
             id: Some(id),
             ..Default::default()
         })
     }
-
-    fn build_query_by_str_id(id: String) -> Self::QueryResult {
-        Self::build_query(Self::SearchPayLoad {
-            id: Some(id.to_string()),
-            ..Default::default()
-        })
-    }
-}
-
-pub async fn test_get_by_id(
-    State(db): State<sea_orm::DatabaseConnection>,
-    Path(id): Path<i32>,
-) -> Result<ApiResponse<UserInfo>, AppError> {
-    let query = UserHandler::build_query_by_id(id);
-    let app = query.one(&db).await?;
-    let app = app.ok_or_else(|| AppError::not_found("user".to_string(), Some(id)))?;
-    Ok(ApiResponse::success(app))
 }

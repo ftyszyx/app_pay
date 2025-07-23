@@ -35,7 +35,9 @@ pub struct AppListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListAppsParams {
+    pub id: Option<i32>,
+    pub app_id: Option<String>,
     pub name: Option<String>,
 }

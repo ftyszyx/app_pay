@@ -9,6 +9,7 @@ crate::impl_crud_handlers!(
     RoleCreatePayload,
     RoleUpdatePayload,
     ListRolesParams,
+    roles::Model,
     "roles",
     true
 );
@@ -20,6 +21,8 @@ impl CrudOperations for RoleHandler {
     type CreatePayload = RoleCreatePayload;
     type UpdatePayload = RoleUpdatePayload;
     type SearchPayLoad = ListRolesParams;
+    type SearchResult = roles::Model;
+    type QueryResult = sea_orm::Select<roles::Entity>;
     fn table_name() -> &'static str {
         "roles"
     }
@@ -40,13 +43,19 @@ impl CrudOperations for RoleHandler {
         role
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> sea_orm::Select<Self::Entity> {
+    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = roles::Entity::find()
             .filter(roles::Column::DeletedAt.is_null())
             .order_by_asc(roles::Column::Id);
-        if let Some(name) = payload.name {
-            query = query.filter(roles::Column::Name.eq(name));
-        }
-        query
+        crate::filter_if_some!(query, roles::Column::Name, payload.name, contains);
+        crate::filter_if_some!(query, roles::Column::Id, payload.id, eq);
+        Ok(query)
+    }
+
+    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::build_query(Self::SearchPayLoad {
+            id: Some(id),
+            ..Default::default()
+        })
     }
 }
