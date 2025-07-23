@@ -26,10 +26,10 @@ impl FormatTime for East8Timer {
     }
 }
 
-fn init_redis() -> Arc<RedisCache> {
+fn init_redis() -> RedisCache {
     let redis_url = env::var("REDIS_URL").unwrap();
     let redis = RedisCache::new(&redis_url).unwrap();
-    Arc::new(redis)
+    redis
 }
 
 #[tokio::main]
