@@ -51,7 +51,7 @@ pub async fn register(
     let saved_user = new_user.insert(&state.db).await?;
 
     info!("User registered: {}", saved_user.username);
-    let token = create_jwt(saved_user.id, user_role.name)
+    let token = create_jwt(saved_user.id, user_role.name,&state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))
 }
@@ -87,7 +87,7 @@ pub async fn login(
         .1
         .map_or(constants::USER_ROLE.to_string(), |r| r.name);
     info!("User logged in: {}", user_result.0.username);
-    let token = create_jwt(user_result.0.id, role_name)
+    let token = create_jwt(user_result.0.id, role_name,&state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))
 }

@@ -2,6 +2,7 @@ use crate::utils::redis_cache::RedisCache;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
+use super::config::Config;
 
 #[derive(Deserialize, ToSchema,Debug)]
 pub struct ListParamsReq{
@@ -31,6 +32,7 @@ pub struct PagingResponse<T> {
 pub struct AppState {
     pub db: sea_orm::DatabaseConnection,
     pub redis: Arc<RedisCache>,
+    pub config: Arc<Config>,
 }
 
 
