@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
 use crate::types::common::ListParamsReq;
@@ -21,7 +21,7 @@ pub struct PayMethodUpdatePayload {
     pub name: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default)]
+#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
 pub struct ListPayMethodsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

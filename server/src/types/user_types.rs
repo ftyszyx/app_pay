@@ -1,6 +1,6 @@
 use entity::{roles, users};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
 use crate::types::{common::ListParamsReq, error::AppError};
@@ -78,7 +78,7 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default)]
+#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
 pub struct SearchUsersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

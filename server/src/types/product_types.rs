@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
 use crate::types::common::ListParamsReq;
@@ -36,7 +36,7 @@ pub struct ProductListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default)]
+#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
 pub struct ListProductsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

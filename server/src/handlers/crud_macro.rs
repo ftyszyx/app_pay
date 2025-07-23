@@ -90,7 +90,7 @@ macro_rules! impl_crud_handlers {
             get,
             path = concat!("/api/admin/", $model_name, "/list"),
             security(("api_key" = [])),
-            request_body = $search_payload,
+            params($search_payload),
             responses((status = 200, description = "Success", body = PagingResponse<$search_result>))
         )]
         pub async fn get_list(
