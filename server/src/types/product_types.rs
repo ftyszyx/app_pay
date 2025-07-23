@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
+use crate::types::common::ListParamsReq;
+
 #[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct ProductCreatePayload {
     pub name: String,
@@ -36,6 +38,8 @@ pub struct ProductListResponse {
 
 #[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListProductsParams {
+    #[serde(flatten)]
+    pub pagination: ListParamsReq,
     pub id: Option<i32>,
     pub product_id: Option<String>,
     pub name: Option<String>,

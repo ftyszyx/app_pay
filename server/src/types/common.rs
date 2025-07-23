@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
 
-#[derive(Deserialize)]
-pub struct ListParamsReq {
+#[derive(Deserialize, ToSchema,Debug)]
+pub struct ListParamsReq{
     pub page: u64,
     pub page_size: u64,
 }

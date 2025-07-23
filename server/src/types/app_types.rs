@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
+use crate::types::common::ListParamsReq;
+
 #[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct AddAppReq {
     pub name: String,
@@ -37,6 +39,8 @@ pub struct AppListResponse {
 
 #[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListAppsParams {
+    #[serde(flatten)]
+    pub pagination: ListParamsReq,
     pub id: Option<i32>,
     pub app_id: Option<String>,
     pub name: Option<String>,

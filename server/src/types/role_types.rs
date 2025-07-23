@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
+use crate::types::common::ListParamsReq;
 
 #[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct RoleCreatePayload {
@@ -21,6 +22,8 @@ pub struct RoleListResponse {
 
 #[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListRolesParams {
+    #[serde(flatten)]
+    pub pagination: ListParamsReq,
     pub id: Option<i32>,
     pub name: Option<String>,
 }

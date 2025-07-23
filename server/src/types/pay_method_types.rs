@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use utoipa::ToSchema;
 use validator::Validate;
+
+use crate::types::common::ListParamsReq;
 // pub enum PayMethodType{
 //     AliPay{name:String,appid:String,private_key:String,public_key:String},
 //     WechatPay{name:String,appid:String,mch_id:String,app_secret:String},
@@ -21,6 +23,8 @@ pub struct PayMethodUpdatePayload {
 
 #[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct ListPayMethodsParams {
+    #[serde(flatten)]
+    pub pagination: ListParamsReq,
     pub id: Option<i32>,
     pub name: Option<String>,
 }

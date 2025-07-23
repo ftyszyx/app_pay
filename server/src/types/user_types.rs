@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::types::error::AppError;
+use crate::types::{common::ListParamsReq, error::AppError};
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -80,6 +80,8 @@ pub struct User {
 
 #[derive(Deserialize, ToSchema, Debug, Default)]
 pub struct SearchUsersParams {
+    #[serde(flatten)]
+    pub pagination: ListParamsReq,
     pub username: Option<String>,
     pub id: Option<i32>,
     pub user_id: Option<String>,
