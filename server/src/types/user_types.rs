@@ -78,7 +78,7 @@ pub struct User {
     pub username: String,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
+#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
 pub struct SearchUsersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

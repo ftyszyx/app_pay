@@ -9,7 +9,7 @@ CREATE TABLE "roles" (
     "name" VARCHAR NOT NULL UNIQUE,
     "remark" TEXT,
     "deleted_at" TIMESTAMPTZ,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO "roles" ("id","name") VALUES (1,'admin'), (2,'user'), (3,'guest');
@@ -21,7 +21,7 @@ CREATE TABLE "users" (
     "user_id" VARCHAR(255) NOT NULL UNIQUE,
     "username" VARCHAR(255) NOT NULL UNIQUE,
     "password" VARCHAR(255) NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     "balance" BIGINT NOT NULL DEFAULT 0,
     "inviter_id" INTEGER ,  -- 邀请人ID
@@ -49,8 +49,8 @@ CREATE TABLE "apps" (
     "app_update_info" TEXT,
     "sort_order" INTEGER NOT NULL DEFAULT 0,
     "status" SMALLINT NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "chk_status_range" CHECK ("status" IN (0, 1))
 );
@@ -69,8 +69,8 @@ CREATE TABLE "products" (
     "image_url" VARCHAR,
     "tags" TEXT,
     "status" SMALLINT NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     "remark" TEXT,
     "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "fk_product_app_id" FOREIGN KEY ("app_id") REFERENCES "apps" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -89,7 +89,7 @@ CREATE TABLE "pay_methods" (
     "status" SMALLINT NOT NULL DEFAULT 0,
     "remark" TEXT,
     "config" JSONB,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "chk_status_range" CHECK ("status" IN (0, 1))
 );
@@ -107,8 +107,8 @@ CREATE TABLE "orders" (
     "original_price" BIGINT NOT NULL DEFAULT 0, -- 原价
     "final_price" BIGINT NOT NULL DEFAULT 0, -- 实付
     "remark" TEXT, -- 订单备注
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" INTEGER NOT NULL, -- 创建者
     "updated_by" INTEGER NOT NULL, -- 更新者
     CONSTRAINT "fk_order_pay_method_id" FOREIGN KEY ("pay_method_id") REFERENCES "pay_methods" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -138,8 +138,8 @@ CREATE TABLE "coupons" (
     "end_time" TIMESTAMPTZ, -- 优惠券结束时间
     "usage_limit" INTEGER NOT NULL DEFAULT 0, -- 优惠券使用次数限制
     "scope_type" SMALLINT NOT NULL DEFAULT 0, -- 优惠券范围类型 0: 所有商品 1: 指定应用 2: 指定商品
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "chk_discount_type_range" CHECK ("discount_type" IN (0, 1)),
     CONSTRAINT "chk_scope_type_range" CHECK ("scope_type" IN (0, 1, 2)),
@@ -217,8 +217,8 @@ CREATE TABLE "reg_codes" (
     "max_devices" INTEGER NOT NULL DEFAULT 1, -- 最大绑定设备数
     "status" SMALLINT NOT NULL DEFAULT 0, -- 状态 0: 未使用 1: 已使用 2: 已过期
     "binding_time" TIMESTAMPTZ, -- 绑定时间
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
-    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     CONSTRAINT "fk_reg_code_app_id" FOREIGN KEY ("app_id") REFERENCES "apps" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -243,7 +243,7 @@ CREATE TABLE "invite_records" (
     "user_id" INTEGER NOT NULL,
     "inviter_id" INTEGER NOT NULL,
     "user_info" JSONB,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "fk_invite_record_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "fk_invite_record_inviter_id" FOREIGN KEY ("inviter_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );

@@ -37,7 +37,7 @@ pub struct AppListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
+#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
 pub struct ListAppsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

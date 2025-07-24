@@ -1,11 +1,11 @@
+use super::config::Config;
 use crate::utils::redis_cache::RedisCache;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
-use super::config::Config;
 
-#[derive(Deserialize, ToSchema,Debug)]
-pub struct ListParamsReq{
+#[derive(Deserialize, ToSchema, Debug)]
+pub struct ListParamsReq {
     pub page: u64,
     pub page_size: u64,
 }
@@ -34,7 +34,6 @@ pub struct AppState {
     pub redis: Arc<RedisCache>,
     pub config: Arc<Config>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {

@@ -79,3 +79,22 @@ impl CrudOperations for AppHandler {
         })
     }
 }
+
+#[allow(dead_code)]
+async fn test_find(state: &AppState) -> Result<(), AppError> {
+    let query = AppHandler::build_query_by_id(3)?;
+    let paginator = query.paginate(&state.db, 10);
+    let count = paginator.num_items().await?;
+    println!("count: {}", count);
+    let user = paginator.fetch_page(1).await?;
+    println!("{:?}", user);
+    Ok(())
+}
+
+#[allow(dead_code)]
+async fn test_findone(state: &AppState) -> Result<(), AppError> {
+    let query = AppHandler::build_query_by_id(3)?;
+    let user = query.one(&state.db).await?;
+    println!("{:?}", user);
+    Ok(())
+}

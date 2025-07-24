@@ -21,7 +21,7 @@ pub struct PayMethodUpdatePayload {
     pub name: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
+#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
 pub struct ListPayMethodsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

@@ -1,7 +1,7 @@
+use crate::types::common::ListParamsReq;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
-use crate::types::common::ListParamsReq;
 
 #[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct RoleCreatePayload {
@@ -20,7 +20,7 @@ pub struct RoleListResponse {
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default,IntoParams)]
+#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
 pub struct ListRolesParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
