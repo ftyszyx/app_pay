@@ -238,6 +238,7 @@ CREATE INDEX idx_order_reg_codes_order_id ON "order_reg_codes" ("order_id");
 CREATE INDEX idx_order_reg_codes_reg_code_id ON "order_reg_codes" ("reg_code_id");
 
 --邀请记录
+DROP TABLE IF EXISTS "invite_records" CASCADE;
 CREATE TABLE "invite_records" (
     "id" SERIAL PRIMARY KEY,
     "user_id" INTEGER NOT NULL,
