@@ -5,6 +5,7 @@ pub mod my_error;
 pub mod router;
 pub mod types;
 pub mod utils;
+pub  mod app;
 
 pub use router::create_router;
 pub use types::{config::Config, common::AppState}; 
