@@ -1,6 +1,8 @@
 use crate::constants;
+use crate::handlers::user_handler::UserHandler;
 use crate::types::common::AppState;
-use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
+use crate::types::crud::CrudOperations;
+use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserResponse};
 use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
 use axum::Extension;
@@ -11,6 +13,7 @@ use entity::roles;
 use entity::users;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use tracing::info;
+use uuid::Uuid;
 
 /// Register a new user
 #[utoipa::path(
@@ -34,19 +37,16 @@ pub async fn register(
     if user_exists.is_some() {
         return Err(AppError::user_already_exists());
     }
-    let hashed_password = hash(&payload.password, DEFAULT_COST)
-        .map_err(|_| AppError::auth_failed("Password hash failed"))?;
     let user_role = roles::Entity::find()
         .filter(roles::Column::Name.eq(constants::USER_ROLE))
         .one(&state.db)
         .await?;
     let user_role = user_role.ok_or(AppError::not_found("role", None))?;
-    let new_user = users::ActiveModel {
-        username: Set(payload.username),
-        password: Set(hashed_password),
-        role_id: Set(user_role.id),
-        ..Default::default()
-    };
+    let new_user = UserHandler::create_model(UserCreatePayload {
+        username: payload.username,
+        password: payload.password,
+        role_id: Some(user_role.id),
+    })?;
     let saved_user = new_user.insert(&state.db).await?;
 
     info!("User registered: {}", saved_user.username);

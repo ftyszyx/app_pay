@@ -134,7 +134,7 @@ macro_rules! impl_crud_handlers {
 macro_rules! apply_delted {
     (true, $app:expr, $db:expr) => {
         let mut app = $app.into_active_model();
-        app.deleted_at = Set(Some(Utc::now().naive_utc()));
+        app.deleted_at = Set(Some(Utc::now()));
         app.update($db).await?;
     };
     (false, $app:expr, $db:expr) => {

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -11,8 +12,8 @@ pub struct Model {
     pub status: i16,
     pub remark: Option<String>,
     pub config: Option<Json>,
-    pub created_at: DateTime,
-    pub deleted_at: Option<DateTime>,
+    pub created_at: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

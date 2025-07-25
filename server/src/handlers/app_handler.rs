@@ -38,7 +38,7 @@ impl CrudOperations for AppHandler {
             app_res_url: Set(req.app_res_url),
             app_update_info: Set(req.app_update_info),
             sort_order: Set(req.sort_order),
-            created_at: Set(Utc::now().naive_utc()),
+            created_at: Set(Utc::now()),
             status: Set(req.status),
             ..Default::default()
         })

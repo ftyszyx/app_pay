@@ -11,4 +11,5 @@ pub const APP_FORBIDDEN: u16 = 4030;
 pub const APP_BUSINESS_LOGIC: u16 = 4002;
 pub const APP_EXTERNAL_SERVICE: u16 = 5020;
 pub const APP_USER_ALREADY_EXISTS: u16 = 4003;
+pub const APP_NOT_IMPLEMENTED: u16 = 5001;
 pub const APP_OTHER: u16 = 5000;

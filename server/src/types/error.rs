@@ -28,6 +28,9 @@ pub enum AppError {
     Forbidden {
         action: String,
     },
+    NotImplemented {
+        message: String,
+    },
     /// 业务逻辑错误
     BusinessLogic {
         code: String,
@@ -90,6 +93,7 @@ impl AppError {
             Self::BusinessLogic { .. } => crate::constants::APP_BUSINESS_LOGIC,
             Self::ExternalService { .. } => crate::constants::APP_EXTERNAL_SERVICE,
             Self::UserAlreadyExists => crate::constants::APP_USER_ALREADY_EXISTS,
+            Self::NotImplemented { .. } => crate::constants::APP_NOT_IMPLEMENTED,
             Self::Message(_) => crate::constants::APP_OTHER,
         }
     }
@@ -115,6 +119,7 @@ impl fmt::Display for AppError {
                 write!(f, "External service '{}' error: {}", service, error)
             }
             Self::UserAlreadyExists => write!(f, "User already exists"),
+            Self::NotImplemented { message } => write!(f, "Not implemented: {}", message),
             Self::Message(message) => write!(f, "{}", message),
         }
     }

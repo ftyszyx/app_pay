@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
 use utoipa::ToSchema;
@@ -10,8 +11,8 @@ pub struct Model {
     pub user_id: String,
     pub username: String,
     pub password: String,
-    pub created_at: DateTime,
-    pub deleted_at: Option<DateTime>,
+    pub created_at: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
     pub balance: i64,
     pub inviter_id: Option<i32>,
     pub invite_rebate_total: i64,

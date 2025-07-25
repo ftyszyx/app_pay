@@ -4,6 +4,7 @@ use entity::users;
 use migration::SubQueryStatement;
 use sea_orm::QuerySelect;
 use sea_orm::sea_query::{Expr, Query as SeaQuery, SimpleExpr};
+use uuid::Uuid;
 
 // User Handler - 使用新的统一CRUD架构
 crate::impl_crud_handlers!(
@@ -38,6 +39,7 @@ impl CrudOperations for UserHandler {
             username: Set(payload.username),
             password: Set(password),
             role_id: Set(payload.role_id.unwrap_or(crate::constants::DEFAULT_ROLE_ID)),
+            user_id: Set(Uuid::new_v4().to_string()),
             ..Default::default()
         })
     }
