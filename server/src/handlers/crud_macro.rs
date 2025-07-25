@@ -40,11 +40,16 @@ macro_rules! impl_crud_handlers {
             State(state): State<AppState>,
             Json(req): Json<$create_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
+            let entity = add_impl(&state,req).await?;
+            Ok(ApiResponse::success(entity))
+        }
+
+        pub async fn add_impl(state:&AppState,req:$create_payload) -> Result<$model,AppError>{
             $handler::before_add(&req)?;
             let new_entity = $handler::create_model(req)?;
             let entity = new_entity.insert(&state.db).await?;
             $handler::after_add(&entity)?;
-            Ok(ApiResponse::success(entity))
+            Ok(entity)
         }
 
         #[utoipa::path(
@@ -59,13 +64,18 @@ macro_rules! impl_crud_handlers {
             Path(id): Path<i32>,
             Json(req): Json<$update_payload>,
         ) -> Result<ApiResponse<$model>, AppError> {
+            let app = update_impl(&state,id,req).await?;
+            Ok(ApiResponse::success(app))
+        }
+
+        pub async fn update_impl(state:&AppState,id:i32,req:$update_payload) -> Result<$model,AppError>{
             $handler::before_update(id, &req)?;
             let app = <$entity>::find_by_id(id).one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             let app = $handler::update_model(req, app)?;
             let app = app.update(&state.db).await?;
             $handler::after_update(&app)?;
-            Ok(ApiResponse::success(app))
+            Ok(app)
         }
 
         #[utoipa::path(
@@ -78,12 +88,17 @@ macro_rules! impl_crud_handlers {
             State(state): State<AppState>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<()>, AppError> {
+            delete_impl(&state,id).await?;
+            Ok(ApiResponse::success(()))
+        }
+
+        pub async fn delete_impl(state:&AppState,id:i32) -> Result<(),AppError>{
             $handler::before_delete(id)?;
             let app = <$entity>::find_by_id(id).one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             crate::apply_delted!($fake_delete, app, &state.db);
             $handler::after_delete(id)?;
-            Ok(ApiResponse::success(()))
+            Ok(())
         }
 
         #[utoipa::path(
@@ -97,6 +112,11 @@ macro_rules! impl_crud_handlers {
             State(state): State<AppState>,
             Query(params): Query<$search_payload>,
         ) -> Result<ApiResponse<PagingResponse<$search_result>>, AppError> {
+            let list = get_list_impl(&state,params).await?;
+            Ok(ApiResponse::success(list))
+        }
+
+        pub async fn get_list_impl(state:&AppState,params:$search_payload) -> Result<PagingResponse<$search_result>,AppError>{
             let page = params.pagination.page;
             let page_size = params.pagination.page_size;
             let query = $handler::build_query(params)?;
@@ -104,11 +124,11 @@ macro_rules! impl_crud_handlers {
             let total = paginator.num_items().await.unwrap_or(0);
             let list = paginator.fetch_page(page - 1).await?;
             let list = list.into_iter().filter_map(|item| <$search_result>::try_from(item).ok()).collect();
-            Ok(ApiResponse::success(PagingResponse {
+            Ok(PagingResponse {
                 list,
                 total,
                 page,
-            }))
+            })
         }
 
         #[utoipa::path(
@@ -121,11 +141,16 @@ macro_rules! impl_crud_handlers {
             State(state): State<AppState>,
             Path(id): Path<i32>,
         ) -> Result<ApiResponse<$search_result>, AppError> {
+            let app = get_by_id_impl(&state,id).await?;
+            Ok(ApiResponse::success(app))
+        }
+
+        pub async fn get_by_id_impl(state:&AppState,id:i32) -> Result<$search_result,AppError>{
             let query = $handler::build_query_by_id(id)?;
             let app = query.one(&state.db).await?;
             let app = app.ok_or_else(|| AppError::not_found(stringify!($model_name).to_string(), Some(id)))?;
             let app = <$search_result>::try_from(app)?;
-            Ok(ApiResponse::success(app))
+            Ok(app)
         }
     };
 }

@@ -1694,6 +1694,7 @@ name = "migration"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "bcrypt",
  "sea-orm",
  "sea-orm-migration",
  "tokio",

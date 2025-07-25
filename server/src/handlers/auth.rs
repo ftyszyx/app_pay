@@ -1,19 +1,17 @@
 use crate::constants;
-use crate::handlers::user_handler::UserHandler;
+use crate::handlers::user_handler::{self};
 use crate::types::common::AppState;
-use crate::types::crud::CrudOperations;
 use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserResponse};
 use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
 use axum::Extension;
 use axum::{Json, extract::State};
-use bcrypt::{DEFAULT_COST, hash, verify};
+use bcrypt::{verify};
 use entity::invite_records;
 use entity::roles;
 use entity::users;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
 use tracing::info;
-use uuid::Uuid;
 
 /// Register a new user
 #[utoipa::path(
@@ -42,15 +40,13 @@ pub async fn register(
         .one(&state.db)
         .await?;
     let user_role = user_role.ok_or(AppError::not_found("role", None))?;
-    let new_user = UserHandler::create_model(UserCreatePayload {
+    let new_user = user_handler::add_impl(&state,UserCreatePayload {
         username: payload.username,
         password: payload.password,
         role_id: Some(user_role.id),
-    })?;
-    let saved_user = new_user.insert(&state.db).await?;
-
-    info!("User registered: {}", saved_user.username);
-    let token = create_jwt(saved_user.id, user_role.name, &state.config.jwt)
+    }).await?;
+    info!("User registered: {}", new_user.username);
+    let token = create_jwt(new_user.id, user_role.name, &state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))
 }
@@ -72,7 +68,6 @@ pub async fn login(
 ) -> Result<ApiResponse<AuthResponse>, AppError> {
     let user_result = users::Entity::find()
         .filter(users::Column::Username.eq(&payload.username))
-        .find_also_related(roles::Entity)
         .find_also_related(roles::Entity)
         .one(&state.db)
         .await?;

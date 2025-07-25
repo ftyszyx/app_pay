@@ -1,4 +1,4 @@
-use crate::{AppState, types::error::AppError};
+use crate::{ types::error::AppError};
 use validator::Validate;
 
 pub trait CrudOperations: Sized {
@@ -45,12 +45,6 @@ pub trait CrudOperations: Sized {
     fn after_add(_model: &Self::Model) -> Result<(), AppError> {
         tracing::info!("after add : {} data: {:?}", Self::table_name(), _model);
         Ok(())
-    }
-
-    async fn add_model(_: Self::CreatePayload, _: &AppState) -> Result<Self::Model, AppError> {
-        Err(AppError::NotImplemented {
-            message: "not implemented add_model".to_string(),
-        })
     }
 
     fn before_update(_id: i32, _payload: &Self::UpdatePayload) -> Result<(), AppError> {

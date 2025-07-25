@@ -32,9 +32,9 @@ CREATE TABLE "users" (
     CONSTRAINT "chk_balance_positive" CHECK ("balance" >= 0)
 );
 CREATE INDEX idx_user_username ON "users" ("username");
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('admin', 'admin', 'admin', 1);
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('user', 'user', 'user', 2);
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('guest', 'guest', 'guest', 3);
+INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('admin', 'admin', '$2b$12$/MZyRsK.DcYHh6x4qCy6IOjxO/Wd4RlPSbW.7OiAYqTY4U4CipDIS', 1);
+INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('user', 'user', '$2b$12$afVdZp0thpWjIQt/oib50OhlJW3UsAjn9r808ufcLMl2mLgVsDciK', 2);
+INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('guest', 'guest', '$2b$12$tOtsPnX8UlVgqYL1UbYlHuiCBjEgljGz3xhqbXstwoHdD3rMquSlW', 3);
 
 -- 产品表
 DROP TABLE IF EXISTS "apps" CASCADE;
