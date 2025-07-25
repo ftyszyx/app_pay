@@ -38,6 +38,7 @@ pub enum AppError {
         service: String,
         error: String,
     },
+    UserAlreadyExists,
     Message(String),
 }
 
@@ -66,6 +67,10 @@ impl AppError {
         }
     }
 
+    pub fn user_already_exists() -> Self {
+        Self::UserAlreadyExists
+    }
+
     /// 创建业务逻辑错误的便捷方法
     pub fn business_logic(code: impl Into<String>, message: impl Into<String>) -> Self {
         Self::BusinessLogic {
@@ -84,6 +89,7 @@ impl AppError {
             Self::Forbidden { .. } => crate::constants::APP_FORBIDDEN,
             Self::BusinessLogic { .. } => crate::constants::APP_BUSINESS_LOGIC,
             Self::ExternalService { .. } => crate::constants::APP_EXTERNAL_SERVICE,
+            Self::UserAlreadyExists => crate::constants::APP_USER_ALREADY_EXISTS,
             Self::Message(_) => crate::constants::APP_OTHER,
         }
     }
@@ -108,6 +114,7 @@ impl fmt::Display for AppError {
             Self::ExternalService { service, error } => {
                 write!(f, "External service '{}' error: {}", service, error)
             }
+            Self::UserAlreadyExists => write!(f, "User already exists"),
             Self::Message(message) => write!(f, "{}", message),
         }
     }

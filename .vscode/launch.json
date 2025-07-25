@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'app_server'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--manifest-path",
+                    "${workspaceFolder}/server/Cargo.toml",
+                    "--bin=app_server",
+                    "--package=app_server"
+                ],
+                "filter": {
+                    "name": "app_server",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/server"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug test 'test_get_apps_list'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=app_tests",
+                    "--package=app_server",
+                    "--manifest-path",
+                    "${workspaceFolder}/server/Cargo.toml"
+                ],
+                "filter": {
+                    "name": "app_tests",
+                    "kind": "test"
+                }
+            },
+            "args": [
+                "test_get_apps_list",
+                "--exact",
+                "--nocapture"
+            ],
+            "cwd": "${workspaceFolder}/server"
+        }
+    ]
+} 

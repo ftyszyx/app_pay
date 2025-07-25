@@ -1,14 +1,19 @@
+use app_server::{app, router};
 use std::net::SocketAddr;
-use app_server::{app, router,types::common::AppState};
 #[tokio::main]
 async fn main() {
-    let app_state = app::init_app().await.unwrap();
+    app::init_log();
+    let app_state = app::init_app()
+        .await
+        .unwrap_or_else(|e| panic!("failed to initialize app:{}", e.to_string()));
+    let host = app_state.config.server.host.clone();
+    let port = app_state.config.server.port;
     let app = router::create_router(app_state);
     // 启动服务器
     let addr = SocketAddr::from((
-        app_state.config.clone().server.host.parse::<std::net::Ipv4Addr>()
+        host.parse::<std::net::Ipv4Addr>()
             .unwrap_or_else(|_| std::net::Ipv4Addr::new(127, 0, 0, 1)),
-        app_state.config.clone().server.port,
+        port,
     ));
     tracing::info!("Server starting on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

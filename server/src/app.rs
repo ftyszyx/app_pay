@@ -1,9 +1,7 @@
 use crate::database;
-use crate::router;
 use crate::types::config::Config;
 use crate::types::{common::AppState, error::AppError};
 use crate::utils::redis_cache::RedisCache;
-use axum::Router;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::sync::Arc;
@@ -21,8 +19,6 @@ impl FormatTime for East8Timer {
 
 pub async fn init_app() -> Result<AppState, AppError> {
     dotenvy::dotenv().map_err(|e| AppError::Message(e.to_string()))?;
-    init_log();
-
     // 加载配置
     let config = Config::from_env()
         .map_err(|e| AppError::Message(format!("config load failed:{}", e.to_string())))?;
@@ -55,7 +51,7 @@ pub fn init_log() {
     // 初始化日志
     let file_appender = rolling::daily("logs", "app.log");
     let (non_blocking_appender, _guard) = tracing_appender::non_blocking(file_appender);
-    tracing_subscriber::registry()
+    let result = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "error".into()),
@@ -67,5 +63,8 @@ pub fn init_log() {
                 .with_writer(non_blocking_appender),
         )
         .with(tracing_subscriber::fmt::layer().with_timer(East8Timer))
-        .init();
+        .try_init();
+    if let Err(e) = result {
+        tracing::warn!("Failed to set global default subscriber: {}", e);
+    }
 }

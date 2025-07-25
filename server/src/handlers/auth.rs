@@ -1,15 +1,15 @@
+use crate::constants;
 use crate::types::common::AppState;
-use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::types::user_types::{AuthPayload, AuthResponse, UserResponse};
+use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
-use crate::{constants};
 use axum::Extension;
 use axum::{Json, extract::State};
 use bcrypt::{DEFAULT_COST, hash, verify};
 use entity::invite_records;
 use entity::roles;
 use entity::users;
-use sea_orm::{ ActiveModelTrait, ColumnTrait,  EntityTrait, PaginatorTrait, QueryFilter, Set, };
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter, Set};
 use tracing::info;
 
 /// Register a new user
@@ -32,9 +32,8 @@ pub async fn register(
         .one(&state.db)
         .await?;
     if user_exists.is_some() {
-        return Err(AppError::Message("user already exists".to_string()));
+        return Err(AppError::user_already_exists());
     }
-
     let hashed_password = hash(&payload.password, DEFAULT_COST)
         .map_err(|_| AppError::auth_failed("Password hash failed"))?;
     let user_role = roles::Entity::find()
@@ -51,7 +50,7 @@ pub async fn register(
     let saved_user = new_user.insert(&state.db).await?;
 
     info!("User registered: {}", saved_user.username);
-    let token = create_jwt(saved_user.id, user_role.name,&state.config.jwt)
+    let token = create_jwt(saved_user.id, user_role.name, &state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))
 }
@@ -87,7 +86,7 @@ pub async fn login(
         .1
         .map_or(constants::USER_ROLE.to_string(), |r| r.name);
     info!("User logged in: {}", user_result.0.username);
-    let token = create_jwt(user_result.0.id, role_name,&state.config.jwt)
+    let token = create_jwt(user_result.0.id, role_name, &state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))
 }
@@ -135,4 +134,3 @@ pub async fn get_current_user(
     };
     Ok(ApiResponse::success(response))
 }
-
