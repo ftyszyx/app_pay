@@ -1,4 +1,4 @@
-use crate::handlers::{self, middleware::auth};
+use crate::handlers::{self, middleware::auth,middleware::error_handler};
 use crate::types::common::AppState;
 use axum::{
     Router, middleware,
@@ -96,7 +96,8 @@ pub fn create_router(app_state: AppState) -> Router {
         .route( "/pay_methods/{id}", get(handlers::pay_method_handler::get_by_id))
         .route( "/pay_methods/{id}", put(handlers::pay_method_handler::update))
         .route( "/pay_methods/{id}", delete(handlers::pay_method_handler::delete))
-        .route_layer(middleware::from_fn_with_state(app_state.clone(), auth));
+        .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
+        .route_layer(middleware::from_fn(error_handler));
 
     let cors = CorsLayer::new().allow_origin(Any);
     Router::new()

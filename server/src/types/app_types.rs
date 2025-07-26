@@ -19,7 +19,6 @@ pub struct AddAppReq {
 
 #[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct UpdateAppReq {
-    pub id: i32,
     pub name: Option<String>,
     pub app_id: Option<String>,
     pub app_vername: Option<String>,

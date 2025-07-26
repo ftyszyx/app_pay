@@ -36,3 +36,15 @@ pub async fn auth(
     req.extensions_mut().insert(decoded.claims);
     Ok(next.run(req).await)
 }
+
+pub async fn error_handler(
+    req: Request<Body>,
+    next: Next,
+) -> Response {
+    let response = next.run(req).await;
+    let status=response.status();
+    if status!=StatusCode::OK{
+        tracing::error!("Response status: {} body: {:?}", response.status(), response.body());
+    }
+    response
+}

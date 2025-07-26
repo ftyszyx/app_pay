@@ -6,15 +6,15 @@ use utoipa::ToSchema;
 
 #[derive(Deserialize, ToSchema, Debug)]
 pub struct ListParamsReq {
-    pub page: u64,
-    pub page_size: u64,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
 }
 
 impl Default for ListParamsReq {
     fn default() -> Self {
         Self {
-            page: 1,
-            page_size: 20,
+            page: Some(1),
+            page_size: Some(20),
         }
     }
 }

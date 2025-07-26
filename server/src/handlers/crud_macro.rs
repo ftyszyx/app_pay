@@ -117,8 +117,8 @@ macro_rules! impl_crud_handlers {
         }
 
         pub async fn get_list_impl(state:&AppState,params:$search_payload) -> Result<PagingResponse<$search_result>,AppError>{
-            let page = params.pagination.page;
-            let page_size = params.pagination.page_size;
+            let page = params.pagination.page.unwrap_or(1);
+            let page_size = params.pagination.page_size.unwrap_or(20);
             let query = $handler::build_query(params)?;
             let paginator = query.paginate(&state.db, page_size);
             let total = paginator.num_items().await.unwrap_or(0);

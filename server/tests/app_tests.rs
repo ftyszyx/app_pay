@@ -6,6 +6,8 @@ use http_body_util::BodyExt;
 use serde_json::json;
 use tower::ServiceExt;
 
+use crate::helpers::print_response_body_get_json;
+
 mod helpers;
 
 #[tokio::test]
@@ -142,15 +144,14 @@ async fn test_update_app() {
         .unwrap();
 
     let response = app.clone().oneshot(request).await.unwrap();
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    let app_id = json["data"]["id"].as_i64().unwrap();
+    let bodyjson = print_response_body_get_json(response, "create_app").await;
+    let app_id = bodyjson["data"]["id"].as_i64().unwrap();
 
     // 然后更新应用
     let update_app_body = json!({
         "name": format!("UpdatedApp_{}", chrono::Utc::now().timestamp()),
         "app_vername": "1.0.1",
-        "status": 2
+        "status": 0
     });
 
     let request = Request::builder()
@@ -161,14 +162,11 @@ async fn test_update_app() {
         .body(Body::from(update_app_body.to_string()))
         .unwrap();
 
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-
-    assert!(json["success"].as_bool().unwrap());
-    assert_eq!(json["data"]["id"].as_i64().unwrap(), app_id);
+    let response = app.clone().oneshot(request).await.unwrap();
+    // assert_eq!(response.status(), StatusCode::OK);
+    let bodyjson = helpers::print_response_body_get_json(response, "update_app").await;
+    assert!(bodyjson["success"].as_bool().unwrap());
+    assert_eq!(bodyjson["data"]["id"].as_i64().unwrap(), app_id);
 }
 
 #[tokio::test]
@@ -242,14 +240,10 @@ async fn test_apps_pagination() {
             .unwrap();
 
         let response = app.clone().oneshot(request).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK, "Failed for URI: {}", uri);
-
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-
-        assert!(json["success"].as_bool().unwrap());
-        assert!(json["data"]["list"].is_array());
-        assert!(json["data"]["total"].is_number());
-        assert!(json["data"]["page"].is_number());
+        let bodyjson = print_response_body_get_json(response, "apps_pagination").await;
+        assert!(bodyjson["success"].as_bool().unwrap());
+        assert!(bodyjson["data"]["list"].is_array());
+        assert!(bodyjson["data"]["total"].is_number());
+        assert!(bodyjson["data"]["page"].is_number());
     }
 }

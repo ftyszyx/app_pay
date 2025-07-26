@@ -17,7 +17,6 @@ pub enum AppError {
     },
     /// 验证错误
     Validation {
-        field: String,
         message: String,
     },
     /// 认证失败
@@ -48,9 +47,8 @@ pub enum AppError {
 #[allow(dead_code)]
 impl AppError {
     /// 创建验证错误的便捷方法
-    pub fn validation(field: impl Into<String>, message: impl Into<String>) -> Self {
+    pub fn validation(message: impl Into<String>) -> Self {
         Self::Validation {
-            field: field.into(),
             message: message.into(),
         }
     }
@@ -107,8 +105,8 @@ impl fmt::Display for AppError {
                 Some(id) => write!(f, "Resource '{}' with id {} not found", resource, id),
                 None => write!(f, "Resource '{}' not found", resource),
             },
-            Self::Validation { field, message } => {
-                write!(f, "Validation error for field '{}': {}", field, message)
+            Self::Validation { message } => {
+                write!(f, "Validation error: {}", message)
             }
             Self::AuthFailed { reason } => write!(f, "Authentication failed: {}", reason),
             Self::Forbidden { action } => write!(f, "Forbidden action: {}", action),
@@ -143,8 +141,7 @@ impl From<validator::ValidationErrors> for AppError {
     fn from(errors: validator::ValidationErrors) -> Self {
         tracing::error!("Validation errors: {:?}", errors);
         Self::Validation {
-            field: "".to_string(),
-            message: "Validation failed".to_string(),
+            message: errors.to_string(),
         }
     }
 }
