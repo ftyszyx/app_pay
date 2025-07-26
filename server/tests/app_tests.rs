@@ -242,6 +242,7 @@ async fn test_apps_pagination() {
         let response = app.clone().oneshot(request).await.unwrap();
         let bodyjson = print_response_body_get_json(response, "apps_pagination").await;
         assert!(bodyjson["success"].as_bool().unwrap());
+        
         assert!(bodyjson["data"]["list"].is_array());
         assert!(bodyjson["data"]["total"].is_number());
         assert!(bodyjson["data"]["page"].is_number());

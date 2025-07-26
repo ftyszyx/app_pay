@@ -7,6 +7,7 @@ use axum::{
 };
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use crate::types::common::{AppState, Claims};
+use http_body_util::BodyExt;
 
 pub async fn auth(
     State(state): State<AppState>,
@@ -44,7 +45,13 @@ pub async fn error_handler(
     let response = next.run(req).await;
     let status=response.status();
     if status!=StatusCode::OK{
-        tracing::error!("Response status: {} body: {:?}", response.status(), response.body());
+        let (parts, body) = response.into_parts();
+        let bytes = body.collect().await.unwrap().to_bytes();
+        let body_str=String::from_utf8_lossy(&bytes);
+        tracing::error!("Response status: {} body: {}", status, body_str);
+        Response::from_parts(parts, Body::from(bytes))
     }
-    response
+    else {
+        response
+    }
 }

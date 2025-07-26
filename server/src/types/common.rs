@@ -3,10 +3,13 @@ use crate::utils::redis_cache::RedisCache;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
+use crate::utils::convert::from_str_optional;
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, ToSchema, Debug,Serialize)]
 pub struct ListParamsReq {
+    #[serde(deserialize_with = "from_str_optional",default)]
     pub page: Option<u64>,
+    #[serde(deserialize_with = "from_str_optional",default)]
     pub page_size: Option<u64>,
 }
 
