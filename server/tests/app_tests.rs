@@ -58,14 +58,10 @@ async fn test_create_app() {
         .unwrap();
 
     let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-
-    assert!(json["success"].as_bool().unwrap());
-    assert!(json["data"]["id"].is_number());
-    assert!(json["data"]["name"].is_string());
+    let bodyjson = print_response_body_get_json(response, "create_app").await;
+    assert!(bodyjson["success"].as_bool().unwrap());
+    assert!(bodyjson["data"]["id"].is_number());
+    assert!(bodyjson["data"]["name"].is_string());
 }
 
 #[tokio::test]
@@ -242,7 +238,7 @@ async fn test_apps_pagination() {
         let response = app.clone().oneshot(request).await.unwrap();
         let bodyjson = print_response_body_get_json(response, "apps_pagination").await;
         assert!(bodyjson["success"].as_bool().unwrap());
-        
+
         assert!(bodyjson["data"]["list"].is_array());
         assert!(bodyjson["data"]["total"].is_number());
         assert!(bodyjson["data"]["page"].is_number());
