@@ -63,7 +63,7 @@ impl TryFrom<(users::Model, Option<roles::Model>)> for UserInfo {
             username: u.username,
             balance: u.balance.to_string(),
             inviter_id: u.inviter_id,
-            invite_count: 0,
+            invite_count: u.invite_count,
             invite_rebate_total: 0,
             role_id: u.role_id,
             role_name: role.name,

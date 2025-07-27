@@ -2,8 +2,10 @@
 
 use chrono::{DateTime, Utc};
 use sea_orm::entity::prelude::*;
+use serde::Serialize;
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel,Serialize,ToSchema)]
 #[sea_orm(table_name = "reg_codes")]
 pub struct Model {
     #[sea_orm(primary_key)]

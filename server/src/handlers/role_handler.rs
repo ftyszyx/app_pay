@@ -46,7 +46,7 @@ impl CrudOperations for RoleHandler {
         Ok(role)
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
+    fn get_list(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = roles::Entity::find()
             .filter(roles::Column::DeletedAt.is_null())
             .order_by_asc(roles::Column::Id);
@@ -55,8 +55,8 @@ impl CrudOperations for RoleHandler {
         Ok(query)
     }
 
-    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
-        Self::build_query(Self::SearchPayLoad {
+    fn get_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::get_list(Self::SearchPayLoad {
             id: Some(id),
             ..Default::default()
         })

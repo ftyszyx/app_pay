@@ -61,7 +61,7 @@ impl CrudOperations for UserHandler {
         Ok(user)
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
+    fn get_list(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let subquery = SeaQuery::select()
             .expr(Expr::col(entity::invite_records::Column::Id).count())
             .from(entity::invite_records::Entity)
@@ -70,6 +70,7 @@ impl CrudOperations for UserHandler {
                     .eq(Expr::col(entity::users::Column::Id)),
             )
             .to_owned();
+
         let mut query = users::Entity::find()
             .find_also_related(roles::Entity)
             .filter(users::Column::DeletedAt.is_null())
@@ -85,8 +86,8 @@ impl CrudOperations for UserHandler {
         Ok(query)
     }
 
-    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
-        Self::build_query(Self::SearchPayLoad {
+    fn get_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::get_list(Self::SearchPayLoad {
             id: Some(id),
             ..Default::default()
         })
@@ -94,7 +95,7 @@ impl CrudOperations for UserHandler {
 }
 #[allow(dead_code)]
 async fn test_find(state: &AppState) -> Result<(), AppError> {
-    let query = UserHandler::build_query_by_id(3)?;
+    let query = UserHandler::get_by_id(3)?;
     let paginator = query.paginate(&state.db, 10);
     let count = paginator.num_items().await?;
     println!("count: {}", count);
@@ -105,7 +106,7 @@ async fn test_find(state: &AppState) -> Result<(), AppError> {
 
 #[allow(dead_code)]
 async fn test_findone(state: &AppState) -> Result<(), AppError> {
-    let query = UserHandler::build_query_by_id(3)?;
+    let query = UserHandler::get_by_id(3)?;
     let user = query.one(&state.db).await?;
     println!("{:?}", user);
     Ok(())

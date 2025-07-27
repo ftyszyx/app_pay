@@ -60,7 +60,7 @@ impl CrudOperations for ProductHandler {
         Ok(product)
     }
 
-    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
+    fn get_list(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
         let mut query = products::Entity::find()
             .filter(products::Column::DeletedAt.is_null())
             .order_by_desc(products::Column::CreatedAt);
@@ -76,8 +76,8 @@ impl CrudOperations for ProductHandler {
         Ok(query)
     }
 
-    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
-        Self::build_query(Self::SearchPayLoad {
+    fn get_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
+        Self::get_list(Self::SearchPayLoad {
             id: Some(id),
             ..Default::default()
         })

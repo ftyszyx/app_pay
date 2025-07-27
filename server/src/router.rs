@@ -46,6 +46,18 @@ use utoipa::{
         handlers::pay_method_handler::get_by_id,
         handlers::pay_method_handler::update,
         handlers::pay_method_handler::delete,
+        //invite_records
+        handlers::invite_records_handler::get_list,
+        handlers::invite_records_handler::get_by_id,
+        //reg_codes
+        handlers::reg_codes_handler::add,
+        handlers::reg_codes_handler::get_list,
+        handlers::reg_codes_handler::get_by_id,
+        handlers::reg_codes_handler::update,
+        handlers::reg_codes_handler::delete,
+        //orders
+        handlers::orders_handler::get_list,
+        handlers::orders_handler::get_by_id,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -96,6 +108,18 @@ pub fn create_router(app_state: AppState) -> Router {
         .route( "/pay_methods/{id}", get(handlers::pay_method_handler::get_by_id))
         .route( "/pay_methods/{id}", put(handlers::pay_method_handler::update))
         .route( "/pay_methods/{id}", delete(handlers::pay_method_handler::delete))
+        //invite_records
+        .route("/invite_records/list", get(handlers::invite_records_handler::get_list))
+        .route("/invite_records/{id}", get(handlers::invite_records_handler::get_by_id))
+        //reg_codes
+        .route("/reg_codes", post(handlers::reg_codes_handler::add))
+        .route("/reg_codes/list", get(handlers::reg_codes_handler::get_list))
+        .route("/reg_codes/{id}", get(handlers::reg_codes_handler::get_by_id))
+        .route("/reg_codes/{id}", put(handlers::reg_codes_handler::update))
+        .route("/reg_codes/{id}", delete(handlers::reg_codes_handler::delete))
+        //orders
+        .route("/orders/list", get(handlers::orders_handler::get_list))
+        .route("/orders/{id}", get(handlers::orders_handler::get_by_id))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
         .route_layer(middleware::from_fn(error_handler));
 
