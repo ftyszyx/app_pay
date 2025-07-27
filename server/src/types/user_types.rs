@@ -2,8 +2,8 @@ use entity::{roles, users};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
-
 use crate::types::{common::ListParamsReq, error::AppError};
+use crate::utils::convert::from_str_optional;
 
 #[derive(Deserialize, ToSchema)]
 pub struct AuthPayload {
@@ -83,6 +83,7 @@ pub struct SearchUsersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
     pub username: Option<String>,
-    pub id: Option<i32>,
     pub user_id: Option<String>,
+    #[serde(deserialize_with = "from_str_optional",default)]
+    pub id: Option<i32>,
 }

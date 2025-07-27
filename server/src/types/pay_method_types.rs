@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
+use crate::utils::convert::from_str_optional;
 
 use crate::types::common::ListParamsReq;
 // pub enum PayMethodType{
@@ -25,6 +26,7 @@ pub struct PayMethodUpdatePayload {
 pub struct ListPayMethodsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
+    #[serde(deserialize_with = "from_str_optional",default)]
     pub id: Option<i32>,
     pub name: Option<String>,
 }

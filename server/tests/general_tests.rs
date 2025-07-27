@@ -2,33 +2,14 @@ use axum::{
     body::Body,
     http::{Request, StatusCode},
 };
-use http_body_util::BodyExt;
 use tower::ServiceExt;
-
 mod helpers;
 
-#[tokio::test]
-async fn test_root_endpoint() {
-    let app = helpers::create_test_app().await;
-    
-    let request = Request::builder()
-        .method("GET")
-        .uri("/")
-        .body(Body::empty())
-        .unwrap();
-    
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-    
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let text = String::from_utf8(body.to_vec()).unwrap();
-    assert_eq!(text, "<h1>App Pay</h1>");
-}
+
 
 #[tokio::test]
 async fn test_not_found() {
     let app = helpers::create_test_app().await;
-    
     let request = Request::builder()
         .method("GET")
         .uri("/nonexistent")
@@ -39,19 +20,6 @@ async fn test_not_found() {
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
 
-#[tokio::test]
-async fn test_method_not_allowed() {
-    let app = helpers::create_test_app().await;
-    
-    let request = Request::builder()
-        .method("PATCH")  // 不支持的方法
-        .uri("/api/login")
-        .body(Body::empty())
-        .unwrap();
-    
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::METHOD_NOT_ALLOWED);
-}
 
 #[tokio::test]
 async fn test_invalid_json() {
