@@ -1,7 +1,6 @@
 pub mod app_types;
 pub mod common;
 pub mod config;
-pub mod crud;
 pub mod error;
 pub mod invite_records_types;
 pub mod orders_types;

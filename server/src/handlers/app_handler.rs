@@ -1,100 +1,154 @@
 use crate::types::app_types::*;
 use entity::apps;
+crate::import_crud_macro!();
 
-// App Handler - 使用新的统一CRUD架构
-crate::impl_crud_handlers!(
-    AppHandler,
-    apps::Entity,
-    apps::ActiveModel,
-    apps::Model,
-    AddAppReq,
-    UpdateAppReq,
-    ListAppsParams,
-    apps::Model,
-    "apps",
-    true
-);
-
-impl CrudOperations for AppHandler {
-    type Entity = apps::Entity;
-    type CreatePayload = AddAppReq;
-    type UpdatePayload = UpdateAppReq;
-    type SearchPayLoad = ListAppsParams;
-    type ActiveModel = apps::ActiveModel;
-    type SearchResult = apps::Model;
-    type Model = apps::Model;
-    type QueryResult = sea_orm::Select<apps::Entity>;
-    fn table_name() -> &'static str {
-        "apps"
-    }
-
-    fn create_model(req: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
-        Ok(apps::ActiveModel {
-            name: Set(req.name),
-            app_id: Set(req.app_id),
-            app_vername: Set(req.app_vername),
-            app_vercode: Set(req.app_vercode),
-            app_download_url: Set(req.app_download_url),
-            app_res_url: Set(req.app_res_url),
-            app_update_info: Set(req.app_update_info),
-            sort_order: Set(req.sort_order),
-            created_at: Set(Utc::now()),
-            status: Set(req.status),
-            ..Default::default()
-        })
-    }
-
-    fn update_model(
-        req: Self::UpdatePayload,
-        app: apps::Model,
-    ) -> Result<Self::ActiveModel, AppError> {
-        let mut app: apps::ActiveModel = app.into_active_model();
-        crate::update_field_if_some!(app, name, req.name);
-        crate::update_field_if_some!(app, app_id, req.app_id);
-        crate::update_field_if_some!(app, app_vername, req.app_vername);
-        crate::update_field_if_some!(app, app_vercode, req.app_vercode);
-        crate::update_field_if_some!(app, app_download_url, req.app_download_url);
-        crate::update_field_if_some!(app, app_res_url, req.app_res_url);
-        crate::update_field_if_some!(app, app_update_info, req.app_update_info, option);
-        crate::update_field_if_some!(app, sort_order, req.sort_order);
-        crate::update_field_if_some!(app, status, req.status);
-        Ok(app)
-    }
-
-    fn build_query(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
-        let mut query = apps::Entity::find()
-            .filter(apps::Column::DeletedAt.is_null())
-            .order_by_desc(apps::Column::CreatedAt);
-
-        crate::filter_if_some!(query, apps::Column::Name, payload.name, contains);
-        crate::filter_if_some!(query, apps::Column::Id, payload.id, eq);
-        crate::filter_if_some!(query, apps::Column::AppId, payload.app_id, contains);
-        Ok(query)
-    }
-
-    fn build_query_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
-        Self::build_query(Self::SearchPayLoad {
-            id: Some(id),
-            ..Default::default()
-        })
-    }
+// Create App
+#[utoipa::path(
+    post,
+    path = "/api/admin/apps",
+    security(("api_key" = [])),
+    request_body = AddAppReq,
+    responses((status = 200, description = "Success", body = apps::Model))
+)]
+pub async fn add(
+    State(state): State<AppState>,
+    Json(req): Json<AddAppReq>,
+) -> Result<ApiResponse<apps::Model>, AppError> {
+    let entity = add_impl(&state, req).await?;
+    Ok(ApiResponse::success(entity))
 }
 
-#[allow(dead_code)]
-async fn test_find(state: &AppState) -> Result<(), AppError> {
-    let query = AppHandler::build_query_by_id(3)?;
-    let paginator = query.paginate(&state.db, 10);
-    let count = paginator.num_items().await?;
-    println!("count: {}", count);
-    let user = paginator.fetch_page(1).await?;
-    println!("{:?}", user);
+pub async fn add_impl(state: &AppState, req: AddAppReq) -> Result<apps::Model, AppError> {
+    let active_model = apps::ActiveModel {
+        name: Set(req.name),
+        app_id: Set(req.app_id),
+        app_vername: Set(req.app_vername),
+        app_vercode: Set(req.app_vercode),
+        app_download_url: Set(req.app_download_url),
+        app_res_url: Set(req.app_res_url),
+        app_update_info: Set(req.app_update_info),
+        sort_order: Set(req.sort_order),
+        created_at: Set(Utc::now()),
+        status: Set(req.status),
+        ..Default::default()
+    };
+    let entity = active_model.insert(&state.db).await?;
+    Ok(entity)
+}
+
+// Update App
+#[utoipa::path(
+    put,
+    path = "/api/admin/apps/{id}",
+    security(("api_key" = [])),
+    request_body = UpdateAppReq,
+    responses((status = 200, description = "Success", body = apps::Model))
+)]
+pub async fn update(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(req): Json<UpdateAppReq>,
+) -> Result<ApiResponse<apps::Model>, AppError> {
+    let app = update_impl(&state, id, req).await?;
+    Ok(ApiResponse::success(app))
+}
+
+pub async fn update_impl(
+    state: &AppState,
+    id: i32,
+    req: UpdateAppReq,
+) -> Result<apps::Model, AppError> {
+    let app = apps::Entity::find_by_id(id).one(&state.db).await?;
+    let app = app.ok_or_else(|| AppError::not_found("apps".to_string(), Some(id)))?;
+    let mut app: apps::ActiveModel = app.into_active_model();
+    crate::update_field_if_some!(app, name, req.name);
+    crate::update_field_if_some!(app, app_id, req.app_id);
+    crate::update_field_if_some!(app, app_vername, req.app_vername);
+    crate::update_field_if_some!(app, app_vercode, req.app_vercode);
+    crate::update_field_if_some!(app, app_download_url, req.app_download_url);
+    crate::update_field_if_some!(app, app_res_url, req.app_res_url);
+    crate::update_field_if_some!(app, app_update_info, req.app_update_info, option);
+    crate::update_field_if_some!(app, sort_order, req.sort_order);
+    crate::update_field_if_some!(app, status, req.status);
+    let app = app.update(&state.db).await?;
+    Ok(app)
+}
+
+// Delete App
+#[utoipa::path(
+    delete,
+    path = "/api/admin/apps/{id}",
+    security(("api_key" = [])),
+    responses((status = 200, description = "Success", body = serde_json::Value))
+)]
+pub async fn delete(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<ApiResponse<()>, AppError> {
+    delete_impl(&state, id).await?;
+    Ok(ApiResponse::success(()))
+}
+
+pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
+    let app = apps::Entity::find_by_id(id).one(&state.db).await?;
+    let app = app.ok_or_else(|| AppError::not_found("apps".to_string(), Some(id)))?;
+    let mut app = app.into_active_model();
+    app.deleted_at = Set(Some(Utc::now()));
+    let _ = app.update(&state.db).await?;
     Ok(())
 }
 
-#[allow(dead_code)]
-async fn test_findone(state: &AppState) -> Result<(), AppError> {
-    let query = AppHandler::build_query_by_id(3)?;
-    let user = query.one(&state.db).await?;
-    println!("{:?}", user);
-    Ok(())
+// Get Apps List
+#[utoipa::path(
+    get,
+    path = "/api/admin/apps/list",
+    security(("api_key" = [])),
+    params(ListAppsParams),
+    responses((status = 200, description = "Success", body = PagingResponse<apps::Model>))
+)]
+pub async fn get_list(
+    State(state): State<AppState>,
+    Query(params): Query<ListAppsParams>,
+) -> Result<ApiResponse<PagingResponse<apps::Model>>, AppError> {
+    let list = get_list_impl(&state, params).await?;
+    Ok(ApiResponse::success(list))
+}
+
+pub async fn get_list_impl(
+    state: &AppState,
+    params: ListAppsParams,
+) -> Result<PagingResponse<apps::Model>, AppError> {
+    let page = params.pagination.page.unwrap_or(1);
+    let page_size = params.pagination.page_size.unwrap_or(20);
+    let mut query = apps::Entity::find()
+        .filter(apps::Column::DeletedAt.is_null())
+        .order_by_desc(apps::Column::CreatedAt);
+    crate::filter_if_some!(query, apps::Column::Name, params.name, contains);
+    crate::filter_if_some!(query, apps::Column::Id, params.id, eq);
+    crate::filter_if_some!(query, apps::Column::AppId, params.app_id, contains);
+    let paginator = query.paginate(&state.db, page_size);
+    let total = paginator.num_items().await.unwrap_or(0);
+    let list = paginator.fetch_page(page - 1).await?;
+    Ok(PagingResponse { list, total, page })
+}
+
+// Get App by ID
+#[utoipa::path(
+    get,
+    path = "/api/admin/apps/{id}",
+    security(("api_key" = [])),
+    responses((status = 200, description = "Success", body = apps::Model))
+)]
+pub async fn get_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<ApiResponse<apps::Model>, AppError> {
+    let app = get_by_id_impl(&state, id).await?;
+    Ok(ApiResponse::success(app))
+}
+
+pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<apps::Model, AppError> {
+    let query = apps::Entity::find_by_id(id).one(&state.db).await?;
+    let app = query.ok_or_else(|| AppError::not_found("apps".to_string(), Some(id)))?;
+    Ok(app)
 }

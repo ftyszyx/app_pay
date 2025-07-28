@@ -1,82 +1,201 @@
-use crate::types::reg_codes_types::{CreateRegCodeReq, UpdateRegCodeReq, SearchRegCodesParams, RegCodeInfo};
-use entity::reg_codes;
-use entity::apps;
+use crate::types::reg_codes_types::*;
+crate::import_crud_macro!();
+use entity::{apps, reg_codes};
 
-// RegCode Handler - 使用新的统一CRUD架构
-crate::impl_crud_handlers!(
-    RegCodeHandler,
-    reg_codes::Entity,
-    reg_codes::ActiveModel,
-    reg_codes::Model,
-    CreateRegCodeReq,
-    UpdateRegCodeReq,
-    SearchRegCodesParams,
-    RegCodeInfo,
-    "reg_codes",
-    false
-);
+// Create RegCode
+#[utoipa::path(
+    post,
+    path = "/api/admin/reg_codes",
+    security(("api_key" = [])),
+    request_body = CreateRegCodeReq,
+    responses((status = 200, description = "Success", body = RegCodeInfo))
+)]
+pub async fn add(
+    State(state): State<AppState>,
+    Json(req): Json<CreateRegCodeReq>,
+) -> Result<ApiResponse<RegCodeInfo>, AppError> {
+    let entity = add_impl(&state, req).await?;
+    Ok(ApiResponse::success(entity))
+}
 
-impl CrudOperations for RegCodeHandler {
-    type Entity = reg_codes::Entity;
-    type CreatePayload = CreateRegCodeReq;
-    type UpdatePayload = UpdateRegCodeReq;
-    type SearchPayLoad = SearchRegCodesParams;
-    type SearchResult = RegCodeInfo;
-    type ActiveModel = reg_codes::ActiveModel;
-    type Model = reg_codes::Model;
-    type QueryResult = sea_orm::SelectTwo<reg_codes::Entity, apps::Entity>;
+pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCodeInfo, AppError> {
+    let active_model = reg_codes::ActiveModel {
+        code: Set(req.code),
+        app_id: Set(req.app_id),
+        bind_device_info: Set(req.bind_device_info),
+        valid_days: Set(req.valid_days),
+        max_devices: Set(req.max_devices),
+        status: Set(req.status),
+        created_at: Set(Utc::now()),
+        updated_at: Set(Utc::now()),
+        ..Default::default()
+    };
+    let entity = active_model.insert(&state.db).await?;
 
-    fn table_name() -> &'static str {
-        "reg_codes"
+    // Fetch with app information for response
+    let result = reg_codes::Entity::find_by_id(entity.id)
+        .find_also_related(apps::Entity)
+        .one(&state.db)
+        .await?;
+
+    match result {
+        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        None => Err(AppError::not_found(
+            "reg_codes".to_string(),
+            Some(entity.id),
+        )),
     }
+}
 
-    fn create_model(payload: Self::CreatePayload) -> Result<Self::ActiveModel, AppError> {
-        Ok(reg_codes::ActiveModel {
-            code: Set(payload.code),
-            app_id: Set(payload.app_id),
-            bind_device_info: Set(payload.bind_device_info),
-            valid_days: Set(payload.valid_days),
-            max_devices: Set(payload.max_devices),
-            status: Set(payload.status),
-            created_at: Set(Utc::now()),
-            updated_at: Set(Utc::now()),
-            ..Default::default()
-        })
+// Update RegCode
+#[utoipa::path(
+    put,
+    path = "/api/admin/reg_codes/{id}",
+    security(("api_key" = [])),
+    request_body = UpdateRegCodeReq,
+    responses((status = 200, description = "Success", body = RegCodeInfo))
+)]
+pub async fn update(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(req): Json<UpdateRegCodeReq>,
+) -> Result<ApiResponse<RegCodeInfo>, AppError> {
+    let reg_code = update_impl(&state, id, req).await?;
+    Ok(ApiResponse::success(reg_code))
+}
+
+pub async fn update_impl(
+    state: &AppState,
+    id: i32,
+    req: UpdateRegCodeReq,
+) -> Result<RegCodeInfo, AppError> {
+    let reg_code = reg_codes::Entity::find_by_id(id).one(&state.db).await?;
+    let reg_code =
+        reg_code.ok_or_else(|| AppError::not_found("reg_codes".to_string(), Some(id)))?;
+
+    let mut reg_code: reg_codes::ActiveModel = reg_code.into_active_model();
+    crate::update_field_if_some!(reg_code, code, req.code);
+    crate::update_field_if_some!(reg_code, app_id, req.app_id);
+    crate::update_field_if_some!(reg_code, bind_device_info, req.bind_device_info, option);
+    crate::update_field_if_some!(reg_code, valid_days, req.valid_days);
+    crate::update_field_if_some!(reg_code, max_devices, req.max_devices);
+    crate::update_field_if_some!(reg_code, status, req.status);
+    crate::update_field_if_some!(reg_code, binding_time, req.binding_time, option);
+    reg_code.updated_at = Set(Utc::now());
+
+    let updated_reg_code = reg_code.update(&state.db).await?;
+
+    // Fetch with app information for response
+    let result = reg_codes::Entity::find_by_id(updated_reg_code.id)
+        .find_also_related(apps::Entity)
+        .one(&state.db)
+        .await?;
+
+    match result {
+        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        None => Err(AppError::not_found(
+            "reg_codes".to_string(),
+            Some(updated_reg_code.id),
+        )),
     }
+}
 
-    fn update_model(
-        payload: Self::UpdatePayload,
-        reg_code: reg_codes::Model,
-    ) -> Result<Self::ActiveModel, AppError> {
-        let mut reg_code: reg_codes::ActiveModel = reg_code.into_active_model();
-        crate::update_field_if_some!(reg_code, code, payload.code);
-        crate::update_field_if_some!(reg_code, app_id, payload.app_id);
-        crate::update_field_if_some!(reg_code, bind_device_info, payload.bind_device_info, option);
-        crate::update_field_if_some!(reg_code, valid_days, payload.valid_days);
-        crate::update_field_if_some!(reg_code, max_devices, payload.max_devices);
-        crate::update_field_if_some!(reg_code, status, payload.status);
-        crate::update_field_if_some!(reg_code, binding_time, payload.binding_time, option);
-        reg_code.updated_at = Set(Utc::now());
-        Ok(reg_code)
+// Delete RegCode
+#[utoipa::path(
+    delete,
+    path = "/api/admin/reg_codes/{id}",
+    security(("api_key" = [])),
+    responses((status = 200, description = "Success", body = serde_json::Value))
+)]
+pub async fn delete(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<ApiResponse<()>, AppError> {
+    delete_impl(&state, id).await?;
+    Ok(ApiResponse::success(()))
+}
+
+pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
+    let reg_code = reg_codes::Entity::find_by_id(id).one(&state.db).await?;
+    let reg_code =
+        reg_code.ok_or_else(|| AppError::not_found("reg_codes".to_string(), Some(id)))?;
+
+    // Use physical delete since reg_codes might not have soft delete
+    reg_code.delete(&state.db).await?;
+    Ok(())
+}
+
+// Get RegCodes List
+#[utoipa::path(
+    get,
+    path = "/api/admin/reg_codes/list",
+    security(("api_key" = [])),
+    params(SearchRegCodesParams),
+    responses((status = 200, description = "Success", body = PagingResponse<RegCodeInfo>))
+)]
+pub async fn get_list(
+    State(state): State<AppState>,
+    Query(params): Query<SearchRegCodesParams>,
+) -> Result<ApiResponse<PagingResponse<RegCodeInfo>>, AppError> {
+    let list = get_list_impl(&state, params).await?;
+    Ok(ApiResponse::success(list))
+}
+
+pub async fn get_list_impl(
+    state: &AppState,
+    params: SearchRegCodesParams,
+) -> Result<PagingResponse<RegCodeInfo>, AppError> {
+    let page = params.pagination.page.unwrap_or(1);
+    let page_size = params.pagination.page_size.unwrap_or(20);
+
+    let mut query = reg_codes::Entity::find()
+        .find_also_related(apps::Entity)
+        .order_by_desc(reg_codes::Column::CreatedAt);
+
+    crate::filter_if_some!(query, reg_codes::Column::Id, params.id, eq);
+    crate::filter_if_some!(query, reg_codes::Column::Code, params.code, contains);
+    crate::filter_if_some!(query, reg_codes::Column::AppId, params.app_id, eq);
+    crate::filter_if_some!(query, reg_codes::Column::Status, params.status, eq);
+
+    let paginator = query.paginate(&state.db, page_size);
+    let total = paginator.num_items().await.unwrap_or(0);
+    let results = paginator.fetch_page(page - 1).await?;
+
+    let list: Result<Vec<RegCodeInfo>, AppError> = results
+        .into_iter()
+        .map(|(reg_code, app)| RegCodeInfo::try_from((reg_code, app)))
+        .collect();
+
+    Ok(PagingResponse {
+        list: list?,
+        total,
+        page,
+    })
+}
+
+// Get RegCode by ID
+#[utoipa::path(
+    get,
+    path = "/api/admin/reg_codes/{id}",
+    security(("api_key" = [])),
+    responses((status = 200, description = "Success", body = RegCodeInfo))
+)]
+pub async fn get_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+) -> Result<ApiResponse<RegCodeInfo>, AppError> {
+    let reg_code = get_by_id_impl(&state, id).await?;
+    Ok(ApiResponse::success(reg_code))
+}
+
+pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<RegCodeInfo, AppError> {
+    let result = reg_codes::Entity::find_by_id(id)
+        .find_also_related(apps::Entity)
+        .one(&state.db)
+        .await?;
+
+    match result {
+        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        None => Err(AppError::not_found("reg_codes".to_string(), Some(id))),
     }
-
-    fn get_list(payload: Self::SearchPayLoad) -> Result<Self::QueryResult, AppError> {
-        let mut query = reg_codes::Entity::find()
-            .find_also_related(apps::Entity)
-            .order_by_desc(reg_codes::Column::CreatedAt);
-
-        crate::filter_if_some!(query, reg_codes::Column::Id, payload.id, eq);
-        crate::filter_if_some!(query, reg_codes::Column::Code, payload.code, contains);
-        crate::filter_if_some!(query, reg_codes::Column::AppId, payload.app_id, eq);
-        crate::filter_if_some!(query, reg_codes::Column::Status, payload.status, eq);
-        
-        Ok(query)
-    }
-
-    fn get_by_id(id: i32) -> Result<Self::QueryResult, AppError> {
-        Self::get_list(Self::SearchPayLoad {
-            id: Some(id),
-            ..Default::default()
-        })
-    }
-} 
+}
