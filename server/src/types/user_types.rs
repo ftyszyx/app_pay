@@ -1,9 +1,8 @@
-use entity::{roles, users};
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
-use crate::types::{common::ListParamsReq, error::AppError};
+use crate::types::common::ListParamsReq;
 use crate::utils::convert::from_str_optional;
 
 #[derive(Deserialize, ToSchema)]

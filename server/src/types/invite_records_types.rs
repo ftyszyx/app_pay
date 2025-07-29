@@ -1,3 +1,4 @@
+use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
@@ -30,7 +31,7 @@ pub struct SearchInviteRecordsParams {
     pub inviter_id: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, ToSchema, Debug,FromQueryResult)]
 pub struct InviteRecordInfo {
     pub id: i32,
     pub user_id: i32,
@@ -40,38 +41,3 @@ pub struct InviteRecordInfo {
     pub user_username: Option<String>,
     pub inviter_username: Option<String>,
 }
-
-impl TryFrom<(entity::invite_records::Model, Option<entity::users::Model>)> for InviteRecordInfo {
-    type Error = crate::types::error::AppError;
-
-    fn try_from(
-        value: (entity::invite_records::Model, Option<entity::users::Model>)
-    ) -> Result<Self, Self::Error> {
-        let (record, user) = value;
-        Ok(Self {
-            id: record.id,
-            user_id: record.user_id,
-            inviter_id: record.inviter_id,
-            user_info: record.user_info,
-            created_at: record.created_at,
-            user_username: user.map(|u| u.username),
-            inviter_username: inviter.map(|i| i.username),
-        })
-    }
-}
-
-impl TryFrom<entity::invite_records::Model> for InviteRecordInfo {
-    type Error = crate::types::error::AppError;
-
-    fn try_from(record: entity::invite_records::Model) -> Result<Self, Self::Error> {
-        Ok(Self {
-            id: record.id,
-            user_id: record.user_id,
-            inviter_id: record.inviter_id,
-            user_info: record.user_info,
-            created_at: record.created_at,
-            user_username: None,
-            inviter_username: None,
-        })
-    }
-} 
