@@ -95,7 +95,7 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
     let product = products::Entity::find_by_id(id).one(&state.db).await?;
     let product = product.ok_or_else(|| AppError::not_found("products".to_string(), Some(id)))?;
     let mut product: products::ActiveModel = product.into_active_model();
-    crate::update_field_if_some!(product, deleted_at, Some(Utc::now()));
+    crate::update_field_if_some!(product, deleted_at, Some(Utc::now()), option);
     product.update(&state.db).await?;
     Ok(())
 }
@@ -122,7 +122,7 @@ pub async fn get_list_impl(
 ) -> Result<PagingResponse<products::Model>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let query = products::Entity::find().order_by_desc(products::Column::CreatedAt);
+    let mut query = products::Entity::find().order_by_desc(products::Column::CreatedAt);
     crate::filter_if_some!(query, products::Column::Id, params.id, eq);
     crate::filter_if_some!(
         query,

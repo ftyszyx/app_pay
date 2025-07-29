@@ -119,9 +119,7 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
     let reg_code = reg_codes::Entity::find_by_id(id).one(&state.db).await?;
     let reg_code =
         reg_code.ok_or_else(|| AppError::not_found("reg_codes".to_string(), Some(id)))?;
-
-    // Use physical delete since reg_codes might not have soft delete
-    reg_code.delete(&state.db).await?;
+    reg_code.into_active_model().delete(&state.db).await?;
     Ok(())
 }
 

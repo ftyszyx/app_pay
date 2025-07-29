@@ -1,7 +1,6 @@
 use crate::types::invite_records_types::*;
 crate::import_crud_macro!();
 use entity::invite_records;
-use entity::users;
 
 // Create InviteRecord
 #[utoipa::path(
@@ -40,15 +39,16 @@ pub async fn add_impl(
     path = "/api/admin/invite_records/{id}",
     security(("api_key" = [])),
     request_body = UpdateInviteRecordReq,
-    responses((status = 200, description = "Success", body = invite_records::Model))
+    responses((status = 200, description = "Success", body = InviteRecordInfo))
 )]
 pub async fn update(
     State(state): State<AppState>,
     Path(id): Path<i32>,
     Json(req): Json<UpdateInviteRecordReq>,
-) -> Result<ApiResponse<invite_records::Model>, AppError> {
+) -> Result<ApiResponse<InviteRecordInfo>, AppError> {
     let record = update_impl(&state, id, req).await?;
-    Ok(ApiResponse::success(record))
+    let info = InviteRecordInfo::try_from(record)?;
+    Ok(ApiResponse::success(info))
 }
 
 pub async fn update_impl(
@@ -116,7 +116,7 @@ pub async fn get_list_impl(
 ) -> Result<PagingResponse<InviteRecordInfo>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let query = invite_records::Entity::find().order_by_desc(invite_records::Column::CreatedAt);
+    let mut query = invite_records::Entity::find().order_by_desc(invite_records::Column::CreatedAt);
     crate::filter_if_some!(query, invite_records::Column::Id, params.id, eq);
     crate::filter_if_some!(query, invite_records::Column::UserId, params.user_id, eq);
     crate::filter_if_some!(
@@ -140,7 +140,7 @@ pub async fn get_list_impl(
     get,
     path = "/api/admin/invite_records/{id}",
     security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = invite_records::Model))
+    responses((status = 200, description = "Success", body = InviteRecordInfo))
 )]
 pub async fn get_by_id(
     State(state): State<AppState>,

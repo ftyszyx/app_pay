@@ -3,7 +3,7 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug,Serialize, PartialEq, DeriveEntityModel,ToSchema)]
+#[derive(Clone, Debug, Serialize, PartialEq, DeriveEntityModel, ToSchema)]
 #[sea_orm(table_name = "invite_records")]
 pub struct Model {
     #[sea_orm(primary_key)]

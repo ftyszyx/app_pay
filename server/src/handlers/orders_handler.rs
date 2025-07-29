@@ -117,7 +117,7 @@ pub async fn get_list_impl(
 ) -> Result<PagingResponse<OrderInfo>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let query = orders::Entity::find().order_by_desc(orders::Column::CreatedAt);
+    let mut query = orders::Entity::find().order_by_desc(orders::Column::CreatedAt);
     crate::filter_if_some!(query, orders::Column::Id, params.id, eq);
     crate::filter_if_some!(query, orders::Column::OrderId, params.order_id, contains);
     crate::filter_if_some!(query, orders::Column::Status, params.status, eq);
@@ -144,7 +144,6 @@ pub async fn get_by_id(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<ApiResponse<OrderInfo>, AppError> {
-    let order = get_by_id_impl(&state, id).await?;
     let query = orders::Entity::find_by_id(id).one(&state.db).await?;
     let order = query.ok_or_else(|| AppError::not_found("orders".to_string(), Some(id)))?;
     let order = OrderInfo::try_from(order)?;

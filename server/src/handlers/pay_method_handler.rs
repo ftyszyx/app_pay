@@ -59,9 +59,6 @@ pub async fn update_impl(
         pay_method.ok_or_else(|| AppError::not_found("pay_methods".to_string(), Some(id)))?;
     let mut pay_method: pay_methods::ActiveModel = pay_method.into_active_model();
     crate::update_field_if_some!(pay_method, name, req.name);
-    crate::update_field_if_some!(pay_method, status, req.status);
-    crate::update_field_if_some!(pay_method, remark, req.remark);
-    crate::update_field_if_some!(pay_method, config, req.config);
     let pay_method = pay_method.update(&state.db).await?;
     Ok(pay_method)
 }
@@ -115,7 +112,7 @@ pub async fn get_list_impl(
 ) -> Result<PagingResponse<pay_methods::Model>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let query = pay_methods::Entity::find().order_by_desc(pay_methods::Column::CreatedAt);
+    let mut query = pay_methods::Entity::find().order_by_desc(pay_methods::Column::CreatedAt);
     crate::filter_if_some!(query, pay_methods::Column::Name, params.name, contains);
     crate::filter_if_some!(query, pay_methods::Column::Id, params.id, eq);
     let paginator = query.paginate(&state.db, page_size);
