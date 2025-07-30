@@ -1,8 +1,9 @@
 use crate::types::invite_records_types::*;
 crate::import_crud_macro!();
-use entity::invite_records;
-use sea_orm::{JoinType, QuerySelect, QueryTrait, RelationTrait,FromQueryResult};
-
+use entity::{invite_records, users};
+use sea_orm::{
+    FromQueryResult, JoinType, QuerySelect, RelationTrait, prelude::Expr, sea_query::Alias,
+};
 
 // Create InviteRecord
 #[utoipa::path(
@@ -117,27 +118,49 @@ pub async fn get_list_impl(
 ) -> Result<PagingResponse<InviteRecordInfo>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let offset = (page - 1) * page_size;
-    let mut query = invite_records::Entity::find().order_by_desc(invite_records::Column::CreatedAt)
-    .join(JoinType::LeftJoin, invite_records::Relation::Users.def())
-    .join(JoinType::LeftJoin, invite_records::Relation::Inviters.def());
-    crate::filter_if_some!(query, invite_records::Column::Id, params.id, eq);
-    crate::filter_if_some!(query, invite_records::Column::UserId, params.user_id, eq);
-    crate::filter_if_some!( query, invite_records::Column::InviterId, params.inviter_id, eq);
-    //get total
-    let paginator = query.clone().paginate(&state.db, page_size);
-    let total = paginator.num_items().await.unwrap_or(0);
-    query = query.limit(page_size).offset(offset);
-    // let list=query.all(&state.db).await?;
-    let sql=query.build(sea_orm::DatabaseBackend::Postgres).to_string();
-    println!("sql :{}",sql);
-    let list=InviteRecordInfo::find_by_statement(sea_orm::Statement::from_sql_and_values(
-        sea_orm::DatabaseBackend::Postgres,
-        &sql,
-        vec![],
-    ))
-    .all(&state.db)
-    .await?;
+
+    let inviter_alias = Alias::new("inviter");
+    let user_alias = Alias::new("user");
+    let mut query = invite_records::Entity::find()
+        .join_as(
+            JoinType::LeftJoin,
+            invite_records::Relation::Users.def(),
+            user_alias.clone(),
+        )
+        .join_as(
+            JoinType::LeftJoin,
+            invite_records::Relation::Inviters.def(),
+            inviter_alias.clone(),
+        )
+        .select_only()
+        .column(invite_records::Column::Id)
+        .column(invite_records::Column::UserId)
+        .column(invite_records::Column::InviterId)
+        .column(invite_records::Column::UserInfo)
+        .column(invite_records::Column::CreatedAt)
+        .column(users::Column::Username)
+        .column_as(
+            Expr::col((inviter_alias, users::Column::Username)),
+            "inviter_username",
+        )
+        .order_by_desc(invite_records::Column::CreatedAt);
+
+    if let Some(id) = params.id {
+        query = query.filter(invite_records::Column::Id.eq(id));
+    }
+    if let Some(user_id) = params.user_id {
+        query = query.filter(invite_records::Column::UserId.eq(user_id));
+    }
+    if let Some(inviter_id) = params.inviter_id {
+        query = query.filter(invite_records::Column::InviterId.eq(inviter_id));
+    }
+
+    let paginator = query
+        .into_model::<InviteRecordInfo>()
+        .paginate(&state.db, page_size);
+    let total = paginator.num_items().await?;
+    let list = paginator.fetch_page(page - 1).await?;
+
     Ok(PagingResponse { list, total, page })
 }
 
@@ -157,18 +180,29 @@ pub async fn get_by_id(
 }
 
 pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<InviteRecordInfo, AppError> {
-    let query = invite_records::Entity::find_by_id(id)
-    .join(JoinType::LeftJoin, invite_records::Relation::Users.def())
-    .join(JoinType::LeftJoin, invite_records::Relation::Inviters.def());
-    let sql=query.build(sea_orm::DatabaseBackend::Postgres).to_string();
-    println!("sql :{}",sql);
-    let record=InviteRecordInfo::find_by_statement(sea_orm::Statement::from_sql_and_values(
-        sea_orm::DatabaseBackend::Postgres,
-        &sql,
-        vec![],
-    ))
-    .one(&state.db)
-    .await?;
-    let record=record.ok_or_else(|| AppError::not_found("invite_records".to_string(), Some(id)))?;
-    Ok(record)
+    let inviter_alias = Alias::new("inviter");
+
+    let record = invite_records::Entity::find_by_id(id)
+        .join(JoinType::LeftJoin, invite_records::Relation::Users.def())
+        .join_as(
+            JoinType::LeftJoin,
+            invite_records::Relation::Users.def(),
+            inviter_alias.clone(),
+        )
+        .select_only()
+        .column(invite_records::Column::Id)
+        .column(invite_records::Column::UserId)
+        .column(invite_records::Column::InviterId)
+        .column(invite_records::Column::UserInfo)
+        .column(invite_records::Column::CreatedAt)
+        .column(users::Column::Username)
+        .column_as(
+            Expr::col((inviter_alias, users::Column::Username)),
+            "inviter_username",
+        )
+        .into_model::<InviteRecordInfo>()
+        .one(&state.db)
+        .await?;
+
+    record.ok_or_else(|| AppError::not_found("invite_records".to_string(), Some(id)))
 }
