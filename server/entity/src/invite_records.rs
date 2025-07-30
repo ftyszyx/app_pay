@@ -8,9 +8,9 @@ use utoipa::ToSchema;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub user_id: i32,
-    pub inviter_id: i32,
-    pub user_info: Option<Json>,
+    pub user_id: i32,//用户id
+    pub inviter_user_id: i32,//邀请人id
+    pub user_info: Option<Json>,//用户信息
     pub created_at: DateTime<Utc>,
 }
 
@@ -24,7 +24,7 @@ pub enum Relation {
     Users,
     #[sea_orm(
         belongs_to = "super::users::Entity",
-        from = "Column::InviterId",
+        from = "Column::InviterUserId",
         to = "super::users::Column::Id"
     )]
     Inviters,

@@ -8,13 +8,11 @@ use utoipa::ToSchema;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub user_id: String,
     pub username: String,
     pub password: String,
     pub created_at: DateTime<Utc>,
     pub deleted_at: Option<DateTime<Utc>>,
     pub balance: i64,
-    pub inviter_id: Option<i32>,
     pub invite_rebate_total: i64,
     pub role_id: i32,
 }
@@ -27,10 +25,6 @@ pub enum Relation {
         to = "super::roles::Column::Id"
     )]
     Roles,
-    #[sea_orm(belongs_to = "Entity", from = "Column::InviterId", to = "Column::Id")]
-    SelfRef,
-    #[sea_orm(has_many = "Entity")]
-    InvitedUsers,
     #[sea_orm(has_many = "super::orders::Entity")]
     Orders,
     #[sea_orm(has_many = "super::invite_records::Entity")]
@@ -55,11 +49,5 @@ impl Related<super::invite_records::Entity> for Entity {
     }
 }
 
-// Implement self-relation for users::Entity
-impl Related<Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::SelfRef.def()
-    }
-}
 
 impl ActiveModelBehavior for ActiveModel {}

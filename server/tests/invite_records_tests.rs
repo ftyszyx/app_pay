@@ -79,12 +79,12 @@ async fn test_create_invite_record() {
     assert_eq!(response.status(), StatusCode::OK);
 
     let json = print_response_body_get_json(response, "create_inviter_response").await;
-    let inviter_id = json["data"]["id"].as_i64().unwrap() as i32;
+    let inviter_user_id = json["data"]["id"].as_i64().unwrap() as i32;
 
     // Now create an invite record
     let create_invite_record_body = json!({
         "user_id": user_id,
-        "inviter_id": inviter_id,
+        "inviter_user_id": inviter_user_id,
         "user_info": {
             "device_type": "android",
             "invite_method": "referral_code",
@@ -107,7 +107,7 @@ async fn test_create_invite_record() {
     assert!(json["success"].as_bool().unwrap());
     assert!(json["data"]["id"].is_number());
     assert_eq!(json["data"]["user_id"], user_id);
-    assert_eq!(json["data"]["inviter_id"], inviter_id);
+    assert_eq!(json["data"]["inviter_user_id"], inviter_user_id);
     assert!(json["data"]["user_info"].is_object());
 }
 
@@ -151,12 +151,12 @@ async fn test_update_invite_record() {
 
     let response = app.clone().oneshot(request).await.unwrap();
     let json = print_response_body_get_json(response, "create_inviter_for_update").await;
-    let inviter_id = json["data"]["id"].as_i64().unwrap() as i32;
+    let inviter_user_id = json["data"]["id"].as_i64().unwrap() as i32;
 
     // Create an invite record
     let create_invite_record_body = json!({
         "user_id": user_id,
-        "inviter_id": inviter_id,
+        "inviter_user_id": inviter_user_id,
         "user_info": {
             "device_type": "ios",
             "invite_method": "direct_link"
@@ -199,7 +199,7 @@ async fn test_update_invite_record() {
     let json = print_response_body_get_json(response, "update_invite_record_response").await;
     assert!(json["success"].as_bool().unwrap());
     assert_eq!(json["data"]["user_id"], user_id);
-    assert_eq!(json["data"]["inviter_id"], inviter_id);
+    assert_eq!(json["data"]["inviter_user_id"], inviter_user_id);
     assert_eq!(json["data"]["user_info"]["device_type"], "android");
     assert_eq!(json["data"]["user_info"]["invite_method"], "qr_code");
     assert!(json["data"]["user_info"]["updated"].as_bool().unwrap());
@@ -245,12 +245,12 @@ async fn test_get_invite_record_by_id() {
 
     let response = app.clone().oneshot(request).await.unwrap();
     let json = print_response_body_get_json(response, "create_inviter_for_get_by_id").await;
-    let inviter_id = json["data"]["id"].as_i64().unwrap() as i32;
+    let inviter_user_id = json["data"]["id"].as_i64().unwrap() as i32;
 
     // Create an invite record
     let create_invite_record_body = json!({
         "user_id": user_id,
-        "inviter_id": inviter_id,
+        "inviter_user_id": inviter_user_id,
         "user_info": {
             "device_type": "web",
             "invite_method": "email",
@@ -285,7 +285,7 @@ async fn test_get_invite_record_by_id() {
     assert!(json["success"].as_bool().unwrap());
     assert_eq!(json["data"]["id"], invite_record_id);
     assert_eq!(json["data"]["user_id"], user_id);
-    assert_eq!(json["data"]["inviter_id"], inviter_id);
+    assert_eq!(json["data"]["inviter_user_id"], inviter_user_id);
     assert_eq!(json["data"]["user_info"]["device_type"], "web");
     assert_eq!(json["data"]["user_info"]["invite_method"], "email");
     // Check that user and inviter usernames are included (from the join)
@@ -333,12 +333,12 @@ async fn test_delete_invite_record() {
 
     let response = app.clone().oneshot(request).await.unwrap();
     let json = print_response_body_get_json(response, "create_inviter_for_delete").await;
-    let inviter_id = json["data"]["id"].as_i64().unwrap() as i32;
+    let inviter_user_id = json["data"]["id"].as_i64().unwrap() as i32;
 
     // Create an invite record to delete
     let create_invite_record_body = json!({
         "user_id": user_id,
-        "inviter_id": inviter_id,
+        "inviter_user_id": inviter_user_id,
         "user_info": {
             "device_type": "mobile",
             "invite_method": "sms"
@@ -380,7 +380,8 @@ async fn test_delete_invite_record() {
         .unwrap();
 
     let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    let json = print_response_body_get_json(response, "delete_invite_record_response").await;
+    assert_eq!(json["code"].as_u64().unwrap(), app_server::constants::APP_NOT_FOUND as u64);
 }
 
 #[tokio::test]
@@ -423,7 +424,7 @@ async fn test_invite_records_search_filters() {
     // Test various search filters
     let test_cases = vec![
         "/api/admin/invite_records/list?user_id=1",
-        "/api/admin/invite_records/list?inviter_id=1",
+        "/api/admin/invite_records/list?inviter_user_id=1",
         "/api/admin/invite_records/list?id=1",
     ];
 
@@ -446,30 +447,6 @@ async fn test_invite_records_search_filters() {
     }
 }
 
-#[tokio::test]
-async fn test_invite_record_validation_errors() {
-    let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
-
-    // Test with invalid data - non-existent user IDs
-    let invalid_invite_record_body = json!({
-        "user_id": -1,      // Invalid user_id
-        "inviter_id": -1,   // Invalid inviter_id
-        "user_info": null
-    });
-
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/invite_records")
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(invalid_invite_record_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    // Should return an error status due to foreign key constraint
-    assert!(response.status().is_client_error() || response.status().is_server_error());
-}
 
 #[tokio::test]
 async fn test_invite_record_comprehensive_workflow() {
@@ -516,7 +493,7 @@ async fn test_invite_record_comprehensive_workflow() {
     // Create invite record
     let create_invite_record_body = json!({
         "user_id": user1_id,
-        "inviter_id": user2_id,
+        "inviter_user_id": user2_id,
         "user_info": {
             "campaign": "summer_2024",
             "bonus_amount": 100

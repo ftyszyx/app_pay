@@ -8,14 +8,14 @@ use crate::types::common::ListParamsReq;
 #[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct CreateInviteRecordReq {
     pub user_id: i32,
-    pub inviter_id: i32,
+    pub inviter_user_id: i32,
     pub user_info: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct UpdateInviteRecordReq {
     pub user_id: Option<i32>,
-    pub inviter_id: Option<i32>,
+    pub inviter_user_id: Option<i32>,
     pub user_info: Option<serde_json::Value>,
 }
 

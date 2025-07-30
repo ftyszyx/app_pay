@@ -36,6 +36,19 @@ macro_rules! filter_if_some {
             $query = $query.filter($column.gt(val));
         }
     };
+    //lt
+    ($query:expr, $column:expr, $value:expr, lt) => {
+        if let Some(val) = $value {
+            $query = $query.filter($column.lt(val));
+        }
+    };
+    //gt
+    //like
+    ($query:expr, $column:expr, $value:expr, like) => {
+        if let Some(val) = $value.filter(|s| !s.is_empty()) {
+            $query = $query.filter($column.like(&format!("%{}%", val)));
+        }
+    };
 }
 
 #[macro_export]

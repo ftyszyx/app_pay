@@ -7,10 +7,9 @@ use axum::{
     extract::{Path, Query, State},
 };
 use chrono::Utc;
-use entity::users;
-use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel, Set};
-use sea_orm::{ConnectionTrait, FromQueryResult};
-use uuid::Uuid;
+use entity::{ roles, users};
+use migration::{Alias, Expr};
+use sea_orm::{ QueryFilter,JoinType,PaginatorTrait, Select,RelationTrait, ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QuerySelect,  Set};
 
 // Create User
 #[utoipa::path(
@@ -34,7 +33,6 @@ pub async fn add_impl(state: &AppState, req: UserCreatePayload) -> Result<users:
         username: Set(req.username),
         password: Set(password),
         role_id: Set(req.role_id.unwrap_or(crate::constants::DEFAULT_ROLE_ID)),
-        user_id: Set(Uuid::new_v4().to_string()),
         created_at: Set(Utc::now()),
         ..Default::default()
     };
@@ -118,92 +116,36 @@ pub async fn get_list(
     Ok(ApiResponse::success(list))
 }
 
+pub fn get_query()->Select<entity::users::Entity>{
+    let role_alias=Alias::new("role");
+    //get invite num for userid
+    let query=users::Entity::find()
+        .join_as(JoinType::LeftJoin, users::Relation::Roles.def(), role_alias.clone())
+    .select_only()
+    .column_as(users::Column::Id, "id")
+    .column_as(users::Column::Username, "username")
+    .column_as(users::Column::Balance, "balance")
+    .column_as(users::Column::RoleId, "role_id")
+    .column_as(Expr::cust(
+        "SELECT COUNT(*) FROM invite_records WHERE inviter_user_id = u.id",
+    ), "invite_count")
+    .column_as(Expr::col((role_alias, roles::Column::Name)), "role_name")
+    .column_as(users::Column::CreatedAt, "created_at");
+    query
+}
+
 pub async fn get_list_impl(
     state: &AppState,
     params: SearchUsersParams,
 ) -> Result<PagingResponse<UserInfo>, AppError> {
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
-    let offset = (page - 1) * page_size;
-    // 构建 WHERE 条件
-    let mut where_conditions = vec!["u.deleted_at IS NULL".to_string()];
-    let mut sql_params: Vec<sea_orm::Value> = vec![];
-    if let Some(id) = params.id {
-        where_conditions.push(format!("u.id = ${}", sql_params.len() + 1));
-        sql_params.push(id.into());
-    }
-    if let Some(username) = params.username {
-        if !username.is_empty() {
-            where_conditions.push(format!("u.username ILIKE ${}", sql_params.len() + 1));
-            sql_params.push(format!("%{}%", username).into());
-        }
-    }
-    if let Some(user_id) = params.user_id {
-        if !user_id.is_empty() {
-            where_conditions.push(format!("u.user_id = ${}", sql_params.len() + 1));
-            sql_params.push(user_id.into());
-        }
-    }
-
-    let where_clause = where_conditions.join(" AND ");
-
-    // 查询总数
-    let count_sql = format!(
-        r#"
-        SELECT COUNT(DISTINCT u.id) as total
-        FROM users u
-        LEFT JOIN roles r ON u.role_id = r.id
-        LEFT JOIN users inviter ON u.inviter_id = inviter.id
-        LEFT JOIN invite_records ir ON u.id = ir.inviter_id
-        WHERE {}
-    "#,
-        where_clause
-    );
-
-    let total: u64 = state
-        .db
-        .query_one(sea_orm::Statement::from_sql_and_values(
-            sea_orm::DatabaseBackend::Postgres,
-            &count_sql,
-            sql_params.clone(),
-        ))
-        .await?
-        .map(|row| row.try_get::<i64>("", "total").unwrap_or(0) as u64)
-        .unwrap_or(0);
-
-    // 查询分页数据
-    let data_sql = format!(
-        r#"
-        SELECT 
-            u.id, u.username, u.balance, u.inviter_id, u.invite_rebate_total,
-            u.role_id, r.name as role_name, u.created_at,
-            inviter.username as inviter_username,
-            COALESCE(COUNT(ir.id), 0) as invite_count
-        FROM users u
-        LEFT JOIN roles r ON u.role_id = r.id
-        LEFT JOIN users inviter ON u.inviter_id = inviter.id
-        LEFT JOIN invite_records ir ON u.id = ir.inviter_id
-        WHERE {}
-        GROUP BY u.id, r.id, r.name, inviter.username
-        ORDER BY u.created_at DESC
-        LIMIT ${} OFFSET ${}
-    "#,
-        where_clause,
-        sql_params.len() + 1,
-        sql_params.len() + 2
-    );
-
-    sql_params.push((page_size as i64).into());
-    sql_params.push((offset as i64).into());
-
-    let list: Vec<UserInfo> = UserInfo::find_by_statement(sea_orm::Statement::from_sql_and_values(
-        sea_orm::DatabaseBackend::Postgres,
-        &data_sql,
-        sql_params,
-    ))
-    .all(&state.db)
-    .await?;
-
+    let mut query=get_query();
+    crate::filter_if_some!(query, users::Column::Id, params.id, eq);
+    crate::filter_if_some!(query, users::Column::Username, params.username, like);
+    let paginator=query.into_model::<UserInfo>().paginate(&state.db, page_size);
+    let total=paginator.num_items().await?;
+    let list=paginator.fetch_page(page-1).await?;
     Ok(PagingResponse { list, total, page })
 }
 
@@ -223,28 +165,37 @@ pub async fn get_by_id(
 }
 
 pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<UserInfo, AppError> {
-    let sql = r#"
-        SELECT 
-            u.id, u.username, u.balance, u.inviter_id, u.invite_rebate_total,
-            u.role_id, r.name as role_name, u.created_at,
-            inviter.username as inviter_username,
-            COALESCE(COUNT(ir.id), 0) as invite_count
-        FROM users u
-        LEFT JOIN roles r ON u.role_id = r.id
-        LEFT JOIN users inviter ON u.inviter_id = inviter.id
-        LEFT JOIN invite_records ir ON u.id = ir.inviter_id
-        WHERE u.id = $1 AND u.deleted_at IS NULL
-        GROUP BY u.id, r.id, r.name, inviter.username
-    "#;
-
-    let result: Option<UserInfo> =
-        UserInfo::find_by_statement(sea_orm::Statement::from_sql_and_values(
-            sea_orm::DatabaseBackend::Postgres,
-            sql,
-            [id.into()],
-        ))
-        .one(&state.db)
-        .await?;
+    let query=get_query();
+    let query=query.filter(users::Column::Id.eq(id));
+    let result: Option<UserInfo> =query.into_model::<UserInfo>().one(&state.db).await?;
     let user = result.ok_or_else(|| AppError::not_found("users".to_string(), Some(id)))?;
     return Ok(user);
 }
+
+/*
+use sea_orm::{Select, QuerySelect, RelationTrait, JoinType, Expr, Alias};
+
+pub fn get_query_with_invite_count() -> Select<users::Entity> {
+    let invite_alias = Alias::new("invite_count");
+    
+    users::Entity::find()
+        .select_only()
+        .column_as(users::Column::Id, "id")
+        .column_as(users::Column::Username, "username")
+        .column_as(users::Column::Balance, "balance")
+        .column_as(users::Column::RoleId, "role_id")
+        .column_as(users::Column::CreatedAt, "created_at")
+        // Count invites using a subquery
+        .column_as(
+            Expr::col((invite_alias.clone(), invite_records::Column::InviterUserId)).count(),
+            "invite_count"
+        )
+        .join_as(
+            JoinType::LeftJoin,
+            users::Relation::InviteRecords.def(),
+            invite_alias
+        )
+        .group_by(users::Column::Id)
+        .filter(users::Column::DeletedAt.is_null())
+}
+ */

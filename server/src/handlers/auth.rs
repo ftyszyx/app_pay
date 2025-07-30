@@ -1,16 +1,15 @@
 use crate::constants;
 use crate::handlers::user_handler::{self};
 use crate::types::common::AppState;
-use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserResponse};
+use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserInfo, UserResponse};
 use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
 use axum::Extension;
 use axum::{Json, extract::State};
 use bcrypt::{verify};
-use entity::invite_records;
 use entity::roles;
 use entity::users;
-use sea_orm::{ ColumnTrait, EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ ColumnTrait, EntityTrait,  QueryFilter};
 use tracing::info;
 
 /// Register a new user
@@ -102,30 +101,7 @@ pub async fn login(
 pub async fn get_current_user(
     State(state): State<AppState>,
     Extension(claims): Extension<Claims>,
-) -> Result<ApiResponse<UserResponse>, AppError> {
-    let user_with_role = users::Entity::find_by_id(claims.sub)
-        .find_also_related(roles::Entity)
-        .one(&state.db)
-        .await?;
-    let user_with_role = user_with_role.ok_or(AppError::NotFound {
-        resource: "user".to_string(),
-        id: Some(claims.sub),
-    })?;
-    //get invite count from invite records
-    let invite_count = invite_records::Entity::find()
-        .filter(invite_records::Column::InviterId.eq(claims.sub))
-        .count(&state.db)
-        .await
-        .unwrap_or(0);
-
-    let role_name = user_with_role.1.map_or("user".to_string(), |r| r.name);
-    let response = UserResponse {
-        id: user_with_role.0.id,
-        username: user_with_role.0.username,
-        role: role_name,
-        balance: user_with_role.0.balance,
-        invite_count,
-        invite_rebate_total: user_with_role.0.invite_rebate_total,
-    };
-    Ok(ApiResponse::success(response))
+) -> Result<ApiResponse<UserInfo>, AppError> {
+    let user_info=user_handler::get_by_id_impl(&state,claims.sub).await?;
+    Ok(ApiResponse::success(user_info))
 }

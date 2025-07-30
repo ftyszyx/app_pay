@@ -49,6 +49,9 @@ use utoipa::{
         //invite_records
         handlers::invite_records_handler::get_list,
         handlers::invite_records_handler::get_by_id,
+        handlers::invite_records_handler::add,
+        handlers::invite_records_handler::update,
+        handlers::invite_records_handler::delete,
         //reg_codes
         handlers::reg_codes_handler::add,
         handlers::reg_codes_handler::get_list,
@@ -111,6 +114,9 @@ pub fn create_router(app_state: AppState) -> Router {
         //invite_records
         .route("/invite_records/list", get(handlers::invite_records_handler::get_list))
         .route("/invite_records/{id}", get(handlers::invite_records_handler::get_by_id))
+        .route("/invite_records/{id}", put(handlers::invite_records_handler::update))
+        .route("/invite_records/{id}", delete(handlers::invite_records_handler::delete))
+        .route("/invite_records", post(handlers::invite_records_handler::add))
         //reg_codes
         .route("/reg_codes", post(handlers::reg_codes_handler::add))
         .route("/reg_codes/list", get(handlers::reg_codes_handler::get_list))

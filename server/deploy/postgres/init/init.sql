@@ -17,23 +17,20 @@ INSERT INTO "roles" ("id","name") VALUES (1,'admin'), (2,'user'), (3,'guest');
 DROP TABLE IF EXISTS "users" CASCADE;
 CREATE TABLE "users" (
     "id" SERIAL PRIMARY KEY,
-    "user_id" VARCHAR(255) NOT NULL UNIQUE,
     "username" VARCHAR(255) NOT NULL UNIQUE,
     "password" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMPTZ,
     "balance" BIGINT NOT NULL DEFAULT 0,
-    "inviter_id" INTEGER ,  -- 邀请人ID
     "invite_rebate_total" BIGINT NOT NULL DEFAULT 0, -- 邀请总收益
     "role_id" INTEGER,
     CONSTRAINT "fk_user_role_id" FOREIGN KEY ("role_id") REFERENCES "roles" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "fk_user_inviter_id" FOREIGN KEY ("inviter_id") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "chk_balance_positive" CHECK ("balance" >= 0)
 );
 CREATE INDEX idx_user_username ON "users" ("username");
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('admin', 'admin', '$2b$12$/MZyRsK.DcYHh6x4qCy6IOjxO/Wd4RlPSbW.7OiAYqTY4U4CipDIS', 1);
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('user', 'user', '$2b$12$afVdZp0thpWjIQt/oib50OhlJW3UsAjn9r808ufcLMl2mLgVsDciK', 2);
-INSERT INTO "users" ("user_id", "username", "password", "role_id") VALUES ('guest', 'guest', '$2b$12$tOtsPnX8UlVgqYL1UbYlHuiCBjEgljGz3xhqbXstwoHdD3rMquSlW', 3);
+INSERT INTO "users" ( "username", "password", "role_id") VALUES ( 'admin', '$2b$12$/MZyRsK.DcYHh6x4qCy6IOjxO/Wd4RlPSbW.7OiAYqTY4U4CipDIS', 1);
+INSERT INTO "users" ("username", "password", "role_id") VALUES ( 'user', '$2b$12$afVdZp0thpWjIQt/oib50OhlJW3UsAjn9r808ufcLMl2mLgVsDciK', 2);
+INSERT INTO "users" ("username", "password", "role_id") VALUES ( 'guest', '$2b$12$tOtsPnX8UlVgqYL1UbYlHuiCBjEgljGz3xhqbXstwoHdD3rMquSlW', 3);
 
 -- 产品表
 DROP TABLE IF EXISTS "apps" CASCADE;
@@ -240,12 +237,12 @@ CREATE INDEX idx_order_reg_codes_reg_code_id ON "order_reg_codes" ("reg_code_id"
 DROP TABLE IF EXISTS "invite_records" CASCADE;
 CREATE TABLE "invite_records" (
     "id" SERIAL PRIMARY KEY,
-    "user_id" INTEGER NOT NULL,
-    "inviter_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,  --用户id
+    "inviter_user_id" INTEGER NOT NULL,  --邀请人userid
     "user_info" JSONB,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "fk_invite_record_user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "fk_invite_record_inviter_id" FOREIGN KEY ("inviter_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "fk_invite_record_inviter_user_id" FOREIGN KEY ("inviter_user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX idx_invite_records_user_id ON "invite_records" ("user_id");
-CREATE INDEX idx_invite_records_invite_user_id ON "invite_records" ("inviter_id");
+CREATE INDEX idx_invite_records_invite_user_id ON "invite_records" ("inviter_user_id");

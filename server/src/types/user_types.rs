@@ -66,7 +66,6 @@ pub struct SearchUsersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
     pub username: Option<String>,
-    pub user_id: Option<String>,
     #[serde(deserialize_with = "from_str_optional",default)]
     pub id: Option<i32>,
 }
