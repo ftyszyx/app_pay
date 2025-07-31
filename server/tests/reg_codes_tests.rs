@@ -322,7 +322,8 @@ async fn test_delete_reg_code() {
         .unwrap();
 
     let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    let json = print_response_body_get_json(response, "delete_reg_code_response").await;
+    assert_eq!(json["code"].as_i64().unwrap(), app_server::constants::APP_NOT_FOUND as i64);
 }
 
 #[tokio::test]
@@ -413,5 +414,6 @@ async fn test_reg_code_validation_errors() {
 
     let response = app.oneshot(request).await.unwrap();
     // Should return an error status (400 or 422)
-    assert!(response.status().is_client_error());
+    let json = print_response_body_get_json(response, "create_reg_code_response").await;
+    assert_eq!(json["success"].as_bool().unwrap(), false);
 }

@@ -134,7 +134,7 @@ async fn test_get_current_user() {
     let bodyjson = helpers::print_response_body_get_json(response, "me").await;
     assert!(bodyjson["success"].as_bool().unwrap());
     assert!(bodyjson["data"]["username"].is_string());
-    assert!(bodyjson["data"]["role"].is_string());
+    assert!(bodyjson["data"]["role_name"].is_string());
 }
 
 #[tokio::test]

@@ -1,7 +1,7 @@
 use crate::constants;
 use crate::handlers::user_handler::{self};
 use crate::types::common::AppState;
-use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserInfo, UserResponse};
+use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserInfo };
 use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
 use axum::Extension;
@@ -90,7 +90,7 @@ pub async fn login(
     get,
     path = "/api/me",
     responses(
-        (status = 200, description = "Current user information", body = ApiResponse<UserResponse>),
+        (status = 200, description = "Current user information", body = ApiResponse<UserInfo>),
         (status = 401, description = "Unauthorized"),
         (status = 500, description = "Internal server error")
     ),

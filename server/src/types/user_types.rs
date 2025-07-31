@@ -1,5 +1,6 @@
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
 use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use crate::types::common::ListParamsReq;
@@ -14,16 +15,6 @@ pub struct AuthPayload {
 #[derive(Serialize, ToSchema)]
 pub struct AuthResponse {
     pub token: String,
-}
-
-#[derive(Serialize, ToSchema)]
-pub struct UserResponse {
-    pub id: i32,
-    pub username: String,
-    pub role: String,
-    pub balance: i64,
-    pub invite_count: u64,
-    pub invite_rebate_total: i64,
 }
 
 #[derive(Deserialize, ToSchema, Debug, Validate)]
@@ -45,14 +36,14 @@ pub struct UserUpdatePayload {
 pub struct UserInfo {
     pub id: i32,
     pub username: String,
-    pub balance: String,
+    pub balance: i64,
     pub inviter_id: Option<i32>,
     pub inviter_username: Option<String>,
-    pub invite_count: u64,
+    pub invite_count: i64,
     pub invite_rebate_total: i64,
     pub role_id: i32,
     pub role_name: String,
-    pub created_at: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(ToSchema, Serialize)]

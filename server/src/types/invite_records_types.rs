@@ -35,7 +35,7 @@ pub struct SearchInviteRecordsParams {
 pub struct InviteRecordInfo {
     pub id: i32,
     pub user_id: i32,
-    pub inviter_id: i32,
+    pub inviter_user_id: i32,
     pub user_info: Option<serde_json::Value>,
     pub created_at: DateTime<Utc>,
     pub user_username: Option<String>,

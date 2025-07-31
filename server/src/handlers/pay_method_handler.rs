@@ -23,7 +23,6 @@ pub async fn add_impl(
 ) -> Result<pay_methods::Model, AppError> {
     let active_model = pay_methods::ActiveModel {
         name: Set(req.name),
-        status: Set(req.status),
         remark: Set(req.remark),
         config: Set(req.config),
         ..Default::default()

@@ -127,9 +127,10 @@ pub fn get_query()->Select<entity::users::Entity>{
     .column_as(users::Column::Balance, "balance")
     .column_as(users::Column::RoleId, "role_id")
     .column_as(Expr::cust(
-        "SELECT COUNT(*) FROM invite_records WHERE inviter_user_id = u.id",
+        "(SELECT COUNT(*) FROM invite_records WHERE inviter_user_id = users.id)",
     ), "invite_count")
     .column_as(Expr::col((role_alias, roles::Column::Name)), "role_name")
+    .column_as(users::Column::InviteRebateTotal, "invite_rebate_total")
     .column_as(users::Column::CreatedAt, "created_at");
     query
 }

@@ -12,7 +12,6 @@ use crate::types::common::ListParamsReq;
 #[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct PayMethodCreatePayload {
     pub name: String,
-    pub status: i16,
     pub remark: Option<String>,
     pub config: Option<serde_json::Value>,
 }

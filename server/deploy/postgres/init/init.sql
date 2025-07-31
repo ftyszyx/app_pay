@@ -82,7 +82,7 @@ DROP TABLE IF EXISTS "pay_methods" CASCADE;
 CREATE TABLE "pay_methods" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR NOT NULL UNIQUE,
-    "status" SMALLINT NOT NULL DEFAULT 0,
+    "status" SMALLINT NOT NULL DEFAULT 1,
     "remark" TEXT,
     "config" JSONB,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
