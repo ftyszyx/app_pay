@@ -1,5 +1,6 @@
 use super::config::Config;
 use crate::utils::redis_cache::RedisCache;
+use crate::utils::casbin_service::CasbinService;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
@@ -36,6 +37,7 @@ pub struct AppState {
     pub db: sea_orm::DatabaseConnection,
     pub redis: Arc<RedisCache>,
     pub config: Arc<Config>,
+    pub casbin: CasbinService,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -1,11 +1,13 @@
 pub mod app_handler;
 pub mod auth;
+pub mod casbin_middleware;
 pub mod coupons_handler;
 pub mod crud_macro;
 pub mod invite_records_handler;
 pub mod middleware;
 pub mod orders_handler;
 pub mod pay_method_handler;
+pub mod permissions_handler;
 pub mod product_handler;
 pub mod reg_codes_handler;
 pub mod role_handler;

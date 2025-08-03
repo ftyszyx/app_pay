@@ -70,6 +70,17 @@ use utoipa::{
         handlers::coupons_handler::get_by_id,
         handlers::coupons_handler::update,
         handlers::coupons_handler::delete,
+        //permissions
+        handlers::permissions_handler::add_policy,
+        handlers::permissions_handler::remove_policy,
+        handlers::permissions_handler::add_role_for_user,
+        handlers::permissions_handler::remove_role_for_user,
+        handlers::permissions_handler::get_policies,
+        handlers::permissions_handler::get_roles,
+        handlers::permissions_handler::get_user_roles,
+        handlers::permissions_handler::get_role_users,
+        handlers::permissions_handler::check_permission,
+        handlers::permissions_handler::reload_policies,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -144,6 +155,17 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/coupons/{id}", get(handlers::coupons_handler::get_by_id))
         .route("/coupons/{id}", put(handlers::coupons_handler::update))
         .route("/coupons/{id}", delete(handlers::coupons_handler::delete))
+        //permissions
+        .route("/permissions/policies", post(handlers::permissions_handler::add_policy))
+        .route("/permissions/policies", delete(handlers::permissions_handler::remove_policy))
+        .route("/permissions/policies", get(handlers::permissions_handler::get_policies))
+        .route("/permissions/roles", post(handlers::permissions_handler::add_role_for_user))
+        .route("/permissions/roles", delete(handlers::permissions_handler::remove_role_for_user))
+        .route("/permissions/roles", get(handlers::permissions_handler::get_roles))
+        .route("/permissions/users/{user_id}/roles", get(handlers::permissions_handler::get_user_roles))
+        .route("/permissions/roles/{role}/users", get(handlers::permissions_handler::get_role_users))
+        .route("/permissions/check", post(handlers::permissions_handler::check_permission))
+        .route("/permissions/reload", post(handlers::permissions_handler::reload_policies))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
         .route_layer(middleware::from_fn(error_handler));
 

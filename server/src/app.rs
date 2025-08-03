@@ -2,6 +2,8 @@ use crate::database;
 use crate::types::config::Config;
 use crate::types::{common::AppState, error::AppError};
 use crate::utils::redis_cache::RedisCache;
+use crate::utils::casbin_service::CasbinService;
+use crate::utils::casbin_init;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::sync::Arc;
