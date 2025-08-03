@@ -1,5 +1,6 @@
 pub mod app_handler;
 pub mod auth;
+pub mod coupons_handler;
 pub mod crud_macro;
 pub mod invite_records_handler;
 pub mod middleware;

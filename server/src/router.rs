@@ -64,6 +64,12 @@ use utoipa::{
         handlers::orders_handler::add,
         handlers::orders_handler::update,
         handlers::orders_handler::delete,
+        //coupons
+        handlers::coupons_handler::add,
+        handlers::coupons_handler::get_list,
+        handlers::coupons_handler::get_by_id,
+        handlers::coupons_handler::update,
+        handlers::coupons_handler::delete,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -132,6 +138,12 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/orders/{id}", put(handlers::orders_handler::update))
         .route("/orders/{id}", delete(handlers::orders_handler::delete))
         .route("/orders", post(handlers::orders_handler::add))
+        //coupons
+        .route("/coupons", post(handlers::coupons_handler::add))
+        .route("/coupons/list", get(handlers::coupons_handler::get_list))
+        .route("/coupons/{id}", get(handlers::coupons_handler::get_by_id))
+        .route("/coupons/{id}", put(handlers::coupons_handler::update))
+        .route("/coupons/{id}", delete(handlers::coupons_handler::delete))
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
         .route_layer(middleware::from_fn(error_handler));
 
