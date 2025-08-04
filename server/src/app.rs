@@ -1,9 +1,9 @@
 use crate::database;
 use crate::types::config::Config;
 use crate::types::{common::AppState, error::AppError};
-use crate::utils::redis_cache::RedisCache;
-use crate::utils::casbin_service::CasbinService;
 use crate::utils::casbin_init;
+use crate::utils::casbin_service::CasbinService;
+use crate::utils::redis_cache::RedisCache;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::sync::Arc;
@@ -40,11 +40,16 @@ pub async fn init_app() -> Result<AppState, AppError> {
     let redis = RedisCache::new(&config.redis.url)
         .map_err(|e| AppError::Message(format!("redis connection failed:{}", e)))?;
     tracing::info!("Redis connected successfully");
+    let casbin = CasbinService::new(&config.database.url)
+        .await
+        .map_err(|e| AppError::Message(format!("casbin connection failed:{}", e)))?;
+    tracing::info!("Casbin connected successfully");
     // 创建应用状态
     let app_state = AppState {
         db: db_pool,
         redis: Arc::new(redis),
         config: Arc::new(config.clone()),
+        casbin: Arc::new(casbin),
     };
     // 创建路由
     Ok(app_state)
