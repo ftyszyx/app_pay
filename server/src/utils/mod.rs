@@ -5,4 +5,5 @@ pub mod casbin_service;
 pub mod convert;
 pub mod jwt;
 // pub mod performance;
+pub mod custom_casbin_adapter;
 pub mod redis_cache;

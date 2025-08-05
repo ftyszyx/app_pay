@@ -36,7 +36,7 @@ futures = "0.3.31"
 redis={version="0.32.4",features = ["tokio-comp", "json","aio"] }
 http-body-util = "0.1"
 casbin = { version = "2.1.3", default-features = false, features = ["runtime-tokio"] }
-sqlx-adapter = "1.8.0"
+async_trait={version="0.1.88"}
 
 [dev-dependencies]
 tower = { version = "0.5.2", features = ["util"] }
@@ -46,4 +46,3 @@ mime = "0.3"
 
 [workspace]
 members = ["migration", "entity"]
-

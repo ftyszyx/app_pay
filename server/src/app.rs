@@ -40,7 +40,7 @@ pub async fn init_app() -> Result<AppState, AppError> {
     let redis = RedisCache::new(&config.redis.url)
         .map_err(|e| AppError::Message(format!("redis connection failed:{}", e)))?;
     tracing::info!("Redis connected successfully");
-    let casbin = CasbinService::new(&config.database.url)
+    let casbin = CasbinService::new(&db_pool)
         .await
         .map_err(|e| AppError::Message(format!("casbin connection failed:{}", e)))?;
     tracing::info!("Casbin connected successfully");

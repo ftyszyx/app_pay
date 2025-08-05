@@ -149,7 +149,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "sqlx-adapter",
  "tokio",
  "tower",
  "tower-http",
@@ -3038,18 +3037,6 @@ dependencies = [
  "sqlx-mysql",
  "sqlx-postgres",
  "sqlx-sqlite",
-]
-
-[[package]]
-name = "sqlx-adapter"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a88e13f5aaf770420184c9e2955345f157953fb7ed9f26df59a4a0664478daf"
-dependencies = [
- "async-trait",
- "casbin",
- "dotenvy",
- "sqlx",
 ]
 
 [[package]]

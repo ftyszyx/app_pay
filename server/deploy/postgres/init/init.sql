@@ -246,3 +246,17 @@ CREATE TABLE "invite_records" (
 );
 CREATE INDEX idx_invite_records_user_id ON "invite_records" ("user_id");
 CREATE INDEX idx_invite_records_invite_user_id ON "invite_records" ("inviter_user_id");
+
+-- casbin rule
+DROP TABLE IF EXISTS "casbin_rule" CASCADE;
+CREATE TABLE "casbin_rule" (
+    "id" SERIAL PRIMARY KEY,
+    "ptype" VARCHAR NOT NULL,
+    "v0" VARCHAR NOT NULL,
+    "v1" VARCHAR NOT NULL,
+    "v2" VARCHAR NOT NULL,
+    "v3" VARCHAR,
+    "v4" VARCHAR,
+    "v5" VARCHAR,
+    CONSTRAINT "unique_key" UNIQUE("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
+);
