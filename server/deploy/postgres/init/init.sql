@@ -260,3 +260,11 @@ CREATE TABLE "casbin_rule" (
     "v5" VARCHAR,
     CONSTRAINT "unique_key" UNIQUE("ptype", "v0", "v1", "v2", "v3", "v4", "v5")
 );
+
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'read', '', '', '');
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'update', '', '', '');
+
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'user', '/*', 'read', '', '', '');
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'user', '/*', 'update', '', '', '');
+
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'guest', '/*', 'read', '', '', '');

@@ -40,4 +40,4 @@ https://github.com/macrozheng/mall
 ## todo
 
 1. 增加 权限管理 使用- **权限**: Casbin
-2. 支付功能 hyperswitch(https://github.com/juspay/hyperswitch)
+2. 支付功能:支付宝和微信 

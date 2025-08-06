@@ -4,55 +4,45 @@ use casbin::{
     error::{AdapterError, Error as CasbinError},
 };
 use entity::casbin_rule::{self, Entity as CasbinRule};
-use sea_orm::{ActiveValue, Condition, QueryFilter, prelude::*};
+use sea_orm::{ActiveValue, ColumnTrait, Condition as SeaOrmCondition, QueryFilter, prelude::*};
+use std::io::{Error, ErrorKind};
 
-pub struct CustomAdapter {
+pub struct CasbinAdapter {
     pool: DbConn,
 }
 
-impl CustomAdapter {
+impl CasbinAdapter {
     pub fn new(pool: DbConn) -> Self {
         Self { pool }
     }
 }
 
-fn casbin_rule_to_policy_line(rule: &casbin_rule::Model) -> Option<String> {
-    let mut line = rule.ptype.clone();
-    let fields = [
-        rule.v0.as_str(),
-        rule.v1.as_str(),
-        rule.v2.as_str(),
-        rule.v3.as_deref().unwrap_or(""),
-        rule.v4.as_deref().unwrap_or(""),
-        rule.v5.as_deref().unwrap_or(""),
-    ];
-    for field in fields {
-        if !field.is_empty() {
-            line.push_str(", ");
-            line.push_str(field);
-        }
-    }
-    Some(line)
-}
-
 #[async_trait]
-impl Adapter for CustomAdapter {
-    async fn load_policy(&mut self, m: &mut Model) -> Result<()> {
+impl Adapter for CasbinAdapter {
+    async fn load_policy(&mut self, m: &mut dyn Model) -> Result<()> {
         let rules = CasbinRule::find()
             .all(&self.pool)
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
-        for rule in rules {
-            if let Some(line) = casbin_rule_to_policy_line(&rule) {
-                m.add_policy_from_source_line(&line).await?;
+        for r in rules {
+            let rule = vec![r.v0, r.v1, r.v2]
+                .into_iter()
+                .chain(r.v3.into_iter())
+                .chain(r.v4.into_iter())
+                .chain(r.v5.into_iter())
+                .collect::<Vec<String>>();
+            if !m.add_policy("p", &r.ptype, rule) {
+                return Err(CasbinError::from(AdapterError(Box::new(Error::new(
+                    ErrorKind::Other,
+                    "Failed to add policy",
+                )))));
             }
         }
         Ok(())
     }
 
-    async fn save_policy(&mut self, m: &mut Model) -> Result<()> {
+    async fn save_policy(&mut self, m: &mut dyn Model) -> Result<()> {
         self.clear_policy().await?;
-
         let mut policies_to_add = Vec::new();
 
         if let Some(ast_map) = m.get_model().get("p") {
@@ -77,7 +67,6 @@ impl Adapter for CustomAdapter {
                 }
             }
         }
-
         if let Some(ast_map) = m.get_model().get("g") {
             for (ptype, ast) in ast_map {
                 for rule in ast.get_policy() {
@@ -103,19 +92,18 @@ impl Adapter for CustomAdapter {
                 .await
                 .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
         }
-
         Ok(())
     }
 
-    async fn add_policy(&mut self, _sec: &str, ptype: &str, rule: Vec<&str>) -> Result<bool> {
+    async fn add_policy(&mut self, _sec: &str, ptype: &str, rule: Vec<String>) -> Result<bool> {
         let new_rule = casbin_rule::ActiveModel {
             ptype: ActiveValue::Set(ptype.to_owned()),
-            v0: ActiveValue::Set(rule.get(0).map_or("".to_string(), |&s| s.to_string())),
-            v1: ActiveValue::Set(rule.get(1).map_or("".to_string(), |&s| s.to_string())),
-            v2: ActiveValue::Set(rule.get(2).map_or("".to_string(), |&s| s.to_string())),
-            v3: ActiveValue::Set(rule.get(3).map(|&s| s.to_string())),
-            v4: ActiveValue::Set(rule.get(4).map(|&s| s.to_string())),
-            v5: ActiveValue::Set(rule.get(5).map(|&s| s.to_string())),
+            v0: ActiveValue::Set(rule.get(0).cloned().unwrap_or_default()),
+            v1: ActiveValue::Set(rule.get(1).cloned().unwrap_or_default()),
+            v2: ActiveValue::Set(rule.get(2).cloned().unwrap_or_default()),
+            v3: ActiveValue::Set(rule.get(3).cloned()),
+            v4: ActiveValue::Set(rule.get(4).cloned()),
+            v5: ActiveValue::Set(rule.get(5).cloned()),
             ..Default::default()
         };
         CasbinRule::insert(new_rule)
@@ -125,26 +113,25 @@ impl Adapter for CustomAdapter {
         Ok(true)
     }
 
-    async fn remove_policy(&mut self, _sec: &str, ptype: &str, rule: Vec<&str>) -> Result<bool> {
-        let mut condition = Condition::all().add(casbin_rule::Column::Ptype.eq(ptype));
-
+    async fn remove_policy(&mut self, _sec: &str, ptype: &str, rule: Vec<String>) -> Result<bool> {
+        let mut condition = SeaOrmCondition::all().add(casbin_rule::Column::Ptype.eq(ptype));
         if let Some(val) = rule.get(0) {
-            condition = condition.add(casbin_rule::Column::V0.eq(*val));
+            condition = condition.add(casbin_rule::Column::V0.eq(val));
         }
         if let Some(val) = rule.get(1) {
-            condition = condition.add(casbin_rule::Column::V1.eq(*val));
+            condition = condition.add(casbin_rule::Column::V1.eq(val));
         }
         if let Some(val) = rule.get(2) {
-            condition = condition.add(casbin_rule::Column::V2.eq(*val));
+            condition = condition.add(casbin_rule::Column::V2.eq(val));
         }
         if let Some(val) = rule.get(3) {
-            condition = condition.add(casbin_rule::Column::V3.eq(*val));
+            condition = condition.add(casbin_rule::Column::V3.eq(val));
         }
         if let Some(val) = rule.get(4) {
-            condition = condition.add(casbin_rule::Column::V4.eq(*val));
+            condition = condition.add(casbin_rule::Column::V4.eq(val));
         }
         if let Some(val) = rule.get(5) {
-            condition = condition.add(casbin_rule::Column::V5.eq(*val));
+            condition = condition.add(casbin_rule::Column::V5.eq(val));
         }
 
         let res = CasbinRule::delete_many()
@@ -152,7 +139,6 @@ impl Adapter for CustomAdapter {
             .exec(&self.pool)
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
-
         Ok(res.rows_affected > 0)
     }
 
@@ -161,24 +147,21 @@ impl Adapter for CustomAdapter {
         _sec: &str,
         ptype: &str,
         field_index: usize,
-        field_values: Vec<&str>,
+        field_values: Vec<String>,
     ) -> Result<bool> {
         if field_values.is_empty() {
             return Ok(false);
         }
-
-        let mut condition = Condition::all().add(casbin_rule::Column::Ptype.eq(ptype));
-
-        let mut add_condition = |i: usize, col: casbin_rule::Column| {
+        let mut condition = SeaOrmCondition::all().add(casbin_rule::Column::Ptype.eq(ptype));
+        let add_condition = |i: usize, col: casbin_rule::Column| {
             if field_index <= i && i < field_index + field_values.len() {
                 let offset = i - field_index;
                 if let Some(val) = field_values.get(offset) {
-                    return Condition::all().add(col.eq(*val));
+                    return SeaOrmCondition::all().add(col.eq(val));
                 }
             }
-            Condition::any()
+            SeaOrmCondition::any()
         };
-
         condition = condition.add(add_condition(0, casbin_rule::Column::V0));
         condition = condition.add(add_condition(1, casbin_rule::Column::V1));
         condition = condition.add(add_condition(2, casbin_rule::Column::V2));
@@ -191,7 +174,6 @@ impl Adapter for CustomAdapter {
             .exec(&self.pool)
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
-
         Ok(res.rows_affected > 0)
     }
 
@@ -209,28 +191,29 @@ impl Adapter for CustomAdapter {
 
     async fn load_filtered_policy<'a>(
         &mut self,
-        _m: &mut Model,
+        _m: &mut dyn Model,
         _filter: Filter<'a>,
     ) -> Result<()> {
-        Err(CasbinError::from(AdapterError(Box::new(
+        Err(CasbinError::from(AdapterError(Box::new(Error::new(
+            ErrorKind::Other,
             "filtered policies are not supported by this adapter",
-        ))))
+        )))))
     }
 
     async fn add_policies(
         &mut self,
         _sec: &str,
         ptype: &str,
-        rules: Vec<Vec<&str>>,
+        rules: Vec<Vec<String>>,
     ) -> Result<bool> {
         let new_rules = rules.into_iter().map(|rule| casbin_rule::ActiveModel {
             ptype: ActiveValue::Set(ptype.to_owned()),
-            v0: ActiveValue::Set(rule.get(0).map_or("".to_string(), |&s| s.to_string())),
-            v1: ActiveValue::Set(rule.get(1).map_or("".to_string(), |&s| s.to_string())),
-            v2: ActiveValue::Set(rule.get(2).map_or("".to_string(), |&s| s.to_string())),
-            v3: ActiveValue::Set(rule.get(3).map(|&s| s.to_string())),
-            v4: ActiveValue::Set(rule.get(4).map(|&s| s.to_string())),
-            v5: ActiveValue::Set(rule.get(5).map(|&s| s.to_string())),
+            v0: ActiveValue::Set(rule.get(0).cloned().unwrap_or_default()),
+            v1: ActiveValue::Set(rule.get(1).cloned().unwrap_or_default()),
+            v2: ActiveValue::Set(rule.get(2).cloned().unwrap_or_default()),
+            v3: ActiveValue::Set(rule.get(3).cloned()),
+            v4: ActiveValue::Set(rule.get(4).cloned()),
+            v5: ActiveValue::Set(rule.get(5).cloned()),
             ..Default::default()
         });
 
@@ -238,7 +221,6 @@ impl Adapter for CustomAdapter {
             .exec(&self.pool)
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
-
         Ok(true)
     }
 
@@ -246,34 +228,34 @@ impl Adapter for CustomAdapter {
         &mut self,
         _sec: &str,
         ptype: &str,
-        rules: Vec<Vec<&str>>,
+        rules: Vec<Vec<String>>,
     ) -> Result<bool> {
         if rules.is_empty() {
             return Ok(true);
         }
-
-        let mut condition = Condition::any();
+        let mut condition = SeaOrmCondition::any();
         for rule in rules {
-            let mut rule_condition = Condition::all().add(casbin_rule::Column::Ptype.eq(ptype));
+            let mut rule_condition =
+                SeaOrmCondition::all().add(casbin_rule::Column::Ptype.eq(ptype));
             if let Some(val) = rule.get(0) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V0.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V0.eq(val));
             }
             if let Some(val) = rule.get(1) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V1.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V1.eq(val));
             }
             if let Some(val) = rule.get(2) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V2.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V2.eq(val));
             }
             if let Some(val) = rule.get(3) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V3.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V3.eq(val));
             }
             if let Some(val) = rule.get(4) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V4.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V4.eq(val));
             }
             if let Some(val) = rule.get(5) {
-                rule_condition = rule_condition.add(casbin_rule::Column::V5.eq(*val));
+                rule_condition = rule_condition.add(casbin_rule::Column::V5.eq(val));
             }
-            condition = condition.or(rule_condition);
+            condition = SeaOrmCondition::any().add(condition).add(rule_condition);
         }
 
         let res = CasbinRule::delete_many()
@@ -281,7 +263,6 @@ impl Adapter for CustomAdapter {
             .exec(&self.pool)
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
-
         Ok(res.rows_affected > 0)
     }
 }

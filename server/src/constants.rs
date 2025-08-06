@@ -4,12 +4,13 @@ pub const DEFAULT_ROLE_ID: i32 = 2;
 
 //stauts
 pub const APP_OK: u16 = 0;
-pub const APP_NOT_FOUND: u16 = 4004;
-pub const APP_VALIDATION_ERROR: u16 = 4001;
-pub const APP_AUTH_FAILED: u16 = 4010;
-pub const APP_FORBIDDEN: u16 = 4030;
-pub const APP_BUSINESS_LOGIC: u16 = 4002;
-pub const APP_EXTERNAL_SERVICE: u16 = 5020;
-pub const APP_USER_ALREADY_EXISTS: u16 = 4003;
-pub const APP_NOT_IMPLEMENTED: u16 = 5001;
 pub const APP_OTHER: u16 = 5000;
+pub const APP_NOT_IMPLEMENTED: u16 = 5001;
+pub const APP_INTERNAL_ERROR: u16 = 5002;
+pub const APP_NOT_FOUND: u16 = 5003;
+pub const APP_VALIDATION_ERROR: u16 = 5004;
+pub const APP_AUTH_FAILED: u16 = 5005;
+pub const APP_FORBIDDEN: u16 = 5006;
+pub const APP_BUSINESS_LOGIC: u16 = 5007;
+pub const APP_EXTERNAL_SERVICE: u16 = 5008;
+pub const APP_USER_ALREADY_EXISTS: u16 = 5009;

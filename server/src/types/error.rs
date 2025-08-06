@@ -41,6 +41,9 @@ pub enum AppError {
         error: String,
     },
     UserAlreadyExists,
+    InternalError {
+        message: String,
+    },
     Message(String),
 }
 
@@ -93,6 +96,7 @@ impl AppError {
             Self::UserAlreadyExists => crate::constants::APP_USER_ALREADY_EXISTS,
             Self::NotImplemented { .. } => crate::constants::APP_NOT_IMPLEMENTED,
             Self::Message(_) => crate::constants::APP_OTHER,
+            Self::InternalError { .. } => crate::constants::APP_INTERNAL_ERROR,
         }
     }
 }
@@ -119,6 +123,7 @@ impl fmt::Display for AppError {
             Self::UserAlreadyExists => write!(f, "User already exists"),
             Self::NotImplemented { message } => write!(f, "Not implemented: {}", message),
             Self::Message(message) => write!(f, "{}", message),
+            Self::InternalError { message } => write!(f, "Internal error: {}", message),
         }
     }
 }

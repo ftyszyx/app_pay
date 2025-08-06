@@ -1,4 +1,5 @@
 pub mod app_types;
+pub mod casbin_types;
 pub mod common;
 pub mod config;
 pub mod coupons_types;

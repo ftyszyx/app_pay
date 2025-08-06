@@ -1,8 +1,7 @@
 use crate::database;
+use crate::services::casbin_service::CasbinService;
 use crate::types::config::Config;
 use crate::types::{common::AppState, error::AppError};
-use crate::utils::casbin_init;
-use crate::utils::casbin_service::CasbinService;
 use crate::utils::redis_cache::RedisCache;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};

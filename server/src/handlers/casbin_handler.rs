@@ -1,55 +1,8 @@
+use crate::types::casbin_types::*;
 use crate::types::common::AppState;
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use axum::{Json, extract::State};
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
-
-#[derive(Deserialize, ToSchema, Debug)]
-pub struct AddPolicyReq {
-    pub subject: String, // 用户ID或角色名
-    pub object: String,  // 资源路径
-    pub action: String,  // 操作类型：read, create, update, delete
-}
-
-#[derive(Deserialize, ToSchema, Debug)]
-pub struct RemovePolicyReq {
-    pub subject: String,
-    pub object: String,
-    pub action: String,
-}
-
-#[derive(Deserialize, ToSchema, Debug)]
-pub struct AddRoleReq {
-    pub user: String,  // 用户ID
-    pub role: String,  // 角色名
-}
-
-#[derive(Deserialize, ToSchema, Debug)]
-pub struct RemoveRoleReq {
-    pub user: String,
-    pub role: String,
-}
-
-#[derive(Serialize, ToSchema, Debug)]
-pub struct PolicyInfo {
-    pub subject: String,
-    pub object: String,
-    pub action: String,
-}
-
-#[derive(Serialize, ToSchema, Debug)]
-pub struct RoleInfo {
-    pub user: String,
-    pub role: String,
-}
-
-#[derive(Serialize, ToSchema, Debug)]
-pub struct PermissionCheckReq {
-    pub user_id: i32,
-    pub resource: String,
-    pub action: String,
-}
 
 // 添加权限策略
 #[utoipa::path(
@@ -63,7 +16,10 @@ pub async fn add_policy(
     State(state): State<AppState>,
     Json(req): Json<AddPolicyReq>,
 ) -> Result<ApiResponse<bool>, AppError> {
-    let result = state.casbin.add_policy(&req.subject, &req.object, &req.action).await?;
+    let result = state
+        .casbin
+        .add_policy(&req.subject, &req.object, &req.action)
+        .await?;
     Ok(ApiResponse::success(result))
 }
 
@@ -79,7 +35,10 @@ pub async fn remove_policy(
     State(state): State<AppState>,
     Json(req): Json<RemovePolicyReq>,
 ) -> Result<ApiResponse<bool>, AppError> {
-    let result = state.casbin.remove_policy(&req.subject, &req.object, &req.action).await?;
+    let result = state
+        .casbin
+        .remove_policy(&req.subject, &req.object, &req.action)
+        .await?;
     Ok(ApiResponse::success(result))
 }
 
@@ -111,7 +70,10 @@ pub async fn remove_role_for_user(
     State(state): State<AppState>,
     Json(req): Json<RemoveRoleReq>,
 ) -> Result<ApiResponse<bool>, AppError> {
-    let result = state.casbin.delete_role_for_user(&req.user, &req.role).await?;
+    let result = state
+        .casbin
+        .delete_role_for_user(&req.user, &req.role)
+        .await?;
     Ok(ApiResponse::success(result))
 }
 
@@ -160,36 +122,6 @@ pub async fn get_roles(
     Ok(ApiResponse::success(role_infos))
 }
 
-// 获取用户的所有角色
-#[utoipa::path(
-    get,
-    path = "/api/admin/permissions/users/{user_id}/roles",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = ApiResponse<Vec<String>>))
-)]
-pub async fn get_user_roles(
-    State(state): State<AppState>,
-    axum::extract::Path(user_id): axum::extract::Path<String>,
-) -> Result<ApiResponse<Vec<String>>, AppError> {
-    let roles = state.casbin.get_roles_for_user(&user_id).await?;
-    Ok(ApiResponse::success(roles))
-}
-
-// 获取角色的所有用户
-#[utoipa::path(
-    get,
-    path = "/api/admin/permissions/roles/{role}/users",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = ApiResponse<Vec<String>>))
-)]
-pub async fn get_role_users(
-    State(state): State<AppState>,
-    axum::extract::Path(role): axum::extract::Path<String>,
-) -> Result<ApiResponse<Vec<String>>, AppError> {
-    let users = state.casbin.get_users_for_role(&role).await?;
-    Ok(ApiResponse::success(users))
-}
-
 // 检查权限
 #[utoipa::path(
     post,
@@ -203,7 +135,10 @@ pub async fn check_permission(
     Json(req): Json<PermissionCheckReq>,
 ) -> Result<ApiResponse<bool>, AppError> {
     let user_str = req.user_id.to_string();
-    let result = state.casbin.enforce(&user_str, &req.resource, &req.action).await?;
+    let result = state
+        .casbin
+        .enforce(&user_str, &req.resource, &req.action)
+        .await?;
     Ok(ApiResponse::success(result))
 }
 
@@ -218,5 +153,7 @@ pub async fn reload_policies(
     State(state): State<AppState>,
 ) -> Result<ApiResponse<String>, AppError> {
     state.casbin.load_policy().await?;
-    Ok(ApiResponse::success("Policies reloaded successfully".to_string()))
+    Ok(ApiResponse::success(
+        "Policies reloaded successfully".to_string(),
+    ))
 }

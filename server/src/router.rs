@@ -1,4 +1,4 @@
-use crate::handlers::{self, middleware::auth,middleware::error_handler};
+use crate::handlers::{self, middleware::auth, middleware::error_handler};
 use crate::types::common::AppState;
 use axum::{
     Router, middleware,
@@ -71,16 +71,10 @@ use utoipa::{
         handlers::coupons_handler::update,
         handlers::coupons_handler::delete,
         //permissions
-        handlers::permissions_handler::add_policy,
-        handlers::permissions_handler::remove_policy,
-        handlers::permissions_handler::add_role_for_user,
-        handlers::permissions_handler::remove_role_for_user,
-        handlers::permissions_handler::get_policies,
-        handlers::permissions_handler::get_roles,
-        handlers::permissions_handler::get_user_roles,
-        handlers::permissions_handler::get_role_users,
-        handlers::permissions_handler::check_permission,
-        handlers::permissions_handler::reload_policies,
+        handlers::casbin_handler::add_policy,
+        handlers::casbin_handler::remove_policy,
+        handlers::casbin_handler::add_role_for_user,
+        handlers::casbin_handler::remove_role_for_user,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -122,27 +116,63 @@ pub fn create_router(app_state: AppState) -> Router {
         //products
         .route("/products", post(handlers::product_handler::add))
         .route("/products/list", get(handlers::product_handler::get_list))
-        .route( "/products/{id}", get(handlers::product_handler::get_by_id))
-        .route( "/products/{id}", put(handlers::product_handler::update))
-        .route( "/products/{id}", delete(handlers::product_handler::delete))
+        .route("/products/{id}", get(handlers::product_handler::get_by_id))
+        .route("/products/{id}", put(handlers::product_handler::update))
+        .route("/products/{id}", delete(handlers::product_handler::delete))
         //pay_methods
-        .route( "/pay_methods", post(handlers::pay_method_handler::add))
-        .route( "/pay_methods/list", get(handlers::pay_method_handler::get_list))
-        .route( "/pay_methods/{id}", get(handlers::pay_method_handler::get_by_id))
-        .route( "/pay_methods/{id}", put(handlers::pay_method_handler::update))
-        .route( "/pay_methods/{id}", delete(handlers::pay_method_handler::delete))
+        .route("/pay_methods", post(handlers::pay_method_handler::add))
+        .route(
+            "/pay_methods/list",
+            get(handlers::pay_method_handler::get_list),
+        )
+        .route(
+            "/pay_methods/{id}",
+            get(handlers::pay_method_handler::get_by_id),
+        )
+        .route(
+            "/pay_methods/{id}",
+            put(handlers::pay_method_handler::update),
+        )
+        .route(
+            "/pay_methods/{id}",
+            delete(handlers::pay_method_handler::delete),
+        )
         //invite_records
-        .route("/invite_records/list", get(handlers::invite_records_handler::get_list))
-        .route("/invite_records/{id}", get(handlers::invite_records_handler::get_by_id))
-        .route("/invite_records/{id}", put(handlers::invite_records_handler::update))
-        .route("/invite_records/{id}", delete(handlers::invite_records_handler::delete))
-        .route("/invite_records", post(handlers::invite_records_handler::add))
+        .route(
+            "/invite_records/list",
+            get(handlers::invite_records_handler::get_list),
+        )
+        .route(
+            "/invite_records/{id}",
+            get(handlers::invite_records_handler::get_by_id),
+        )
+        .route(
+            "/invite_records/{id}",
+            put(handlers::invite_records_handler::update),
+        )
+        .route(
+            "/invite_records/{id}",
+            delete(handlers::invite_records_handler::delete),
+        )
+        .route(
+            "/invite_records",
+            post(handlers::invite_records_handler::add),
+        )
         //reg_codes
         .route("/reg_codes", post(handlers::reg_codes_handler::add))
-        .route("/reg_codes/list", get(handlers::reg_codes_handler::get_list))
-        .route("/reg_codes/{id}", get(handlers::reg_codes_handler::get_by_id))
+        .route(
+            "/reg_codes/list",
+            get(handlers::reg_codes_handler::get_list),
+        )
+        .route(
+            "/reg_codes/{id}",
+            get(handlers::reg_codes_handler::get_by_id),
+        )
         .route("/reg_codes/{id}", put(handlers::reg_codes_handler::update))
-        .route("/reg_codes/{id}", delete(handlers::reg_codes_handler::delete))
+        .route(
+            "/reg_codes/{id}",
+            delete(handlers::reg_codes_handler::delete),
+        )
         //orders
         .route("/orders/list", get(handlers::orders_handler::get_list))
         .route("/orders/{id}", get(handlers::orders_handler::get_by_id))
@@ -156,16 +186,38 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/coupons/{id}", put(handlers::coupons_handler::update))
         .route("/coupons/{id}", delete(handlers::coupons_handler::delete))
         //permissions
-        .route("/permissions/policies", post(handlers::permissions_handler::add_policy))
-        .route("/permissions/policies", delete(handlers::permissions_handler::remove_policy))
-        .route("/permissions/policies", get(handlers::permissions_handler::get_policies))
-        .route("/permissions/roles", post(handlers::permissions_handler::add_role_for_user))
-        .route("/permissions/roles", delete(handlers::permissions_handler::remove_role_for_user))
-        .route("/permissions/roles", get(handlers::permissions_handler::get_roles))
-        .route("/permissions/users/{user_id}/roles", get(handlers::permissions_handler::get_user_roles))
-        .route("/permissions/roles/{role}/users", get(handlers::permissions_handler::get_role_users))
-        .route("/permissions/check", post(handlers::permissions_handler::check_permission))
-        .route("/permissions/reload", post(handlers::permissions_handler::reload_policies))
+        .route(
+            "/permissions/policies",
+            post(handlers::casbin_handler::add_policy),
+        )
+        .route(
+            "/permissions/policies",
+            delete(handlers::casbin_handler::remove_policy),
+        )
+        .route(
+            "/permissions/policies",
+            get(handlers::casbin_handler::get_policies),
+        )
+        .route(
+            "/permissions/roles",
+            post(handlers::casbin_handler::add_role_for_user),
+        )
+        .route(
+            "/permissions/roles",
+            delete(handlers::casbin_handler::remove_role_for_user),
+        )
+        .route(
+            "/permissions/roles",
+            get(handlers::casbin_handler::get_roles),
+        )
+        .route(
+            "/permissions/check",
+            post(handlers::casbin_handler::check_permission),
+        )
+        .route(
+            "/permissions/reload",
+            post(handlers::casbin_handler::reload_policies),
+        )
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
         .route_layer(middleware::from_fn(error_handler));
 
