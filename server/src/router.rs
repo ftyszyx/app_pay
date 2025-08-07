@@ -75,6 +75,11 @@ use utoipa::{
         handlers::casbin_handler::remove_policy,
         handlers::casbin_handler::add_role_for_user,
         handlers::casbin_handler::remove_role_for_user,
+        //payment
+        handlers::payment_handler::create_alipay_order,
+        handlers::payment_handler::create_wechat_order,
+        handlers::payment_handler::query_payment_order,
+        handlers::payment_handler::payment_notify,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -221,12 +226,19 @@ pub fn create_router(app_state: AppState) -> Router {
         .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
         .route_layer(middleware::from_fn(error_handler));
 
+    let payment_routes = Router::new()
+        .route("/alipay/create", post(handlers::payment_handler::create_alipay_order))
+        .route("/wechat/create", post(handlers::payment_handler::create_wechat_order))
+        .route("/{payment_type}/query/{out_trade_no}", get(handlers::payment_handler::query_payment_order))
+        .route("/notify", post(handlers::payment_handler::payment_notify));
+
     let cors = CorsLayer::new().allow_origin(Any);
     Router::new()
         .route("/", get(handlers::handler))
         .route("/api/register", post(handlers::auth::register))
         .route("/api/login", post(handlers::auth::login))
         .nest("/api/admin", admin_routes)
+        .nest("/api/payment", payment_routes)
         .with_state(app_state)
         .layer(cors)
         .layer(TraceLayer::new_for_http())

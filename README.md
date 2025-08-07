@@ -20,7 +20,7 @@ pay for app
 ## 参考：
 
 1. 展示页：https://tech.baiyue.one/#/byfaka
-2. 前台：http://8.134.209.8:3232/#/
+2. 前台：http://8.134.209.8:3232/
 3. 后台：http://8.134.209.8:3232/admin#/
 4. 说明文档：http://8.134.209.8:3200/
 
@@ -41,3 +41,13 @@ https://github.com/macrozheng/mall
 
 1. 增加 权限管理 使用- **权限**: Casbin
 2. 支付功能:支付宝和微信 
+
+
+LicenseHub - 许可证中心，突出软件许可管理的核心功能
+
+
+LicenseForge - 许可证工坊，体现生成和管理许可证的功能
+RegCodePro - 专业注册码系统
+SoftwareLicense - 软件许可系统
+DeviceBind - 设备绑定系统
+CodeVault - 代码保险库，体现安全性

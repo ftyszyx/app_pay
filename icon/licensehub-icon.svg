@@ -1,0 +1,68 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#gradient1)" stroke="#2563eb" stroke-width="4"/>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e5e7eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main License Document -->
+  <rect x="64" y="48" width="128" height="160" rx="8" ry="8" fill="url(#gradient3)" stroke="#374151" stroke-width="2"/>
+  
+  <!-- Document Header -->
+  <rect x="72" y="56" width="112" height="24" rx="4" ry="4" fill="#3b82f6" opacity="0.1"/>
+  
+  <!-- License Text Lines -->
+  <rect x="80" y="96" width="96" height="4" rx="2" fill="#6b7280"/>
+  <rect x="80" y="108" width="80" height="4" rx="2" fill="#6b7280"/>
+  <rect x="80" y="120" width="88" height="4" rx="2" fill="#6b7280"/>
+  <rect x="80" y="132" width="72" height="4" rx="2" fill="#6b7280"/>
+  
+  <!-- Key/Lock Symbol -->
+  <circle cx="128" cy="156" r="16" fill="url(#gradient2)" stroke="#d97706" stroke-width="2"/>
+  <rect x="120" y="164" width="16" height="24" rx="2" fill="url(#gradient2)"/>
+  <circle cx="128" cy="156" r="6" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <rect x="126" y="158" width="4" height="8" fill="#ffffff"/>
+  
+  <!-- Code Brackets -->
+  <path d="M 40 100 L 32 108 L 40 116" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 216 100 L 224 108 L 216 116" stroke="#3b82f6" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Device Icons (small) -->
+  <rect x="88" y="184" width="12" height="8" rx="1" fill="#6b7280"/>
+  <rect x="108" y="184" width="12" height="8" rx="1" fill="#6b7280"/>
+  <rect x="128" y="184" width="12" height="8" rx="1" fill="#6b7280"/>
+  <rect x="148" y="184" width="12" height="8" rx="1" fill="#6b7280"/>
+  
+  <!-- Connection Lines -->
+  <line x1="94" y1="180" x2="128" y2="172" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  <line x1="114" y1="180" x2="128" y2="172" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  <line x1="134" y1="180" x2="128" y2="172" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  <line x1="154" y1="180" x2="128" y2="172" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Security Shield -->
+  <path d="M 200 64 L 200 48 C 200 44 196 40 192 40 L 176 40 C 172 40 168 44 168 48 L 168 64 C 164 64 160 68 160 72 L 160 96 C 160 100 164 104 168 104 L 200 104 C 204 104 208 100 208 96 L 208 72 C 208 68 204 64 200 64 Z" fill="url(#gradient2)"/>
+  <circle cx="184" cy="84" r="6" fill="#ffffff"/>
+  <rect x="182" y="86" width="4" height="6" fill="#ffffff"/>
+  
+  <!-- Hub Connection Points -->
+  <circle cx="48" cy="128" r="4" fill="#3b82f6"/>
+  <circle cx="208" cy="128" r="4" fill="#3b82f6"/>
+  <circle cx="128" cy="32" r="4" fill="#3b82f6"/>
+  <circle cx="128" cy="224" r="4" fill="#3b82f6"/>
+  
+  <!-- Subtle glow effect -->
+  <circle cx="128" cy="128" r="120" fill="none" stroke="url(#gradient1)" stroke-width="1" opacity="0.3"/>
+</svg>
