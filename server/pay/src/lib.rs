@@ -25,8 +25,16 @@ use std::pin::Pin;
 
 pub mod alipay;
 pub mod error;
+pub mod unified;
 pub mod utils;
 pub mod wechat;
+
+// Re-export unified payment interface for easier access
+pub use unified::{
+    OrderStatus, PaymentMethod, PaymentProvider, UnifiedNotifyData, UnifiedOrderRequest,
+    UnifiedOrderResponse, UnifiedPayment, UnifiedPaymentConfig, UnifiedPaymentTrait,
+    UnifiedQueryRequest, UnifiedQueryResponse,
+};
 // reqwest 请求 user-agent
 const SDK_UA: &str = "Weapay rust sdk/0.1.0";
 

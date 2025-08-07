@@ -4,228 +4,279 @@ use axum::{
     Json,
     extract::{Path, State},
 };
-use pay::{Payment, WechatConfig};
+use pay::unified::prelude::*;
+use std::collections::HashMap;
 
-/// 创建支付宝订单
+/// 创建统一支付订单
 #[utoipa::path(
     post,
-    path = "/api/payment/alipay/create",
-    request_body = CreateAlipayOrderReq,
+    path = "/api/payment/create",
+    request_body = CreatePaymentOrderReq,
     responses(
         (status = 200, description = "Success", body = PaymentOrderResponse)
     )
 )]
-pub async fn create_alipay_order(
+pub async fn create_payment_order(
     State(state): State<AppState>,
-    Json(req): Json<CreateAlipayOrderReq>,
+    Json(req): Json<CreatePaymentOrderReq>,
 ) -> Result<ApiResponse<PaymentOrderResponse>, AppError> {
-    // 从配置或数据库获取支付宝配置
-    let config = get_alipay_config(&state).await?;
-    let payment = Payment::new(config);
+    // 获取统一支付配置
+    let config = get_unified_payment_config(&state).await?;
+    let payment = UnifiedPayment::new(config);
 
+    // 转换支付提供商
+    let provider = match req.provider.as_str() {
+        "wechat" => PaymentProvider::Wechat,
+        "alipay" => PaymentProvider::Alipay,
+        _ => {
+            return Err(AppError::BadRequest(
+                "Unsupported payment provider".to_string(),
+            ));
+        }
+    };
+
+    // 转换支付方式
     let method = match req.payment_method.as_str() {
-        "app" => "alipay.trade.app.pay",
-        "web" => "alipay.trade.page.pay",
-        "qr" => "alipay.trade.precreate",
+        "app" => PaymentMethod::App,
+        "web" => PaymentMethod::Web,
+        "qr" => PaymentMethod::QrCode,
+        "miniprogram" => PaymentMethod::MiniProgram,
+        "h5" => PaymentMethod::H5,
         _ => {
-            return Err(AppError::InternalError {
-                message: "不支持的支付方式".to_string(),
-            });
+            return Err(AppError::BadRequest(
+                "Unsupported payment method".to_string(),
+            ));
         }
     };
 
-    let order_data = pay::alipay::prelude::ReqOrderBody {
-        out_trade_no: req.out_trade_no.clone(),
-        total_amount: req.total_amount,
-        subject: req.subject,
-        ..Default::default()
-    };
-
-    let result = payment
-        .create_order(method, order_data)
-        .await
-        .map_err(|e| AppError::InternalError {
-            message: format!("支付宝订单创建失败: {}", e),
-        })?;
-
-    let response = PaymentOrderResponse {
-        order_id: req.out_trade_no,
-        qr_code: result.qr_code,
-        app_pay_data: None, // 需要根据实际返回数据处理
-        web_pay_url: None,
-    };
-
-    Ok(ApiResponse::success(response))
-}
-
-/// 创建微信支付订单
-#[utoipa::path(
-    post,
-    path = "/api/payment/wechat/create",
-    request_body = CreateWechatOrderReq,
-    responses(
-        (status = 200, description = "Success", body = PaymentOrderResponse)
-    )
-)]
-pub async fn create_wechat_order(
-    State(state): State<AppState>,
-    Json(req): Json<CreateWechatOrderReq>,
-) -> Result<ApiResponse<PaymentOrderResponse>, AppError> {
-    // 从配置或数据库获取微信支付配置
-    let config = get_wechat_config(&state).await?;
-    let payment = pay::wechat::Payment::new(config);
-
-    let trade_type = match req.trade_type.as_str() {
-        "JSAPI" => pay::wechat::prelude::TradeType::JSAPI,
-        "NATIVE" => pay::wechat::prelude::TradeType::NATIVE,
-        _ => {
-            return Err(AppError::InternalError {
-                message: "不支持的支付类型".to_string(),
-            });
-        }
-    };
-
-    let mut order_data = pay::wechat::prelude::ReqOrderBody {
-        out_trade_no: req.out_trade_no.clone(),
+    // 构建统一订单请求
+    let unified_request = UnifiedOrderRequest {
+        out_trade_no: req.out_trade_no,
         description: req.description,
-        amount: pay::wechat::prelude::ReqAmountInfo {
-            total: req.total,
-            currency: Some("CNY".to_string()),
-        },
-        ..Default::default()
+        total_amount: req.total_amount,
+        currency: req.currency,
+        user_id: req.user_id,
+        notify_url: req.notify_url,
+        time_expire: req.time_expire,
+        goods_tag: req.goods_tag,
+        attach: req.attach,
+        extra: req.extra,
     };
 
-    // JSAPI支付需要openid
-    if trade_type == pay::wechat::prelude::TradeType::JSAPI {
-        if let Some(openid) = req.openid {
-            order_data.payer = Some(pay::wechat::prelude::ReqPayerInfo {
-                openid: Some(openid),
-                ..Default::default()
-            });
-        } else {
-            return Err(AppError::InternalError {
-                message: "JSAPI支付需要openid".to_string(),
-            });
-        }
-    }
-
+    // 创建订单
     let result = payment
-        .create_order(trade_type, order_data)
-        .await
-        .map_err(|e| AppError::InternalError {
-            message: format!("微信支付订单创建失败: {}", e),
-        })?;
+        .create_order(provider, method, unified_request)
+        .await;
 
-    let response = PaymentOrderResponse {
-        order_id: req.out_trade_no,
-        qr_code: result.code_url,
-        app_pay_data: None, // 需要根据实际返回数据处理
-        web_pay_url: None,
-    };
-
-    Ok(ApiResponse::success(response))
+    if result.success {
+        Ok(ApiResponse::success(PaymentOrderResponse {
+            success: true,
+            prepay_id: result.prepay_id,
+            pay_url: result.pay_url,
+            qr_code: result.qr_code,
+            pay_params: result.pay_params,
+            error_msg: None,
+        }))
+    } else {
+        Err(AppError::PaymentError(
+            result
+                .error_msg
+                .unwrap_or_else(|| "Payment creation failed".to_string()),
+        ))
+    }
 }
 
-/// 查询订单状态
+/// 查询支付订单
 #[utoipa::path(
     get,
-    path = "/api/payment/{payment_type}/query/{out_trade_no}",
+    path = "/api/payment/{provider}/query/{out_trade_no}",
     params(
-        ("payment_type" = String, description = "支付类型: alipay 或 wechat"),
-        ("out_trade_no" = String, description = "商户订单号")
+        ("provider" = String, description = "Payment provider (wechat/alipay)"),
+        ("out_trade_no" = String, description = "Merchant order number")
     ),
     responses(
-        (status = 200, description = "Success")
+        (status = 200, description = "Success", body = PaymentQueryResponse)
     )
 )]
 pub async fn query_payment_order(
     State(state): State<AppState>,
-    Path((payment_type, out_trade_no)): Path<(String, String)>,
-) -> Result<ApiResponse<serde_json::Value>, AppError> {
-    match payment_type.as_str() {
-        "alipay" => {
-            let config = get_alipay_config(&state).await?;
-            let payment = Payment::new(config);
-            let result = payment
-                .query_order(&out_trade_no)
-                .await
-                .map_err(|e| AppError::internal_error(format!("查询支付宝订单失败: {}", e)))?;
-            Ok(ApiResponse::success(serde_json::to_value(result).unwrap()))
+    Path((provider, out_trade_no)): Path<(String, String)>,
+) -> Result<ApiResponse<PaymentQueryResponse>, AppError> {
+    // 获取统一支付配置
+    let config = get_unified_payment_config(&state).await?;
+    let payment = UnifiedPayment::new(config);
+
+    // 转换支付提供商
+    let provider = match provider.as_str() {
+        "wechat" => PaymentProvider::Wechat,
+        "alipay" => PaymentProvider::Alipay,
+        _ => {
+            return Err(AppError::BadRequest(
+                "Unsupported payment provider".to_string(),
+            ));
         }
-        "wechat" => {
-            let config = get_wechat_config(&state).await?;
-            let payment = Payment::new(config);
-            let result = payment
-                .query_order(&out_trade_no)
-                .await
-                .map_err(|e| AppError::internal_error(format!("查询微信支付订单失败: {}", e)))?;
-            Ok(ApiResponse::success(serde_json::to_value(result).unwrap()))
-        }
-        _ => Err(AppError::bad_request("不支持的支付类型".to_string())),
+    };
+
+    let query_request = UnifiedQueryRequest {
+        out_trade_no: Some(out_trade_no),
+        transaction_id: None,
+    };
+
+    let result = payment.query_order(provider, query_request).await;
+
+    if result.success {
+        Ok(ApiResponse::success(PaymentQueryResponse {
+            success: true,
+            out_trade_no: result.out_trade_no,
+            transaction_id: result.transaction_id,
+            status: result.status.map(|s| match s {
+                OrderStatus::Pending => "pending".to_string(),
+                OrderStatus::Success => "success".to_string(),
+                OrderStatus::Failed => "failed".to_string(),
+                OrderStatus::Closed => "closed".to_string(),
+                OrderStatus::Refunded => "refunded".to_string(),
+                OrderStatus::PartialRefunded => "partial_refunded".to_string(),
+            }),
+            total_amount: result.total_amount,
+            paid_amount: result.paid_amount,
+            pay_time: result.pay_time,
+            error_msg: None,
+        }))
+    } else {
+        Err(AppError::PaymentError(
+            result
+                .error_msg
+                .unwrap_or_else(|| "Query failed".to_string()),
+        ))
     }
 }
 
-/// 支付异步通知处理
+/// 关闭支付订单
 #[utoipa::path(
     post,
-    path = "/api/payment/notify",
-    request_body = String,
+    path = "/api/payment/{provider}/close/{out_trade_no}",
+    params(
+        ("provider" = String, description = "Payment provider (wechat/alipay)"),
+        ("out_trade_no" = String, description = "Merchant order number")
+    ),
     responses(
-        (status = 200, description = "Success")
+        (status = 200, description = "Success", body = ApiResponse<String>)
     )
 )]
-pub async fn payment_notify(
+pub async fn close_payment_order(
     State(state): State<AppState>,
-    body: String,
-) -> Result<&'static str, AppError> {
-    // 这里需要根据实际的通知格式来判断是支付宝还是微信支付的通知
-    // 通常可以通过URL路径或者通知内容来判断
+    Path((provider, out_trade_no)): Path<(String, String)>,
+) -> Result<ApiResponse<String>, AppError> {
+    // 获取统一支付配置
+    let config = get_unified_payment_config(&state).await?;
+    let payment = UnifiedPayment::new(config);
 
-    // 示例：支付宝通知处理
-    let alipay_config = get_alipay_config(&state).await?;
-    let alipay_payment = pay::alipay::Payment::new(alipay_config);
+    // 转换支付提供商
+    let provider = match provider.as_str() {
+        "wechat" => PaymentProvider::Wechat,
+        "alipay" => PaymentProvider::Alipay,
+        _ => {
+            return Err(AppError::BadRequest(
+                "Unsupported payment provider".to_string(),
+            ));
+        }
+    };
 
-    match alipay_payment.notify(&body) {
-        Ok(notify_data) => {
-            // 处理支付成功的业务逻辑
-            tracing::info!("支付宝支付成功通知: {:?}", notify_data);
-            // 更新订单状态等业务逻辑
-            Ok("success")
-        }
-        Err(e) => {
-            tracing::error!("支付宝通知验证失败: {}", e);
-            Err(AppError::InternalError {
-                message: "通知验证失败".to_string(),
-            })
-        }
+    match payment.close_order(provider, &out_trade_no).await {
+        Ok(_) => Ok(ApiResponse::success(
+            "Order closed successfully".to_string(),
+        )),
+        Err(e) => Err(AppError::PaymentError(e.to_string())),
     }
 }
 
-// 辅助函数：获取支付宝配置
-async fn get_alipay_config(state: &AppState) -> Result<pay::AlipayConfig, AppError> {
-    // 这里应该从数据库或配置文件中获取支付宝配置
-    // 暂时返回一个示例配置
-    Ok(pay::AlipayConfig {
-        app_id: "your_app_id".to_string(),
-        app_private_key: "path/to/private_key.pem".to_string(),
-        alipay_public_cert: "path/to/alipay_public_cert.pem".to_string(),
-        notify_url: Some("https://your-domain.com/api/payment/notify".to_string()),
-        is_sandbox: Some(true), // 沙盒模式
-        ..Default::default()
-    })
+/// 处理支付通知
+#[utoipa::path(
+    post,
+    path = "/api/payment/{provider}/notify",
+    params(
+        ("provider" = String, description = "Payment provider (wechat/alipay)")
+    ),
+    responses(
+        (status = 200, description = "Success", body = PaymentNotifyResponse)
+    )
+)]
+pub async fn handle_payment_notify(
+    State(state): State<AppState>,
+    Path(provider): Path<String>,
+    body: String,
+) -> Result<ApiResponse<PaymentNotifyResponse>, AppError> {
+    // 获取统一支付配置
+    let config = get_unified_payment_config(&state).await?;
+    let payment = UnifiedPayment::new(config);
+
+    // 转换支付提供商
+    let provider = match provider.as_str() {
+        "wechat" => PaymentProvider::Wechat,
+        "alipay" => PaymentProvider::Alipay,
+        _ => {
+            return Err(AppError::BadRequest(
+                "Unsupported payment provider".to_string(),
+            ));
+        }
+    };
+
+    // 对于微信支付，这里需要从请求头获取验签信息
+    // 这里简化处理，实际项目中需要从axum的Headers中提取
+    let headers: Option<HashMap<String, String>> = None;
+
+    match payment.handle_notify(provider, &body, headers) {
+        Ok(notify_data) => {
+            // 这里可以添加业务逻辑，比如更新订单状态
+            // update_order_status(&notify_data).await?;
+
+            Ok(ApiResponse::success(PaymentNotifyResponse {
+                success: true,
+                out_trade_no: notify_data.out_trade_no,
+                transaction_id: notify_data.transaction_id,
+                status: match notify_data.status {
+                    OrderStatus::Pending => "pending".to_string(),
+                    OrderStatus::Success => "success".to_string(),
+                    OrderStatus::Failed => "failed".to_string(),
+                    OrderStatus::Closed => "closed".to_string(),
+                    OrderStatus::Refunded => "refunded".to_string(),
+                    OrderStatus::PartialRefunded => "partial_refunded".to_string(),
+                },
+                total_amount: notify_data.total_amount,
+                paid_amount: notify_data.paid_amount,
+                pay_time: notify_data.pay_time,
+                error_msg: None,
+            }))
+        }
+        Err(e) => Err(AppError::PaymentError(e.to_string())),
+    }
 }
 
-// 辅助函数：获取微信支付配置
-async fn get_wechat_config(state: &AppState) -> Result<WechatConfig, AppError> {
-    // 这里应该从数据库或配置文件中获取微信支付配置
-    // 暂时返回一个示例配置
-    Ok(WechatConfig {
-        app_id: "your_app_id".to_string(),
-        mchid: "your_mch_id".to_string(),
-        mch_key: "your_mch_key".to_string(),
+/// 获取统一支付配置
+async fn get_unified_payment_config(_state: &AppState) -> Result<UnifiedPaymentConfig, AppError> {
+    // 这里应该从配置文件或数据库获取配置
+    // 示例配置，实际项目中需要从环境变量或配置文件读取
+    let wechat_config = Some(WechatConfig {
+        app_id: "your_wechat_app_id".to_string(),
+        mchid: "your_wechat_mchid".to_string(),
+        mch_key: "your_wechat_mch_key".to_string(),
         apiclient_key: "path/to/apiclient_key.pem".to_string(),
         apiclient_cert: "path/to/apiclient_cert.pem".to_string(),
-        notify_url: "https://your-domain.com/api/payment/notify".to_string(),
+        notify_url: "https://your-domain.com/api/payment/wechat/notify".to_string(),
         ..Default::default()
+    });
+
+    let alipay_config = Some(AlipayConfig {
+        app_id: "your_alipay_app_id".to_string(),
+        app_private_key: "path/to/alipay_private_key.txt".to_string(),
+        alipay_public_cert: "path/to/alipay_public_cert.crt".to_string(),
+        notify_url: Some("https://your-domain.com/api/payment/alipay/notify".to_string()),
+        is_sandbox: Some(true), // 沙盒环境
+        ..Default::default()
+    });
+
+    Ok(UnifiedPaymentConfig {
+        wechat: wechat_config,
+        alipay: alipay_config,
     })
 }
