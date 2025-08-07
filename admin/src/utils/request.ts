@@ -2,9 +2,9 @@ import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axio
 import { consoleError, consoleLog } from './log'
 import { ElMessage } from 'element-plus'
 
-console.log("request",import.meta.env.VITE_BASE_URL||'/api')
+console.log("request", import.meta.env.VITE_BASE_URL || '/api')
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL||'/api',
+  baseURL: import.meta.env.VITE_BASE_URL || '/api',
 })
 
 instance.interceptors.request.use(
@@ -25,11 +25,11 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response: AxiosResponse) => {
-        consoleLog(`[response] ${response.config.method} ${response.config.baseURL}${response.config.url} \nData: ${JSON.stringify(response.data)}`)
-        const data = response.data.data
-    if(data.code==0){
+    consoleLog(`[response] ${response.config.method} ${response.config.baseURL}${response.config.url} \nData: ${JSON.stringify(response.data)}`)
+    const data = response.data
+    if (data.success) {
       return data
-    }else{
+    } else {
       const message = data.message
       ElMessage.error(message)
       consoleError(message)
