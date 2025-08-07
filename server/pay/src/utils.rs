@@ -1,8 +1,8 @@
-use crate::error::WeaError;
 use crate::WeaResult;
+use crate::error::WeaError;
 use openssl::{
     base64::{decode_block, encode_block},
-    hash::{hash, MessageDigest},
+    hash::{MessageDigest, hash},
     //OpenSSLString,
     nid::Nid,
     pkey::PKey,

@@ -1,7 +1,7 @@
 use crate::alipay::prelude::*;
 use crate::utils::*;
 use crate::*;
-use aes::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use aes::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, block_padding::Pkcs7};
 use openssl::{
     base64::{decode_block, encode_block},
     hash::MessageDigest,
@@ -18,11 +18,15 @@ use std::{collections::HashMap, fs};
 pub trait BaseTrait {
     /// create order
     /// method format like alipay.trade.app.pay
-    fn create_order<'a>(&'a self, method: &'a str, data: ReqOrderBody) -> BoxFuture<ResOrderBody>;
+    fn create_order<'a>(
+        &'a self,
+        method: &'a str,
+        data: ReqOrderBody,
+    ) -> BoxFuture<'a, ResOrderBody>;
     /// 查询订单
-    fn query_order<'a>(&'a self, out_trade_no: &'a str) -> BoxFuture<ResOrderBody>;
+    fn query_order<'a>(&'a self, out_trade_no: &'a str) -> BoxFuture<'a, ResOrderBody>;
     /// 查询订单支付宝订单号
-    fn query_order_by_trade_no<'a>(&'a self, trade_no: &'a str) -> BoxFuture<ResOrderBody>;
+    fn query_order_by_trade_no<'a>(&'a self, trade_no: &'a str) -> BoxFuture<'a, ResOrderBody>;
     /// 关闭订单
     fn close_order(&self, body: ReqCloseOrderBody) -> BoxFuture<ResCloseOrderBody>;
     /// 撤销订单
@@ -44,7 +48,7 @@ pub trait BaseTrait {
         url: &'a str,
         method: &'a str,
         body: &'a str,
-    ) -> BoxFuture<U>;
+    ) -> BoxFuture<'a, U>;
     /// method format like alipay.trade.app.pay
     fn get_uri(&self, method: &str) -> String;
     /// 验证签名
@@ -67,7 +71,11 @@ pub trait BaseTrait {
 
 impl BaseTrait for Payment<AlipayConfig> {
     //create order
-    fn create_order<'a>(&'a self, method: &'a str, data: ReqOrderBody) -> BoxFuture<ResOrderBody> {
+    fn create_order<'a>(
+        &'a self,
+        method: &'a str,
+        data: ReqOrderBody,
+    ) -> BoxFuture<'a, ResOrderBody> {
         let fut = async move {
             let url = self.get_uri(method);
             let data = match data.notify_url {
@@ -84,7 +92,7 @@ impl BaseTrait for Payment<AlipayConfig> {
         Box::pin(fut)
     }
     //query order
-    fn query_order<'a>(&'a self, out_trade_no: &'a str) -> BoxFuture<ResOrderBody> {
+    fn query_order<'a>(&'a self, out_trade_no: &'a str) -> BoxFuture<'a, ResOrderBody> {
         let fut = async move {
             let url = self.get_uri("alipay.trade.query");
             let order_body = serde_json::to_string(&ReqQueryOrderBody {
@@ -97,7 +105,7 @@ impl BaseTrait for Payment<AlipayConfig> {
         Box::pin(fut)
     }
     // query order by trade_no
-    fn query_order_by_trade_no<'a>(&'a self, trade_no: &'a str) -> BoxFuture<ResOrderBody> {
+    fn query_order_by_trade_no<'a>(&'a self, trade_no: &'a str) -> BoxFuture<'a, ResOrderBody> {
         let fut = async move {
             let url = self.get_uri("alipay.trade.query");
             let order_body = serde_json::to_string(&ReqQueryOrderBody {
@@ -260,7 +268,7 @@ impl BaseTrait for Payment<AlipayConfig> {
         url: &'a str,
         method: &'a str,
         body: &'a str,
-    ) -> BoxFuture<U> {
+    ) -> BoxFuture<'a, U> {
         let fut = async move {
             let req_builder = self.build_request_builder(url, method, body)?;
             let res = req_builder.send().await?;

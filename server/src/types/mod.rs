@@ -7,6 +7,7 @@ pub mod error;
 pub mod invite_records_types;
 pub mod orders_types;
 pub mod pay_method_types;
+pub mod pay_types;
 pub mod product_types;
 pub mod reg_codes_types;
 pub mod response;
