@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "check": "vue-tsc -b",
     "build": "vue-tsc -b && vite build",
     "tailwind": "tailwindcss -i ./src/assets/main.css -o ./src/assets/main_output.css --watch",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.10.0",
     "element-plus": "^2.10.4",
     "pinia": "^3.0.3",

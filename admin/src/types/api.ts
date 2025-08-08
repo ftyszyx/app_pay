@@ -5,18 +5,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-
-
-export interface AuthPayload {
-  username: string;
-  password: string;
+export interface PagingResponse<T> {
+  list: T[]
+  page: number
+  total: number
 }
 
-export interface AuthResponse {
-  token: string;
-}
-
-export interface RegisterPayload {
-  username: string;
-  password: string;
+export interface ListParamsReq {
+  page?: number
+  page_size?: number
 }
