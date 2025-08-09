@@ -1,6 +1,19 @@
 {
-  "app": { "title": "AppPay Admin" },
-  "common": { "language": "Language", "lang_en": "English", "lang_zh_cn": "Simplified Chinese" },
+  "app": {
+    "title": "AppPay Admin"
+  },
+  "common": {
+    "language": "Language",
+    "lang_en": "English",
+    "lang_zh_cn": "Simplified Chinese",
+    "search_by_name": "",
+    "search": "",
+    "reset": "",
+    "new": "",
+    "actions": "",
+    "edit": "",
+    "delete": ""
+  },
   "auth": {
     "welcome": "Welcome",
     "username": "Username",
@@ -14,13 +27,55 @@
     "password_mismatch": "Passwords do not match",
     "register_failed": "Registration failed, please try again"
   },
-  "menu": { "dashboard": "Dashboard", "apps": "Apps", "products": "Products", "orders": "Orders", "users": "Users" },
-  "dashboard": { "title": "Dashboard", "total_revenue": "Total Revenue", "total_orders": "Total Orders", "total_users": "Total Users", "new_orders": "New Orders" },
-  "users": { "title": "User Management", "placeholder": "User management UI will go here." },
-  "orders": { "title": "Order Management", "placeholder": "Order management UI will go here." },
-  "products": { "title": "Product Management", "placeholder": "Product management UI will go here." },
-  "home": { "title": "Welcome to Our Store", "subtitle": "The best place to buy registration codes for awesome software.", "nav_home": "Home", "nav_products": "Products", "nav_admin": "Admin" },
-  "products_page": { "title": "Our Products", "buy_now": "Buy Now", "empty": "No products available at the moment." }
+  "menu": {
+    "dashboard": "Dashboard",
+    "apps": "Apps",
+    "products": "Products",
+    "orders": "Orders",
+    "users": "Users"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "total_revenue": "Total Revenue",
+    "total_orders": "Total Orders",
+    "total_users": "Total Users",
+    "new_orders": "New Orders"
+  },
+  "users": {
+    "title": "User Management",
+    "placeholder": "User management UI will go here."
+  },
+  "orders": {
+    "title": "Order Management",
+    "placeholder": "Order management UI will go here."
+  },
+  "products": {
+    "title": "Product Management",
+    "placeholder": "Product management UI will go here."
+  },
+  "home": {
+    "title": "Welcome to Our Store",
+    "subtitle": "The best place to buy registration codes for awesome software.",
+    "nav_home": "Home",
+    "nav_products": "Products",
+    "nav_admin": "Admin"
+  },
+  "products_page": {
+    "title": "Our Products",
+    "buy_now": "Buy Now",
+    "empty": "No products available at the moment."
+  },
+  "apps": {
+    "name": "",
+    "version": "",
+    "status": "",
+    "enabled": "",
+    "disabled": "",
+    "links": "",
+    "download": "",
+    "resource": "",
+    "update_info": "",
+    "created": "",
+    "updated": ""
+  }
 }
-
-
