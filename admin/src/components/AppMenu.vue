@@ -11,7 +11,7 @@
           <el-icon v-if="item.icon" class="mr-2">
             <component :is="item.icon" />
           </el-icon>
-          <span>{{ item.label }}</span>
+          <span>{{ $t(item.label) }}</span>
         </template>
         <app-menu-sub :items="item.children" />
       </el-sub-menu>
@@ -19,7 +19,7 @@
         <el-icon v-if="item.icon" class="mr-2">
           <component :is="item.icon" />
         </el-icon>
-        <span>{{ item.label }}</span>
+        <span>{{ $t(item.label) }}</span>
       </el-menu-item>
     </template>
   </el-menu>

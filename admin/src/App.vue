@@ -9,7 +9,6 @@ const localeStore = useLocaleStore()
   <ElConfigProvider :locale="localeStore.elLocale()" :button="{ autoInsertSpace: true }">
     <RouterView />
   </ElConfigProvider>
-  
 </template>
 
 <style>

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="text-2xl font-bold p-5 text-center">AppPay Admin</div>
+    <div class="text-2xl font-bold p-5 text-center">{{ $t('app.title') }}</div>
     <AppMenu :items="menuItems" mode="vertical" class="flex-1" />
   </div>
 </template>
@@ -13,11 +13,11 @@ import { RoutePath } from '@/types/route'
 
 
 const menuItems: AdminMenuItem[] = [
-  { label: 'Dashboard', icon: 'House', path: RoutePath.AdminDashboard },
-  { label: 'Apps', icon: 'Cpu', path: RoutePath.AdminApps },
-  { label: 'Products', icon: 'Goods', path: RoutePath.AdminProducts },
-  { label: 'Orders', icon: 'Tickets', path: RoutePath.AdminOrders },
-  { label: 'Users', icon: 'User', path: RoutePath.AdminUsers },
+  { label: 'menu.dashboard', icon: 'House', path: RoutePath.AdminDashboard },
+  { label: 'menu.apps', icon: 'Cpu', path: RoutePath.AdminApps },
+  { label: 'menu.products', icon: 'Goods', path: RoutePath.AdminProducts },
+  { label: 'menu.orders', icon: 'Tickets', path: RoutePath.AdminOrders },
+  { label: 'menu.users', icon: 'User', path: RoutePath.AdminUsers },
 ]
 </script>
 

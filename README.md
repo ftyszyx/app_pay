@@ -23,6 +23,7 @@ pay for app
 2. 前台：http://8.134.209.8:3232/
 3. 后台：http://8.134.209.8:3232/admin#/
 4. 说明文档：http://8.134.209.8:3200/
+1. https://github.com/Baiyuetribe/kamiFaka
 
 相当于是一个商城：
 

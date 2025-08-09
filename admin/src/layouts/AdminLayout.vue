@@ -5,13 +5,13 @@
       <AppSidebarMenu class="flex-1" />
       <div class="p-4 space-y-3">
         <div class="flex items-center justify-between text-sm">
-          <span>Language</span>
+          <span>{{ $t('common.language') }}</span>
           <el-select v-model="locale" size="small" style="width: 120px">
-            <el-option label="English" value="en" />
-            <el-option label="简体中文" value="zh-cn" />
+            <el-option :label="$t('common.lang_en')" value="en" />
+            <el-option :label="$t('common.lang_zh_cn')" value="zh-cn" />
           </el-select>
         </div>
-        <button @click="handleLogout" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Logout</button>
+        <button @click="handleLogout" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">{{ $t('auth.logout') }}</button>
       </div>
     </aside>
 

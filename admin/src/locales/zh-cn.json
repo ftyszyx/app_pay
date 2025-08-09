@@ -1,0 +1,26 @@
+{
+  "app": { "title": "AppPay 管理后台" },
+  "common": { "language": "语言", "lang_en": "英文", "lang_zh_cn": "简体中文" },
+  "auth": {
+    "welcome": "欢迎",
+    "username": "用户名",
+    "password": "密码",
+    "confirm_password": "确认密码",
+    "login": "登录",
+    "logout": "退出登录",
+    "register": "注册",
+    "no_account_register": "没有账号？注册",
+    "have_account_login": "已有账号？登录",
+    "password_mismatch": "密码不匹配",
+    "register_failed": "注册失败，请重试"
+  },
+  "menu": { "dashboard": "仪表盘", "apps": "应用", "products": "产品", "orders": "订单", "users": "用户" },
+  "dashboard": { "title": "仪表盘", "total_revenue": "总收入", "total_orders": "总订单", "total_users": "总用户数", "new_orders": "新增订单" },
+  "users": { "title": "用户管理", "placeholder": "用户管理界面待实现" },
+  "orders": { "title": "订单管理", "placeholder": "订单管理界面待实现" },
+  "products": { "title": "产品管理", "placeholder": "产品管理界面待实现" },
+  "home": { "title": "欢迎来到我们的商店", "subtitle": "购买优秀软件注册码的最佳地方。", "nav_home": "首页", "nav_products": "产品", "nav_admin": "后台" },
+  "products_page": { "title": "我们的产品", "buy_now": "立即购买", "empty": "当前没有可用产品。" }
+}
+
+

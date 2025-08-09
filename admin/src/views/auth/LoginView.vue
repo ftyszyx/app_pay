@@ -17,12 +17,12 @@
           />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-center text-white">欢迎</h2>
+      <h2 class="text-2xl font-bold text-center text-white">{{ $t('auth.welcome') }}</h2>
       <form @submit.prevent="handleLogin" class="space-y-6">
         <div>
           <input
             type="text"
-            placeholder="用户名"
+            :placeholder="$t('auth.username')"
             v-model="username"
             required
             class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -31,7 +31,7 @@
         <div class="relative">
           <input
             :type="passwordFieldType"
-            placeholder="密码"
+            :placeholder="$t('auth.password')"
             v-model="password"
             required
             class="w-full px-4 py-2 text-gray-900 bg-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -46,10 +46,10 @@
           type="submit"
           class="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
         >
-          登录
+          {{ $t('auth.login') }}
         </button>
         <div class="text-center">
-          <router-link to="/register" class="text-sm text-blue-400 hover:underline">没有账号？注册</router-link>
+          <router-link to="/register" class="text-sm text-blue-400 hover:underline">{{ $t('auth.no_account_register') }}</router-link>
         </div>
       </form>
     </div>
@@ -61,6 +61,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { RoutePath } from '@/types'
+import { useI18n } from 'vue-i18n'
 
 const username = ref('')
 const password = ref('')
@@ -68,6 +69,7 @@ const showPassword = ref(false)
 
 const router = useRouter()
 const authStore = useAuthStore()
+useI18n()
 
 const passwordFieldType = computed(() => (showPassword.value ? 'text' : 'password'))
 
