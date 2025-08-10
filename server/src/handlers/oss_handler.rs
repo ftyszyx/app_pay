@@ -1,3 +1,7 @@
+//oss api
+//https://help.aliyun.com/zh/oss/developer-reference/api-reference/?spm=a2c4g.11186623.help-menu-31815.d_19_1.691a4425Xf61lE&scm=20140722.H_31946._.OR_help-T_cn~zh-V_1
+//https://help.aliyun.com/zh/oss/?spm=a2c4g.11186623.0.0.723cb930I5VSPy
+
 use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use crate::types::common::AppState;
