@@ -4,10 +4,12 @@
 
 use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
-use crate::types::common::AppState;
+use crate::types::common::{AppState, Claims};
 use crate::types::response::ApiResponse;
 use crate::types::error::AppError;
 use utoipa::ToSchema;
+use axum::Extension;
+use crate::types::config::Config;
 
 #[derive(Debug, Serialize, Deserialize,ToSchema)]
 pub struct StsConfigReq {
@@ -15,6 +17,18 @@ pub struct StsConfigReq {
     // pub duration_seconds: Option<u32>,
     // pub session_name: Option<String>,
     // pub policy: Option<String>,
+}
+
+fn get_oss_commom_params(conf: &Config) -> Vec<(&str, String)> {
+    vec![
+        ("Format", "JSON".to_string()),
+        ("Version", "2015-04-01".to_string()),
+        ("AccessKeyId", conf.oss.access_key_id.clone()),
+        ("SignatureMethod", "HMAC-SHA1".to_string()),
+        ("SignatureVersion", "1.0".to_string()),
+        ("SignatureNonce", uuid::Uuid::new_v4().to_string()),
+        ("Timestamp", chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
+    ]
 }
 
 #[derive(Debug, Serialize, Deserialize,ToSchema)]
@@ -35,44 +49,19 @@ pub struct StsCredentialsResp {
 pub async fn get_oss_sts(
     State(state): State<AppState>,
     Json(req): Json<StsConfigReq>,
+        Extension(claims): Extension<Claims>,
 ) -> Result<ApiResponse<StsCredentialsResp>, AppError> {
-    let conf = &state.config.oss;
-    let access_key_id = conf
-        .access_key_id
-        .as_ref()
-        .ok_or_else(|| AppError::Message("OSS_ACCESS_KEY_ID not set".into()))?;
-    let access_key_secret = conf
-        .access_key_secret
-        .as_ref()
-        .ok_or_else(|| AppError::Message("OSS_ACCESS_KEY_SECRET not set".into()))?;
-
-    // STS 入口
-    let endpoint = conf
-        .endpoint
-        .clone()
-        .unwrap_or_else(|| "sts.aliyuncs.com".to_string());
-
-
 
     // 参考阿里云 STS OpenAPI: AssumeRole
     // 这里为了简化，使用 GET + query 方式
+    let conf=state.config;
     use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-    let mut params = vec![
-        ("Action", "AssumeRole"),
-        ("Format", "JSON"),
-        ("Version", "2015-04-01"),
-        ("AccessKeyId", access_key_id.as_str()),
-        ("SignatureMethod", "HMAC-SHA1"),
-        ("SignatureVersion", "1.0"),
-        ("SignatureNonce", uuid::Uuid::new_v4().to_string().as_str()),
-        ("Timestamp", &chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string()),
-        ("RoleArn", conf.role_arn.as_str()),
-        ("RoleSessionName", role_session_name.as_str()),
-        ("DurationSeconds", conf.sts_expire_secs.as_str()),
-    ];
-    if let Some(policy) = &req.policy {
-        params.push(("Policy", policy));
-    }
+    let params = get_oss_commom_params(&conf);
+    params.push(("Action", "AssumeRole".to_string()));
+    params.push(("RoleArn", conf.oss.role_arn.clone()));
+    params.push(("RoleSessionName", claims.sub.to_string()));
+    params.push(("DurationSeconds", conf.oss.sts_expire_secs.to_string()));
+
 
     // 构造待签名串
     let mut pairs: Vec<(String, String)> = params
