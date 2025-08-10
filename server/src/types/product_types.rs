@@ -13,7 +13,7 @@ pub struct ProductCreatePayload {
     pub product_id: String,
     pub add_valid_days: i32,
     pub image_url: Option<String>,
-    pub tags: Option<String>,
+    pub tags: Option<Vec<String>>,
     pub status: i16,
     pub remark: Option<String>,
 }
@@ -26,7 +26,7 @@ pub struct ProductUpdatePayload {
     pub product_id: Option<String>,
     pub add_valid_days: Option<i32>,
     pub image_url: Option<String>,
-    pub tags: Option<String>,
+    pub tags: Option<Vec<String>>,
     pub status: Option<i16>,
     pub remark: Option<String>,
 }
@@ -45,4 +45,6 @@ pub struct ListProductsParams {
     pub id: Option<i32>,
     pub product_id: Option<String>,
     pub name: Option<String>,
+    #[serde(deserialize_with = "from_str_optional",default)]
+    pub status: Option<i16>,
 }

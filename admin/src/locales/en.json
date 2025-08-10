@@ -6,13 +6,19 @@
     "language": "Language",
     "lang_en": "English",
     "lang_zh_cn": "Simplified Chinese",
-    "search_by_name": "",
-    "search": "",
-    "reset": "",
-    "new": "",
-    "actions": "",
-    "edit": "",
-    "delete": ""
+    "search_by_name": "Search by name",
+    "search_product_id": "Search by Product ID",
+    "search": "Search",
+    "reset": "Reset",
+    "new": "New",
+    "create": "Create",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "please_check_form": "",
+    "confirm": ""
   },
   "auth": {
     "welcome": "Welcome",
@@ -51,7 +57,26 @@
   },
   "products": {
     "title": "Product Management",
-    "placeholder": "Product management UI will go here."
+    "placeholder": "Product management UI will go here.",
+    "name": "Name",
+    "product_id": "Product ID",
+    "price": "Price",
+    "app_id": "App ID",
+    "add_valid_days": "Add Valid Days",
+    "image_url": "Image URL",
+    "tags": "Tags",
+    "status": "Status",
+    "status_1": "Enabled",
+    "status_0": "Disabled",
+    "remark": "Remark",
+    "search_name": "Name",
+    "search_product_id": "Product ID",
+    "search_status": "Status",
+    "input_name": "",
+    "input_product_id": "",
+    "input_app_id": "",
+    "input_price": "",
+    "input_add_valid_days": ""
   },
   "home": {
     "title": "Welcome to Our Store",
@@ -76,6 +101,17 @@
     "resource": "",
     "update_info": "",
     "created": "",
-    "updated": ""
+    "updated": "",
+    "app_id": "",
+    "version_name": "",
+    "version_code": "",
+    "download_url": "",
+    "resource_url": "",
+    "sort_order": "",
+    "input_name": "",
+    "input_app_id": "",
+    "input_version_name": "",
+    "input_version_code": "",
+    "delete_confirm": ""
   }
 }

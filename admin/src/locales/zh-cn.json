@@ -6,13 +6,19 @@
     "language": "语言",
     "lang_en": "英文",
     "lang_zh_cn": "简体中文",
-    "search_by_name": "搜索",
+    "search_by_name": "按名称搜索",
+    "search_product_id": "按产品ID搜索",
     "search": "搜索",
+    "confirm": "确认",
     "reset": "重置",
     "new": "新增",
+    "create": "新增",
     "actions": "操作",
     "edit": "编辑",
-    "delete": "删除"
+    "delete": "删除",
+    "save": "保存",
+    "please_check_form": "请检查表单",
+    "cancel": "取消"
   },
   "auth": {
     "welcome": "欢迎",
@@ -30,7 +36,7 @@
   "menu": {
     "dashboard": "仪表盘",
     "apps": "应用",
-    "products": "产品",
+    "products": "商品",
     "orders": "订单",
     "users": "用户"
   },
@@ -50,8 +56,26 @@
     "placeholder": "订单管理界面待实现"
   },
   "products": {
-    "title": "产品管理",
-    "placeholder": "产品管理界面待实现"
+    "title": "商品管理",
+    "name": "名称",
+    "product_id": "商品ID",
+    "price": "价格",
+    "app_id": "应用ID",
+    "add_valid_days": "增加有效天数",
+    "image_url": "图片地址",
+    "tags": "标签",
+    "status": "状态",
+    "status_1": "上架",
+    "status_0": "下架",
+    "remark": "备注",
+    "search_name": "名称",
+    "search_product_id": "产品ID",
+    "search_status": "状态",
+    "input_name": "请输入名称",
+    "input_product_id": "请输入产品ID",
+    "input_app_id": "请输入应用ID",
+    "input_add_valid_days": "请输入增加有效天数",
+    "input_price": "请输入价格"
   },
   "home": {
     "title": "欢迎来到我们的商店",
@@ -74,8 +98,19 @@
     "links": "链接",
     "download": "下载",
     "resource": "资源",
-    "update_info": "更新信息",
     "created": "创建时间",
-    "updated": "更新时间"
+    "updated": "更新时间",
+    "app_id": "应用ID",
+    "version_name": "版本名称",
+    "version_code": "版本号",
+    "download_url": "下载地址",
+    "resource_url": "资源地址",
+    "update_info": "更新信息",
+    "sort_order": "排序",
+    "input_name": "请输入名称",
+    "input_app_id": "请输入应用ID",
+    "input_version_name": "请输入版本名称",
+    "input_version_code": "请输入版本号",
+    "delete_confirm": "确定删除应用 {name} 吗？"
   }
 }

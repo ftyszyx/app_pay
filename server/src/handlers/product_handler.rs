@@ -131,6 +131,7 @@ pub async fn get_list_impl(
         contains
     );
     crate::filter_if_some!(query, products::Column::Name, params.name, contains);
+    crate::filter_if_some!(query, products::Column::Status, params.status, eq);
     let paginator = query.paginate(&state.db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
     let list = paginator.fetch_page(page - 1).await?;

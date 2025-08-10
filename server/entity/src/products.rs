@@ -17,7 +17,7 @@ pub struct Model {
     pub product_id: String,
     pub add_valid_days: i32,
     pub image_url: Option<String>,
-    pub tags: Option<String>,
+    pub tags: Option<Vec<String>>,
     pub status: i16,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,

@@ -97,6 +97,10 @@ const buildPatterns = () => {
       name: 'GetLang函数',
       regex: /GetLang\(\s*['"]([^'"]+)['"]/g
     });
+    patterns.push({
+      name: 't函数',
+      regex: /[\s]+t\(\s*['"]([^'"]+)['"]/g
+    });
   }
 
 
