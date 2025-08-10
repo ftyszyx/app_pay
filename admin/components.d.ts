@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppMenu: typeof import('./src/components/AppMenu.vue')['default']
+    AppMenuSub: typeof import('./src/components/AppMenuSub.vue')['default']
     AppSidebarMenu: typeof import('./src/components/AppSidebarMenu.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']

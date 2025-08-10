@@ -47,10 +47,10 @@
         </el-table-column>
         <el-table-column :label="$t('apps.links')" min-width="200">
           <template #default="{ row }">
-            <el-link :href="row.app_download_url" target="_blank" type="primary" :underline="false" class="mr-3">
+            <el-link :href="row.app_download_url" target="_blank" type="primary" underline="never" class="mr-3">
               <el-icon class="mr-1"><Download /></el-icon>{{ $t("apps.download") }}
             </el-link>
-            <el-link :href="row.app_res_url" target="_blank" type="primary" :underline="false">
+            <el-link :href="row.app_res_url" target="_blank" type="primary" underline="never">
               <el-icon class="mr-1"><Link /></el-icon>{{ $t("apps.resource") }}
             </el-link>
           </template>

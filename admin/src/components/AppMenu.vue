@@ -13,7 +13,7 @@
           </el-icon>
           <span>{{ $t(item.label) }}</span>
         </template>
-        <app-menu-sub :items="item.children" />
+        <AppMenuSub :items="item.children" />
       </el-sub-menu>
       <el-menu-item v-else :index="item.index ?? (item.path ?? String(idx))" :route="item.path" :disabled="item.disabled">
         <el-icon v-if="item.icon" class="mr-2">

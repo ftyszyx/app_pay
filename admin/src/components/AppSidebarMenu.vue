@@ -7,6 +7,7 @@
 
 <script setup lang="ts">
 import AppMenu from './AppMenu.vue'
+import AppMenuSub from './AppMenuSub.vue'
 import type { AdminMenuItem } from '@/types/menu'
 import { RoutePath } from '@/types/route'
 
