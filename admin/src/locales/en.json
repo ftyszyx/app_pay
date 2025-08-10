@@ -17,8 +17,8 @@
     "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
-    "please_check_form": "",
-    "confirm": ""
+    "please_check_form": "Please check the form",
+    "confirm": "Confirm"
   },
   "auth": {
     "welcome": "Welcome",
@@ -53,7 +53,20 @@
   },
   "orders": {
     "title": "Order Management",
-    "placeholder": "Order management UI will go here."
+    "placeholder": "Order management UI will go here.",
+    "order_id": "Order ID",
+    "status": "Status",
+    "pay_method": "Pay Method",
+    "original_price": "Original",
+    "final_price": "Final",
+    "created": "Created",
+    "updated": "Updated",
+    "status_0": "Pending",
+    "status_1": "Paid",
+    "status_2": "Closed",
+    "search_order_id": "Order ID",
+    "search_status": "Status",
+    "created_range": "Created Range"
   },
   "products": {
     "title": "Product Management",

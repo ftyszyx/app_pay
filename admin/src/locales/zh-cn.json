@@ -53,7 +53,22 @@
   },
   "orders": {
     "title": "订单管理",
-    "placeholder": "订单管理界面待实现"
+    "placeholder": "订单管理界面待实现",
+    "order_id": "订单号",
+    "status": "状态",
+    "pay_method": "支付方式",
+    "original_price": "原价",
+    "final_price": "实付",
+    "created": "创建时间",
+    "updated": "更新时间",
+    "status_0": "未支付",
+    "status_1": "已支付",
+    "status_2": "已关闭",
+    "search_order_id": "订单号",
+    "search_status": "状态",
+    "created_range": "创建时间",
+    "order_time_start": "订单创建时间开始",
+    "order_time_end": "订单创建时间结束"
   },
   "products": {
     "title": "商品管理",
