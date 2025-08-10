@@ -42,6 +42,7 @@ https://github.com/macrozheng/mall
 
 1. 增加 权限管理 使用- **权限**: Casbin
 2. 支付功能:支付宝和微信 
+1. 图片上传功能
 
 
 LicenseHub - 许可证中心，突出软件许可管理的核心功能

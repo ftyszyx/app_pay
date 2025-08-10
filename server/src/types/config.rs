@@ -7,6 +7,7 @@ pub struct Config {
     pub redis: RedisConfig,
     pub jwt: JwtConfig,
     pub server: ServerConfig,
+    pub oss: OssConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,17 @@ pub struct ServerConfig {
     pub port: u16,
 }
 
+#[derive(Debug, Clone)]
+pub struct OssConfig {
+    pub region: String,
+    pub bucket: String,
+    pub endpoint: String,
+    pub role_arn: String,
+    pub access_key_id: String,
+    pub sts_expire_secs: u32,
+    pub access_key_secret: String,
+}
+
 impl Config {
     pub fn from_env() -> Result<Self, AppError> {
         Ok(Config {
@@ -41,6 +53,7 @@ impl Config {
             redis: RedisConfig::from_env()?,
             jwt: JwtConfig::from_env()?,
             server: ServerConfig::from_env()?,
+            oss: OssConfig::from_env()?,
         })
     }
 }
@@ -99,3 +112,20 @@ impl ServerConfig {
         })
     }
 } 
+
+impl OssConfig {
+    fn from_env() -> Result<Self, AppError> {
+        Ok(OssConfig {
+            region: env::var("OSS_REGION").unwrap_or_default(),
+            bucket: env::var("OSS_BUCKET").unwrap_or_default(),
+            endpoint: env::var("OSS_ENDPOINT").unwrap_or_default(),
+            role_arn: env::var("OSS_ROLE_ARN").unwrap_or_default(),
+            sts_expire_secs: env::var("OSS_STS_EXPIRE_SECS")
+                .unwrap_or_else(|_| "3600".to_string())
+                .parse::<u32>()
+                .map_err(|_| AppError::Message("Invalid OSS_STS_EXPIRE_SECS value".to_string()))?,
+            access_key_id: env::var("OSS_ACCESS_KEY_ID").unwrap_or_default(),
+            access_key_secret: env::var("OSS_ACCESS_KEY_SECRET").unwrap_or_default(),
+        })
+    }
+}

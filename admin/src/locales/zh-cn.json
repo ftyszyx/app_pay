@@ -18,7 +18,8 @@
     "delete": "删除",
     "save": "保存",
     "please_check_form": "请检查表单",
-    "cancel": "取消"
+    "cancel": "取消",
+    "upload": "上传"
   },
   "auth": {
     "welcome": "欢迎",

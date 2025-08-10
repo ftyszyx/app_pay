@@ -2,3 +2,4 @@ target/
 deploy/mysql/data/
 deploy/postgres/data/
 logs/
+.env

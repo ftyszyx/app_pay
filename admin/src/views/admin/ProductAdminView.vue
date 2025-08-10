@@ -62,7 +62,14 @@
         </el-form-item>
         <el-form-item :label="$t('products.price')" prop="price"><el-input-number v-model="form.price" :min="1" /></el-form-item>
         <el-form-item :label="$t('products.add_valid_days')" prop="add_valid_days"><el-input-number v-model="form.add_valid_days" :min="0" /></el-form-item>
-        <el-form-item :label="$t('products.image_url')" prop="image_url"><el-input v-model="(form as any).image_url" /></el-form-item>
+        <el-form-item :label="$t('products.image_url')" prop="image_url">
+          <div class="flex items-center gap-3 w-full">
+            <el-input v-model="(form as any).image_url" placeholder="https://..." />
+            <el-upload :before-upload="beforeUpload" :http-request="handleOssUpload" :show-file-list="false">
+              <el-button type="primary">{{ $t('common.upload') || 'Upload' }}</el-button>
+            </el-upload>
+          </div>
+        </el-form-item>
         <el-form-item :label="$t('products.tags')" prop="tags"><el-input-tag v-model="(form as any).tags" delimiter="," /></el-form-item>
         <el-form-item :label="$t('products.status')" prop="status">
           <el-select v-model="form.status" style="width: 160px">
@@ -88,6 +95,7 @@ import type { AppModel } from "@/types/apps";
 import type { ProductModel, AddProductReq, UpdateProductReq, ListProductsParams } from "@/types/products";
 import type { FormInstance ,FormRules} from "element-plus";
 import { useI18n } from "vue-i18n";
+import { createOssClient, uploadFile, genObjectKey } from "@/utils/oss";
 const { t } = useI18n();
 
 const loading = ref(false);
@@ -173,6 +181,34 @@ const handleDelete = async (row: ProductModel) => {
   ElMessage.success("Deleted");
   load();
 };
+
+// OSS upload
+const beforeUpload = (file: File) => {
+  const isImage = /^image\//.test(file.type)
+  if (!isImage) { ElMessage.error('Only image files'); return false }
+  return true
+}
+const handleOssUpload = async (options: any) => {
+  try {
+    // TODO: replace with secure temp STS fetched from backend
+    const client = createOssClient({
+      region: import.meta.env.VITE_OSS_REGION,
+      bucket: import.meta.env.VITE_OSS_BUCKET,
+      accessKeyId: import.meta.env.VITE_OSS_ACCESS_KEY_ID,
+      accessKeySecret: import.meta.env.VITE_OSS_ACCESS_KEY_SECRET,
+      secure: true,
+      endpoint: import.meta.env.VITE_OSS_ENDPOINT,
+    } as any)
+    const key = genObjectKey('uploads/products', options.file as File)
+    const url = await uploadFile(client as any, options.file as File, key)
+    ;(form as any).image_url = url
+    ElMessage.success('Uploaded')
+    options.onSuccess?.({}, options.file)
+  } catch (e) {
+    ElMessage.error('Upload failed')
+    options.onError?.(e)
+  }
+}
 
 const submit = async (formRef: FormInstance|undefined) => {
   if(!formRef) return;

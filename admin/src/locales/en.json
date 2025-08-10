@@ -18,7 +18,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "please_check_form": "Please check the form",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "upload": "Upload"
   },
   "auth": {
     "welcome": "Welcome",
