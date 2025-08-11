@@ -24,7 +24,7 @@ pub async fn print_response_body_get_json(
     let status = response.status();
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    println!("{}: status={:?}, body={}", label, status, json);
+    println!("{}: status={:?}, body={}\n", label, status, json);
     json
 }
 

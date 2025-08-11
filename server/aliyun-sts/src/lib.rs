@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use chrono::Utc;
 use hmac::{Hmac, Mac};
 use reqwest::{
@@ -189,6 +188,7 @@ pub struct AssumeRoleResponse {
 
 pub struct StsClient {
     region: String,
+    host:String,
     access_key_id: String,
     access_key_secret: String,
     req_client: Client,
@@ -199,6 +199,7 @@ impl StsClient {
         let client = Client::new();
         Self {
             region: region.to_owned(),
+            host: format!("sts.{}.aliyuncs.com",region),
             access_key_id: access_key_id.to_owned(),
             access_key_secret: access_key_secret.to_owned(),
             req_client: client,
@@ -311,7 +312,7 @@ impl StsClient {
             HeaderValue::from_str(&nonce).unwrap(),
         );
         all_headers.insert("x-acs-date", HeaderValue::from_str(&dt_string).unwrap());
-        all_headers.insert("host", HeaderValue::from_str(&self.region).unwrap());
+        all_headers.insert("host", HeaderValue::from_str(&self.host).unwrap());
         all_headers.insert("Accept", HeaderValue::from_static("application/json"));
 
         let canonical_query_string = match query {
@@ -350,7 +351,7 @@ impl StsClient {
             None => "".to_string(),
         };
 
-        log::debug!("payload string: \n{}", payload_string);
+        log::debug!("sts payload string: \n{}", payload_string);
 
         let payload_data = payload_string.as_bytes();
 
@@ -397,7 +398,7 @@ impl StsClient {
             payload_hash_string
         );
 
-        log::info!("canonical request: \n{}", canonical_request);
+        log::debug!("canonical request: \n{}", canonical_request);
 
         // 对规范请求体做 SHA256 摘要
         let canonical_request_hash_string = sha256(canonical_request.as_bytes());
@@ -405,7 +406,7 @@ impl StsClient {
         // 构造加签字符串
         let string_to_sign = format!("ACS3-HMAC-SHA256\n{}", canonical_request_hash_string);
 
-        log::info!("string to sign: {}", string_to_sign);
+        log::debug!("string to sign: {}", string_to_sign);
 
         // 对加签字符串进行 Hmac-SHA256 摘要
         let key_data = self.access_key_secret.as_bytes();
@@ -418,7 +419,7 @@ impl StsClient {
             self.access_key_id, canonical_header_name_string, sig
         );
 
-        log::info!("auth header: {}", auth_header);
+        log::debug!("auth header: {}", auth_header);
 
         all_headers.insert(
             "Authorization",
@@ -438,13 +439,14 @@ impl StsClient {
         );
 
         let full_url = if canonical_query_string.is_empty() {
-            format!("https://sts.{}.aliyuncs.com{}", self.region, uri)
+            format!("https://{}{}", self.host, uri)
         } else {
             format!(
-                "https://sts.{}.aliyuncs.com{}?{}",
-                self.region, uri, canonical_query_string
+                "https://{}{}?{}",
+                self.host, uri, canonical_query_string
             )
         };
+        log::debug!("full url: {} method:{}", full_url,method);
 
         let req = Client::new().request(method, full_url).headers(all_headers);
         let req = if payload_string.is_empty() {

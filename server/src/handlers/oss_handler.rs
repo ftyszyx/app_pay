@@ -1,3 +1,5 @@
+//oss https://github.com/aliyun/alibabacloud-typescript-sdk/tree/master/sts-20150401
+//https://github.com/aliyun/alibabacloud-typescript-sdk
 //oss api
 use crate::types::common::{AppState, Claims};
 use crate::types::error::AppError;
@@ -33,7 +35,7 @@ pub async fn get_oss_sts(
     let sts = state.aliyun_sts;
     let req = AssumeRoleRequest::new(
         &conf.oss.role_arn,
-        &claims.sub.to_string(),
+        &claims.role.to_string(),
         None,
         conf.oss.sts_expire_secs,
     );

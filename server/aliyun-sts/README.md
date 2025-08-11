@@ -50,3 +50,7 @@ async fn test_assume_role() {
 ```rust
 client.sts_for_put_object(&arn, "mi-dev-public", "yuanyq-test/file-from-rust.zip", 3600)
 ```
+
+## 官方文档
+
+https://help.aliyun.com/zh/ram/developer-reference/api-reference/?spm=a2c4g.11186623.help-menu-28625.d_4_1.67d84676O8mwGc

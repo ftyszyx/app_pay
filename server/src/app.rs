@@ -48,13 +48,13 @@ pub async fn init_app() -> Result<AppState, AppError> {
     let app_state = AppState {
         db: db_pool,
         redis: Arc::new(redis),
-        config: Arc::new(config.clone()),
         casbin: Arc::new(casbin),
         aliyun_sts: Arc::new(StsClient::new(
             &config.oss.region,
             &config.oss.access_key_id,
             &config.oss.access_key_secret,
         )),
+        config: Arc::new(config),
     };
     // 创建路由
     Ok(app_state)
