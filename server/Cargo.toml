@@ -23,6 +23,7 @@ migration = { path = "migration" }
 entity = { path = "entity" }
 pay = { path = "pay" }
 xt-oss = { path = "xt-oss" }
+aliyun-sts={path="aliyun-sts"}
 bcrypt = "0.17.0"
 jsonwebtoken = "9.3"
 chrono = "0.4"
@@ -51,4 +52,4 @@ hyper = { version = "1.0", features = ["full"] }
 mime = "0.3"
 
 [workspace]
-members = ["migration", "entity", "pay","xt-oss"]
+members = ["migration", "entity", "pay","xt-oss","aliyun-sts"]
