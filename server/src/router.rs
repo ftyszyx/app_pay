@@ -76,7 +76,7 @@ use utoipa::{
         handlers::casbin_handler::add_role_for_user,
         handlers::casbin_handler::remove_role_for_user,
         // storage
-        handlers::storage_handler::get_oss_sts,
+        // handlers::storage_handler::get_oss_sts,
     ),
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
@@ -188,7 +188,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/coupons/{id}", put(handlers::coupons_handler::update))
         .route("/coupons/{id}", delete(handlers::coupons_handler::delete))
         // storage / oss sts
-        .route("/storage/oss/sts", post(handlers::oss_handler::get_oss_sts))
+        // .route("/storage/oss/sts", post(handlers::oss_handler::get_oss_sts))
         //permissions
         .route(
             "/permissions/policies",
