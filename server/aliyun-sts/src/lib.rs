@@ -438,9 +438,12 @@ impl StsClient {
         );
 
         let full_url = if canonical_query_string.is_empty() {
-            format!("https://{}{}", self.region, uri)
+            format!("https://sts.{}.aliyuncs.com{}", self.region, uri)
         } else {
-            format!("https://{}{}?{}", self.region, uri, canonical_query_string)
+            format!(
+                "https://sts.{}.aliyuncs.com{}?{}",
+                self.region, uri, canonical_query_string
+            )
         };
 
         let req = Client::new().request(method, full_url).headers(all_headers);

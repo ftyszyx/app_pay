@@ -1,5 +1,5 @@
-use std::env;
 use crate::types::error::AppError;
+use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -39,7 +39,7 @@ pub struct ServerConfig {
 pub struct OssConfig {
     pub region: String,
     pub bucket: String,
-    pub endpoint: String,
+    // pub endpoint: String,
     pub role_arn: String,
     pub access_key_id: String,
     pub sts_expire_secs: u32,
@@ -111,14 +111,14 @@ impl ServerConfig {
                 .map_err(|_| AppError::Message("Invalid LISTEN_PORT value".to_string()))?,
         })
     }
-} 
+}
 
 impl OssConfig {
     fn from_env() -> Result<Self, AppError> {
         Ok(OssConfig {
             region: env::var("OSS_REGION").unwrap_or_default(),
             bucket: env::var("OSS_BUCKET").unwrap_or_default(),
-            endpoint: env::var("OSS_ENDPOINT").unwrap_or_default(),
+            // endpoint: env::var("OSS_ENDPOINT").unwrap_or_default(),
             role_arn: env::var("OSS_ROLE_ARN").unwrap_or_default(),
             sts_expire_secs: env::var("OSS_STS_EXPIRE_SECS")
                 .unwrap_or_else(|_| "3600".to_string())

@@ -3,6 +3,7 @@ use crate::services::casbin_service::CasbinService;
 use crate::types::config::Config;
 use crate::types::{common::AppState, error::AppError};
 use crate::utils::redis_cache::RedisCache;
+use aliyun_sts::StsClient;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::sync::Arc;
@@ -49,6 +50,11 @@ pub async fn init_app() -> Result<AppState, AppError> {
         redis: Arc::new(redis),
         config: Arc::new(config.clone()),
         casbin: Arc::new(casbin),
+        aliyun_sts: Arc::new(StsClient::new(
+            &config.oss.region,
+            &config.oss.access_key_id,
+            &config.oss.access_key_secret,
+        )),
     };
     // 创建路由
     Ok(app_state)

@@ -2,6 +2,7 @@ use super::config::Config;
 use crate::services::casbin_service::CasbinService;
 use crate::utils::convert::from_str_optional;
 use crate::utils::redis_cache::RedisCache;
+use aliyun_sts::StsClient;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
@@ -38,6 +39,7 @@ pub struct AppState {
     pub redis: Arc<RedisCache>,
     pub config: Arc<Config>,
     pub casbin: Arc<CasbinService>,
+    pub aliyun_sts: Arc<StsClient>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
