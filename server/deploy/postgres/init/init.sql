@@ -120,6 +120,25 @@ CREATE INDEX idx_orders_updated_by ON "orders" ("updated_by");
 CREATE INDEX idx_orders_pay_method_id ON "orders" ("pay_method_id");
 COMMENT ON COLUMN "orders"."status" IS '0: 待支付 1: 已支付 2: 已取消 3: 已退款';
 
+-- 图片表
+DROP TABLE IF EXISTS "images" CASCADE;
+CREATE TABLE "images" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR NOT NULL,
+    "url" VARCHAR NOT NULL,
+    "path" VARCHAR NOT NULL,
+    "object_key" VARCHAR NOT NULL,
+    "tags" TEXT[],
+    "status" SMALLINT NOT NULL DEFAULT 1,
+    "remark" TEXT,
+    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMPTZ,
+    CONSTRAINT "chk_status_range_images" CHECK ("status" IN (0, 1))
+);
+CREATE INDEX idx_images_name ON "images" ("name");
+CREATE INDEX idx_images_status ON "images" ("status");
+
 --优惠券 
 DROP TABLE IF EXISTS "coupons" CASCADE;
 CREATE TABLE "coupons" (

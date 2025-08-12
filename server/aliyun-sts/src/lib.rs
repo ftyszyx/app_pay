@@ -187,7 +187,7 @@ pub struct AssumeRoleResponse {
 }
 
 pub struct StsClient {
-    region: String,
+    // region: String,
     host:String,
     access_key_id: String,
     access_key_secret: String,
@@ -198,7 +198,7 @@ impl StsClient {
     pub fn new(region: &str, access_key_id: &str, access_key_secret: &str) -> Self {
         let client = Client::new();
         Self {
-            region: region.to_owned(),
+            // region: region.to_owned(),
             host: format!("sts.{}.aliyuncs.com",region),
             access_key_id: access_key_id.to_owned(),
             access_key_secret: access_key_secret.to_owned(),

@@ -40,6 +40,12 @@ use utoipa::{
         handlers::product_handler::get_by_id,
         handlers::product_handler::update,
         handlers::product_handler::delete,
+        //images
+        handlers::image_handler::add,
+        handlers::image_handler::get_list,
+        handlers::image_handler::get_by_id,
+        handlers::image_handler::update,
+        handlers::image_handler::delete,
         //pay_methods
         handlers::pay_method_handler::add,
         handlers::pay_method_handler::get_list,
@@ -121,6 +127,12 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/products/{id}", get(handlers::product_handler::get_by_id))
         .route("/products/{id}", put(handlers::product_handler::update))
         .route("/products/{id}", delete(handlers::product_handler::delete))
+         //images
+         .route("/images", post(handlers::image_handler::add))
+         .route("/images/list", get(handlers::image_handler::get_list))
+         .route("/images/{id}", get(handlers::image_handler::get_by_id))
+         .route("/images/{id}", put(handlers::image_handler::update))
+         .route("/images/{id}", delete(handlers::image_handler::delete))
         //pay_methods
         .route("/pay_methods", post(handlers::pay_method_handler::add))
         .route(

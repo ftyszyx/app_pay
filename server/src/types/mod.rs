@@ -9,6 +9,7 @@ pub mod orders_types;
 pub mod pay_method_types;
 pub mod pay_types;
 pub mod product_types;
+pub mod image_types;
 pub mod reg_codes_types;
 pub mod response;
 pub mod role_types;
