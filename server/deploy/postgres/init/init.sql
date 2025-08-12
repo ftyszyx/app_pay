@@ -127,6 +127,7 @@ CREATE TABLE "images" (
     "name" VARCHAR NOT NULL,
     "url" VARCHAR NOT NULL,
     "path" VARCHAR NOT NULL,
+    "oss_type" SMALLINT NOT NULL DEFAULT 0, -- 0: 本地 1: OSS
     "object_key" VARCHAR NOT NULL,
     "tags" TEXT[],
     "status" SMALLINT NOT NULL DEFAULT 1,

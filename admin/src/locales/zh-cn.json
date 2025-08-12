@@ -39,7 +39,8 @@
     "apps": "应用",
     "products": "商品",
     "orders": "订单",
-    "users": "用户"
+    "users": "用户",
+    "images": "图片"
   },
   "dashboard": {
     "title": "仪表盘",

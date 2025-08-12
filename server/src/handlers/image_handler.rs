@@ -24,6 +24,7 @@ pub async fn add_impl(
 ) -> Result<images::Model, AppError> {
     let active_model = images::ActiveModel {
         name: Set(req.name),
+        object_key: Set(req.object_key),
         url: Set(req.url),
         path: Set(req.path),
         tags: Set(req.tags),
@@ -61,6 +62,7 @@ pub async fn update_impl(
     let model = model.ok_or_else(|| AppError::not_found("images".to_string(), Some(id)))?;
     let mut model: images::ActiveModel = model.into_active_model();
     crate::update_field_if_some!(model, name, req.name);
+    crate::update_field_if_some!(model, object_key, req.object_key);
     crate::update_field_if_some!(model, url, req.url);
     crate::update_field_if_some!(model, path, req.path);
     crate::update_field_if_some!(model, tags, req.tags, option);
@@ -119,6 +121,7 @@ pub async fn get_list_impl(
     let mut query = images::Entity::find().order_by_desc(images::Column::CreatedAt);
     crate::filter_if_some!(query, images::Column::Id, params.id, eq);
     crate::filter_if_some!(query, images::Column::Name, params.name, contains);
+    crate::filter_if_some!(query, images::Column::ObjectKey, params.object_key, contains);
     crate::filter_if_some!(query, images::Column::Url, params.url, contains);
     crate::filter_if_some!(query, images::Column::Path, params.path, contains);
     crate::filter_if_some!(query, images::Column::Status, params.status, eq);

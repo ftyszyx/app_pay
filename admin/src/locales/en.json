@@ -39,7 +39,8 @@
     "apps": "Apps",
     "products": "Products",
     "orders": "Orders",
-    "users": "Users"
+    "users": "Users",
+    "images": "Images"
   },
   "dashboard": {
     "title": "Dashboard",

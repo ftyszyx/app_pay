@@ -5,6 +5,7 @@ import ProductAdminView from '@/views/admin/ProductAdminView.vue'
 import OrderAdminView from '@/views/admin/OrderAdminView.vue'
 import UserAdminView from '@/views/admin/UserAdminView.vue'
 import AppAdminView from '@/views/admin/AppAdminView.vue'
+import ImageAdminView from '@/views/admin/ImageAdminView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -69,6 +70,11 @@ const router = createRouter({
                     path: RoutePath.AdminApps,
                     name: RouteName.AdminApps,
                     component: AppAdminView
+                },
+                {
+                    path: RoutePath.AdminImages,
+                    name: RouteName.AdminImages,
+                    component: ImageAdminView
                 }
             ]
         }

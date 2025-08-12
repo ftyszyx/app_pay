@@ -14,6 +14,7 @@ pub struct Model {
     pub name: String,
     pub object_key: String,
     pub url: String,
+    pub oss_type: i16,
     pub path: String,
     pub tags: Option<Vec<String>>,
     pub status: i16,

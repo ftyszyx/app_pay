@@ -8,6 +8,7 @@ use crate::types::common::ListParamsReq;
 #[derive(Deserialize, ToSchema, Debug, Validate)]
 pub struct ImageCreatePayload {
     pub name: String,
+    pub object_key: String,
     pub url: String,
     pub path: String,
     pub tags: Option<Vec<String>>,
@@ -18,6 +19,7 @@ pub struct ImageCreatePayload {
 #[derive(Deserialize, ToSchema, Debug, Validate, Default)]
 pub struct ImageUpdatePayload {
     pub name: Option<String>,
+    pub object_key: Option<String>,
     pub url: Option<String>,
     pub path: Option<String>,
     pub tags: Option<Vec<String>>,
@@ -38,6 +40,7 @@ pub struct ListImagesParams {
     #[serde(deserialize_with = "from_str_optional", default)]
     pub id: Option<i32>,
     pub name: Option<String>,
+    pub object_key: Option<String>,
     pub url: Option<String>,
     pub path: Option<String>,
     #[serde(deserialize_with = "from_str_optional", default)]
