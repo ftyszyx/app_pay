@@ -2,11 +2,13 @@ use crate::constants;
 use crate::handlers::user_handler::{self};
 use crate::types::common::AppState;
 use crate::types::user_types::{AuthPayload, AuthResponse, UserCreatePayload, UserInfo };
+use crate::types::user_types::ChangePasswordPayload;
 use crate::types::{common::Claims, error::AppError, response::ApiResponse};
 use crate::utils::jwt::create_jwt;
 use axum::Extension;
 use axum::{Json, extract::State};
 use bcrypt::{verify};
+use bcrypt::hash;
 use entity::roles;
 use entity::users;
 use sea_orm::{ ColumnTrait, EntityTrait,  QueryFilter};
@@ -104,4 +106,33 @@ pub async fn get_current_user(
 ) -> Result<ApiResponse<UserInfo>, AppError> {
     let user_info=user_handler::get_by_id_impl(&state,claims.sub).await?;
     Ok(ApiResponse::success(user_info))
+}
+
+/// Change current user's password
+#[utoipa::path(
+    post,
+    path = "/api/admin/me/password",
+    request_body = ChangePasswordPayload,
+    responses(
+        (status = 200, description = "Password changed", body = ApiResponse<bool>),
+        (status = 401, description = "Unauthorized"),
+        (status = 400, description = "Bad request"),
+    ),
+    security(("api_key" = []))
+)]
+pub async fn change_password(
+    State(state): State<AppState>,
+    Extension(claims): Extension<Claims>,
+    Json(payload): Json<ChangePasswordPayload>,
+) -> Result<ApiResponse<bool>, AppError> {
+    use sea_orm::{EntityTrait, IntoActiveModel, ActiveModelTrait, Set};
+    use entity::users;
+    let user = users::Entity::find_by_id(claims.sub).one(&state.db).await?;
+    let user = user.ok_or(AppError::auth_failed("User not found"))?;
+    verify(&payload.old_password, &user.password)
+        .map_err(|_| AppError::auth_failed("Old password incorrect"))?;
+    let mut active = user.into_active_model();
+    active.password = Set(hash(payload.new_password, 10)?);
+    let _ = active.update(&state.db).await?;
+    Ok(ApiResponse::success(true))
 }

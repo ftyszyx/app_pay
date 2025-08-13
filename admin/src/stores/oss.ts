@@ -32,8 +32,8 @@ export const useOssStore = defineStore('oss', () => {
         accessKeyId: creds!.access_key_id,
         accessKeySecret: creds!.access_key_secret,
         stsToken: creds!.security_token,
-        secure: true,
-        endpoint: import.meta.env.VITE_OSS_ENDPOINT,
+        // secure: true,
+        // endpoint: import.meta.env.VITE_OSS_ENDPOINT,
       }) as any
     }
     return cachedClient

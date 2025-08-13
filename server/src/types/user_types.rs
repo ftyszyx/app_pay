@@ -32,6 +32,12 @@ pub struct UserUpdatePayload {
     pub balance: Option<i64>,
 }
 
+#[derive(Deserialize, ToSchema, Debug, Validate)]
+pub struct ChangePasswordPayload {
+    pub old_password: String,
+    pub new_password: String,
+}
+
 #[derive(Deserialize, Serialize, ToSchema, Debug,FromQueryResult)]
 pub struct UserInfo {
     pub id: i32,

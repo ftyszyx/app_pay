@@ -12,15 +12,16 @@ export type OssConfig = {
 }
 
 export function createOssClient(cfg: OssConfig) {
+  console.log(cfg)
   return new OSS({
     region: cfg.region,
     bucket: cfg.bucket,
     accessKeyId: cfg.accessKeyId,
     accessKeySecret: cfg.accessKeySecret,
     stsToken: cfg.stsToken,
-    secure: cfg.secure ?? true,
-    cname: cfg.cname,
-    endpoint: cfg.endpoint,
+    // secure: cfg.secure ?? true,
+    // cname: cfg.cname,
+    // endpoint: cfg.endpoint,
   })
 }
 

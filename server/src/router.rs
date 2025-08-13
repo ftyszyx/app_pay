@@ -16,6 +16,7 @@ use utoipa::{
     paths(
         handlers::auth::register,
         handlers::auth::login,
+        handlers::auth::change_password,
         // app
         handlers::app_handler::add,
         handlers::app_handler::get_list,
@@ -258,6 +259,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/register", post(handlers::auth::register))
         .route("/api/login", post(handlers::auth::login))
         .nest("/api/admin", admin_routes)
+        .route("/api/admin/me/password", post(handlers::auth::change_password))
         // .nest("/api/payment", payment_routes)
         .with_state(app_state)
         .layer(cors)

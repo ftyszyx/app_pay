@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { ApiResponse, PagingResponse } from '@/types'
-import type { ResourceModel, ListResourcesParams, AddResourceReq, UpdateResourceReq } from '@/types/resources'
+import type { ResourceModel, ListResourcesParams, AddResourceReq, UpdateResourceReq } from '@/types'
 
 export const fetchResources = async (params: ListResourcesParams = {}) => {
   const response = await request.get('/admin/resources/list', { params }) as ApiResponse<PagingResponse<ResourceModel>>
