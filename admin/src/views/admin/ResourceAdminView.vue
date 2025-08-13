@@ -122,7 +122,8 @@ import { reactive, ref, computed, onMounted } from "vue";
 import { fetchResources, createResource, updateResource, deleteResource } from "@/apis/resources";
 import type { ResourceModel, AddResourceReq, UpdateResourceReq, ListResourcesParams } from "@/types";
 import { ElMessage, ElMessageBox, ElInputTag } from "element-plus";
-import { createOssClient, uploadFile, genObjectKey } from "@/utils/oss";
+import { uploadFile, genObjectKey } from "@/utils/oss";
+import { useOssStore } from "@/stores/oss";
 
 const state = reactive({
   items: [] as ResourceModel[],
@@ -249,14 +250,8 @@ const beforeUpload = (file: File) => {
 };
 const handleOssUpload = async (options: any) => {
   try {
-    const client = createOssClient({
-      region: import.meta.env.VITE_OSS_REGION,
-      bucket: import.meta.env.VITE_OSS_BUCKET,
-      accessKeyId: import.meta.env.VITE_OSS_ACCESS_KEY_ID,
-      accessKeySecret: import.meta.env.VITE_OSS_ACCESS_KEY_SECRET,
-      secure: true,
-      endpoint: import.meta.env.VITE_OSS_ENDPOINT,
-    } as any);
+    const ossStore = useOssStore();
+    const client = await ossStore.getClient();
     const key = genObjectKey("uploads/resources", options.file as File);
     const url = await uploadFile(client as any, options.file as File, key);
     form.object_key = key;
