@@ -204,9 +204,6 @@
   }
 }
 @layer utilities {
-  .collapse {
-    visibility: collapse !important;
-  }
   .visible {
     visibility: visible !important;
   }
@@ -294,12 +291,6 @@
   .grid {
     display: grid !important;
   }
-  .hidden {
-    display: none !important;
-  }
-  .table {
-    display: table !important;
-  }
   .aspect-\[4\/3\] {
     aspect-ratio: 4/3 !important;
   }
@@ -311,9 +302,6 @@
   }
   .h-16 {
     height: calc(var(--spacing) * 16) !important;
-  }
-  .h-28 {
-    height: calc(var(--spacing) * 28) !important;
   }
   .h-full {
     height: 100% !important;
@@ -333,14 +321,14 @@
   .w-16 {
     width: calc(var(--spacing) * 16) !important;
   }
+  .w-22 {
+    width: calc(var(--spacing) * 22) !important;
+  }
   .w-40 {
     width: calc(var(--spacing) * 40) !important;
   }
   .w-46 {
     width: calc(var(--spacing) * 46) !important;
-  }
-  .w-48 {
-    width: calc(var(--spacing) * 48) !important;
   }
   .w-52 {
     width: calc(var(--spacing) * 52) !important;
@@ -366,23 +354,14 @@
   .min-w-\[220px\] {
     min-width: 220px !important;
   }
-  .flex-0 {
-    flex: 0 !important;
-  }
   .flex-1 {
     flex: 1 !important;
-  }
-  .border-collapse {
-    border-collapse: collapse !important;
   }
   .cursor-default {
     cursor: default !important;
   }
   .cursor-pointer {
     cursor: pointer !important;
-  }
-  .resize {
-    resize: both !important;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
@@ -420,21 +399,11 @@
   .gap-3 {
     gap: calc(var(--spacing) * 3) !important;
   }
-  .gap-4 {
-    gap: calc(var(--spacing) * 4) !important;
-  }
   .gap-6 {
     gap: calc(var(--spacing) * 6) !important;
   }
   .gap-8 {
     gap: calc(var(--spacing) * 8) !important;
-  }
-  .space-y-2 {
-    :where(& > :not(:last-child)) {
-      --tw-space-y-reverse: 0 !important;
-      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse)) !important;
-      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse))) !important;
-    }
   }
   .space-y-3 {
     :where(& > :not(:last-child)) {
@@ -505,9 +474,6 @@
   .border-gray-600 {
     border-color: var(--color-gray-600) !important;
   }
-  .border-white {
-    border-color: var(--color-white) !important;
-  }
   .border-white\/70 {
     border-color: color-mix(in srgb, #fff 70%, transparent) !important;
     @supports (color: color-mix(in lab, red, red)) {
@@ -519,9 +485,6 @@
   }
   .bg-\[\#4a5568\] {
     background-color: #4a5568 !important;
-  }
-  .bg-black {
-    background-color: var(--color-black) !important;
   }
   .bg-black\/40 {
     background-color: color-mix(in srgb, #000 40%, transparent) !important;
@@ -556,10 +519,6 @@
   .bg-gradient-to-t {
     --tw-gradient-position: to top in oklab !important;
     background-image: linear-gradient(var(--tw-gradient-stops)) !important;
-  }
-  .from-black {
-    --tw-gradient-from: var(--color-black) !important;
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position)) !important;
   }
   .from-black\/50 {
     --tw-gradient-from: color-mix(in srgb, #000 50%, transparent) !important;
@@ -607,9 +566,6 @@
   }
   .px-4 {
     padding-inline: calc(var(--spacing) * 4) !important;
-  }
-  .py-0 {
-    padding-block: calc(var(--spacing) * 0) !important;
   }
   .py-0\.5 {
     padding-block: calc(var(--spacing) * 0.5) !important;
@@ -663,9 +619,6 @@
     font-size: var(--text-xs) !important;
     line-height: var(--tw-leading, var(--text-xs--line-height)) !important;
   }
-  .text-\[10px\] {
-    font-size: 10px !important;
-  }
   .leading-tight {
     --tw-leading: var(--leading-tight) !important;
     line-height: var(--leading-tight) !important;
@@ -681,9 +634,6 @@
   .font-semibold {
     --tw-font-weight: var(--font-weight-semibold) !important;
     font-weight: var(--font-weight-semibold) !important;
-  }
-  .break-all {
-    word-break: break-all !important;
   }
   .text-blue-400 {
     color: var(--color-blue-400) !important;
@@ -729,15 +679,6 @@
   .shadow-md {
     --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1)) !important;
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow) !important;
-  }
-  .outline {
-    outline-style: var(--tw-outline-style) !important;
-    outline-width: 1px !important;
-  }
-  .transition {
-    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, visibility, content-visibility, overlay, pointer-events !important;
-    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function)) !important;
-    transition-duration: var(--tw-duration, var(--default-transition-duration)) !important;
   }
   .transition-colors {
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to !important;
@@ -1023,11 +964,6 @@
   inherits: false;
   initial-value: 0 0 #0000;
 }
-@property --tw-outline-style {
-  syntax: "*";
-  inherits: false;
-  initial-value: solid;
-}
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
@@ -1059,7 +995,6 @@
       --tw-ring-offset-width: 0px;
       --tw-ring-offset-color: #fff;
       --tw-ring-offset-shadow: 0 0 #0000;
-      --tw-outline-style: solid;
     }
   }
 }

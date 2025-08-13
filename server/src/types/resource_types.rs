@@ -6,7 +6,7 @@ use crate::utils::convert::from_str_optional;
 use crate::types::common::ListParamsReq;
 
 #[derive(Deserialize, ToSchema, Debug, Validate)]
-pub struct ImageCreatePayload {
+pub struct ResourceCreatePayload {
     pub name: String,
     pub object_key: String,
     pub url: String,
@@ -17,7 +17,7 @@ pub struct ImageCreatePayload {
 }
 
 #[derive(Deserialize, ToSchema, Debug, Validate, Default)]
-pub struct ImageUpdatePayload {
+pub struct ResourceUpdatePayload {
     pub name: Option<String>,
     pub object_key: Option<String>,
     pub url: Option<String>,
@@ -28,13 +28,13 @@ pub struct ImageUpdatePayload {
 }
 
 #[derive(Serialize, ToSchema, Debug)]
-pub struct ImageListResponse {
-    pub list: Vec<entity::images::Model>,
+pub struct ResourceListResponse {
+    pub list: Vec<entity::resources::Model>,
     pub total: u64,
 }
 
 #[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
-pub struct ListImagesParams {
+pub struct ListResourcesParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
     #[serde(deserialize_with = "from_str_optional", default)]
@@ -46,5 +46,4 @@ pub struct ListImagesParams {
     #[serde(deserialize_with = "from_str_optional", default)]
     pub status: Option<i16>,
 }
-
 

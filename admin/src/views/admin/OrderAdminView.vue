@@ -4,14 +4,15 @@
 
     <el-card shadow="hover">
       <div class="flex flex-wrap gap-3 items-end">
-        <el-input v-model="query.order_id" class="w-52" :placeholder="$t('orders.search_order_id')" clearable />
-        <el-select v-model="query.status" class="w-40" :placeholder="$t('orders.search_status')" clearable>
+        <el-input  v-model="query.order_id" class="w-52" :placeholder="$t('orders.search_order_id')" clearable />
+        <el-select  v-model="query.status" class="w-40" :placeholder="$t('orders.search_status')" clearable>
           <el-option :label="$t('orders.status_0')" :value="0" />
           <el-option :label="$t('orders.status_1')" :value="1" />
           <el-option :label="$t('orders.status_2')" :value="2" />
         </el-select>
-        <el-date-picker class="flex-0"  v-model="createdRange"  type="datetimerange" range-separator="-" :start-placeholder="$t('orders.order_time_start')"
+        <el-date-picker class="w-22"  v-model="createdRange"  type="datetimerange" range-separator="-" :start-placeholder="$t('orders.order_time_start')"
          :end-placeholder="$t('orders.order_time_end')" />
+         <div class="flex-1"></div>
         <el-button type="primary" @click="reload"><el-icon class="mr-1"><Search/></el-icon>{{ $t('common.search') }}</el-button>
         <el-button @click="reset"><el-icon class="mr-1"><Refresh/></el-icon>{{ $t('common.reset') }}</el-button>
       </div>

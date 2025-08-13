@@ -1,6 +1,6 @@
 import type { ListParamsReq } from "./api";
 
-export interface ImageModel {
+export interface ResourceModel {
   id: number;
   name: string;
   object_key: string;
@@ -11,12 +11,11 @@ export interface ImageModel {
   remark?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
-  deleted_at?: string | null;
 }
 
-export type ListImagesParams = { id?: number; name?: string; object_key?: string; url?: string; path?: string; status?: number } & ListParamsReq;
+export type ListResourcesParams = { id?: number; name?: string; object_key?: string; url?: string; path?: string; status?: number } & ListParamsReq;
 
-export interface AddImageReq {
+export interface AddResourceReq {
   name: string;
   object_key: string;
   url: string;
@@ -26,7 +25,7 @@ export interface AddImageReq {
   remark?: string | null;
 }
 
-export interface UpdateImageReq {
+export interface UpdateResourceReq {
   name?: string;
   object_key?: string;
   url?: string;

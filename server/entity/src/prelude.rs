@@ -12,7 +12,7 @@ pub use super::order_reg_codes::Entity as OrderRegCodes;
 pub use super::orders::Entity as Orders;
 pub use super::pay_methods::Entity as PayMethods;
 pub use super::products::Entity as Products;
-pub use super::images::Entity as Images;
+pub use super::resources::Entity as Resources;
 pub use super::reg_codes::Entity as RegCodes;
 pub use super::roles::Entity as Roles;
 pub use super::users::Entity as Users;

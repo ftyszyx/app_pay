@@ -13,7 +13,7 @@ pub mod orders;
 pub mod pay_methods;
 pub mod prelude;
 pub mod products;
-pub mod images;
+pub mod resources;
 pub mod reg_codes;
 pub mod roles;
 pub mod users;
