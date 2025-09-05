@@ -36,12 +36,31 @@
         <button class="px-3 py-1.5 rounded text-white bg-blue-600 hover:bg-blue-700 text-sm" @click="load">Search</button>
         <button class="px-3 py-1.5 rounded border border-gray-300 text-sm" @click="refresh">Refresh</button>
         <button class="px-3 py-1.5 rounded text-white bg-green-600 hover:bg-green-700 text-sm" @click="openCreateDialog">New</button>
+        <div class="h-5 w-px bg-gray-200 mx-1" />
+        <div class="flex items-center gap-1">
+          <button class="px-2 py-1 text-sm border rounded" :class="viewMode==='grid'?'bg-gray-100':''" @click="viewMode='grid'" title="Grid view">▦</button>
+          <button class="px-2 py-1 text-sm border rounded" :class="viewMode==='list'?'bg-gray-100':''" @click="viewMode='list'" title="List view">☰</button>
+          <button class="px-2 py-1 text-sm border rounded" :class="viewMode==='vf'?'bg-gray-100':''" @click="viewMode='vf'" title="VueFinder">VF</button>
+        </div>
+        <div class="flex items-center gap-1 text-sm">
+          <span class="text-gray-500">Sort</span>
+          <select v-model="sortKey" class="border rounded px-1 py-0.5">
+            <option value="name">Name</option>
+            <option value="type">Type</option>
+            <option value="path">Path</option>
+            <option value="updated_at">Modified</option>
+          </select>
+          <button class="px-2 py-1 border rounded" @click="toggleOrder" :title="sortOrder==='asc'?'Ascending':'Descending'">{{ sortOrder==='asc'?'↑':'↓' }}</button>
+        </div>
       </div>
     </div>
 
     <div class="border rounded bg-white overflow-hidden">
       <div class="p-2 border-b text-xs text-gray-500 bg-gray-50">{{ currentPath || "/" }}</div>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 p-3">
+      <div v-if="viewMode==='vf'" class="p-2">
+        <vue-finder id="vf" :request="vfRequest" theme="light" max-height="70vh" />
+      </div>
+      <div v-else-if="viewMode==='grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 p-3">
         <div v-for="folder in folders" :key="folder" class="rounded p-2 hover:bg-blue-50 cursor-default group" @dblclick="openFolder(folder)">
           <div class="w-full aspect-[4/3] bg-yellow-50 rounded relative overflow-hidden flex items-center justify-center">
             <svg viewBox="0 0 24 24" class="w-10 h-10 text-yellow-500">
@@ -65,6 +84,31 @@
           </div>
           <div class="mt-2 text-xs text-gray-800 truncate" :title="it.name">{{ it.name }}</div>
         </div>
+      </div>
+      <div v-else class="p-0">
+        <div class="grid grid-cols-[minmax(180px,1.2fr)_140px_minmax(180px,1fr)_180px] text-xs bg-gray-50 border-b px-3 py-2 text-gray-600">
+          <div class="cursor-pointer" @click="setSort('name')">Name</div>
+          <div class="cursor-pointer" @click="setSort('type')">Type</div>
+          <div class="cursor-pointer" @click="setSort('path')">Path</div>
+          <div class="cursor-pointer" @click="setSort('updated_at')">Modified</div>
+        </div>
+        <div v-for="row in sortedEntries" :key="row.key" class="grid grid-cols-[minmax(180px,1.2fr)_140px_minmax(180px,1fr)_180px] items-center text-sm px-3 py-2 hover:bg-blue-50">
+          <div class="flex items-center gap-2 truncate">
+            <span v-if="row.type==='folder'" class="text-yellow-500">📁</span>
+            <img v-else :src="row.thumb" class="w-6 h-6 rounded object-cover" />
+            <span class="truncate" :title="row.name">{{ row.name }}</span>
+          </div>
+          <div class="text-gray-500">{{ row.type==='folder' ? 'Folder' : row.fileType }}</div>
+          <div class="text-gray-500 truncate" :title="row.path">{{ row.path }}</div>
+          <div class="text-gray-500">{{ row.modified || '-' }}</div>
+          <div class="col-span-4 h-px bg-gray-100"></div>
+          <div class="col-span-4 -mt-2"></div>
+          <div class="col-span-4 hidden"></div>
+          <div class="col-span-4 hidden"></div>
+          <div class="col-span-4 hidden"></div>
+        </div>
+        <div class="hidden"></div>
+        <div class="hidden"></div>
       </div>
       <div v-if="state.total === 0" class="p-8 text-center text-gray-500">No items</div>
     </div>
@@ -151,6 +195,15 @@ const breadcrumb = computed(() => {
   }
   return { segments };
 });
+const viewMode = ref<'grid' | 'list' | 'vf'>('grid');
+const vfRequest = {
+  baseUrl: (import.meta as any).env?.VITE_API_BASE + '/vuefinder' || '/api/vuefinder',
+  headers: { Authorization: 'Bearer ' + localStorage.getItem('token') },
+};
+const sortKey = ref<'name' | 'type' | 'path' | 'updated_at'>('name');
+const sortOrder = ref<'asc' | 'desc'>('asc');
+function toggleOrder() { sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'; }
+function setSort(key: 'name' | 'type' | 'path' | 'updated_at') { if (sortKey.value === key) { toggleOrder(); } else { sortKey.value = key; sortOrder.value = 'asc'; } }
 
 async function load() {
   const data = await fetchResources({
@@ -299,6 +352,36 @@ const files = computed(() => {
   const base = normalize(currentPath.value);
   return state.items.filter((it) => normalize(it.path) === base);
 });
+const entries = computed(() => {
+  const base = normalize(currentPath.value);
+  const list: Array<{ key: string; type: 'folder' | 'file'; name: string; path: string; modified?: string | null; thumb?: string; fileType?: string; src?: ResourceModel }> = [];
+  for (const folder of folders.value) {
+    const fullPath = base === '/' ? `/${folder}` : `${base}/${folder}`;
+    list.push({ key: `d-${fullPath}`, type: 'folder', name: folder, path: fullPath, modified: null });
+  }
+  for (const it of files.value) {
+    list.push({ key: `f-${it.id}`, type: 'file', name: it.name, path: normalize(it.path), modified: it.updated_at || it.created_at || null, thumb: it.url, fileType: inferType(it), src: it });
+  }
+  return list;
+});
+const sortedEntries = computed(() => {
+  const arr = [...entries.value];
+  const cmp = (a: any, b: any) => {
+    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+    let va = '', vb = '';
+    switch (sortKey.value) {
+      case 'name': va = a.name || ''; vb = b.name || ''; break;
+      case 'type': va = a.type === 'folder' ? 'Folder' : (a.fileType || ''); vb = b.type === 'folder' ? 'Folder' : (b.fileType || ''); break;
+      case 'path': va = a.path || ''; vb = b.path || ''; break;
+      case 'updated_at': va = a.modified || ''; vb = b.modified || ''; break;
+    }
+    return va.localeCompare(vb);
+  };
+  arr.sort(cmp);
+  if (sortOrder.value === 'desc') arr.reverse();
+  return arr;
+});
+function inferType(it: ResourceModel): string { const key = (it.object_key || it.url || '').toLowerCase(); const m = key.match(/\.([a-z0-9]+)(?:\?|#|$)/); const ext = m?.[1] || ''; if (!ext) return 'File'; const img = ['png','jpg','jpeg','gif','webp','svg','bmp','ico','avif']; if (img.includes(ext)) return ext.toUpperCase() + ' Image'; return ext.toUpperCase() + ' File'; }
 function openFolder(name: string) {
   const base = normalize(currentPath.value);
   navHistory.push(base);

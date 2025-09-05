@@ -8,9 +8,8 @@ use axum::{
 };
 use entity::resources;
 use sea_orm::{
-    ModelTrait,
-    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait, QueryFilter,
-    QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, ModelTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, Set,
 };
 
 // Create Resource

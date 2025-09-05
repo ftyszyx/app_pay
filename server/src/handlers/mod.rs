@@ -10,11 +10,12 @@ pub mod orders_handler;
 pub mod pay_method_handler;
 // pub mod payment_handler;
 pub mod oss_handler;
-pub mod resource_handler;
 pub mod product_handler;
 pub mod reg_codes_handler;
+pub mod resource_handler;
 pub mod role_handler;
 pub mod user_handler;
+pub mod vuefinder_handler;
 
 pub async fn handler() -> axum::response::Html<&'static str> {
     axum::response::Html("<h1>App Pay</h1>")

@@ -128,12 +128,18 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/products/{id}", get(handlers::product_handler::get_by_id))
         .route("/products/{id}", put(handlers::product_handler::update))
         .route("/products/{id}", delete(handlers::product_handler::delete))
-         //resources
-         .route("/resources", post(handlers::resource_handler::add))
-         .route("/resources/list", get(handlers::resource_handler::get_list))
-         .route("/resources/{id}", get(handlers::resource_handler::get_by_id))
-         .route("/resources/{id}", put(handlers::resource_handler::update))
-         .route("/resources/{id}", delete(handlers::resource_handler::delete))
+        //resources
+        .route("/resources", post(handlers::resource_handler::add))
+        .route("/resources/list", get(handlers::resource_handler::get_list))
+        .route(
+            "/resources/{id}",
+            get(handlers::resource_handler::get_by_id),
+        )
+        .route("/resources/{id}", put(handlers::resource_handler::update))
+        .route(
+            "/resources/{id}",
+            delete(handlers::resource_handler::delete),
+        )
         //pay_methods
         .route("/pay_methods", post(handlers::pay_method_handler::add))
         .route(
@@ -259,7 +265,15 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/api/register", post(handlers::auth::register))
         .route("/api/login", post(handlers::auth::login))
         .nest("/api/admin", admin_routes)
-        .route("/api/admin/me/password", post(handlers::auth::change_password))
+        // vuefinder adapter
+        .route(
+            "/api/vuefinder/list",
+            get(handlers::vuefinder_handler::list),
+        )
+        .route(
+            "/api/admin/me/password",
+            post(handlers::auth::change_password),
+        )
         // .nest("/api/payment", payment_routes)
         .with_state(app_state)
         .layer(cors)
