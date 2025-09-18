@@ -15,7 +15,7 @@ pay for app
 1. 注册码需要有有效期
 2. 注册码需要有设备绑定限制
 3. 需要提供接口给客户端验证注册码是否有效
-4. 系统需要提供支付功能，如支付宝和微信
+
 
 ## 参考：
 
@@ -24,6 +24,9 @@ pay for app
 3. 后台：http://8.134.209.8:3232/admin#/
 4. 说明文档：http://8.134.209.8:3200/
 1. https://github.com/Baiyuetribe/kamiFaka
+
+
+1. https://github.com/xiaoxiaoguai-yyds/xxgkami
 
 相当于是一个商城：
 
@@ -45,11 +48,31 @@ https://github.com/macrozheng/mall
 1. 图片上传功能
 
 
-LicenseHub - 许可证中心，突出软件许可管理的核心功能
+1.  不需要支付
+1. apps 增加app_valid_key字段，可以通过app_valid_key来验证注册码是否有效
+1. apps 增加试用期时长字段，表示试用期时长
+2. reg_code增加 类型字段code_type 0: 时间类型  1：次数类型
+3. 如果是时间 类型，reg_code增加 expire_time字段，表示过期时间,还有使用时间 use_time字段，表示使用时间
+4. 如果是次数类型，reg_code增加 total_count字段，表示总次数，还有使用次数 use_count字段，表示使用次数
+5. reg_code增加device_id字段，表示绑定的设备id
+1. 增加一个api 接口，可以查询注册码是否有效,
+    {
+        "code": "123456",
+        "app_key": "123456",
+        "device_id": "123456"
+    }
+    返回 ：
+    成功或者失败
 
+
+
+2. 增加app_valid_key的验证api 接口，
+
+LicenseHub - 许可证中心，突出软件许可管理的核心功能
 
 LicenseForge - 许可证工坊，体现生成和管理许可证的功能
 RegCodePro - 专业注册码系统
 SoftwareLicense - 软件许可系统
 DeviceBind - 设备绑定系统
 CodeVault - 代码保险库，体现安全性
+
