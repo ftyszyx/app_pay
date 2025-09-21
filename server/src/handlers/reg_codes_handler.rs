@@ -219,6 +219,29 @@ pub async fn validate_code(
     State(state): State<AppState>,
     Json(req): Json<RegCodeValidateReq>,
 ) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
+    let resp = validate_code_impl(&state, req).await?;
+    Ok(ApiResponse::success(resp))
+}
+
+/// Validate registration code for device (GET)
+#[utoipa::path(
+    get,
+    path = "/api/reg/validate",
+    params(RegCodeValidateReq),
+    responses((status = 200, description = "Success", body = RegCodeValidateResp))
+)]
+pub async fn validate_code_get(
+    State(state): State<AppState>,
+    Query(req): Query<RegCodeValidateReq>,
+) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
+    let resp = validate_code_impl(&state, req).await?;
+    Ok(ApiResponse::success(resp))
+}
+
+pub async fn validate_code_impl(
+    state: &AppState,
+    req: RegCodeValidateReq,
+) -> Result<RegCodeValidateResp, AppError> {
     // find app by app_valid_key
     let app = apps::Entity::find()
         .filter(apps::Column::AppValidKey.eq(req.app_key.clone()))
@@ -240,7 +263,7 @@ pub async fn validate_code(
             if let Some(exp) = expire { if now > exp { return Err(AppError::Message("code expired".into())); } }
             // bind device id
             if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id)); active.status = Set(1); active.update(&state.db).await?; }
-            Ok(ApiResponse::success(RegCodeValidateResp { code_type: 0, expire_time: expire, remaining_count: None }))
+            Ok(RegCodeValidateResp { code_type: 0, expire_time: expire, remaining_count: None })
         }
         1 => { // count-based
             let total = rc.total_count.unwrap_or(0);
@@ -250,7 +273,7 @@ pub async fn validate_code(
             if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id.clone())); }
             active.status = Set(1);
             active.update(&state.db).await?;
-            Ok(ApiResponse::success(RegCodeValidateResp { code_type: 1, expire_time: None, remaining_count: Some(total - used - 1) }))
+            Ok(RegCodeValidateResp { code_type: 1, expire_time: None, remaining_count: Some(total - used - 1) })
         }
         _ => Err(AppError::Message("invalid code type".into())),
     }

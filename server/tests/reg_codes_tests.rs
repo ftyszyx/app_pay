@@ -11,6 +11,65 @@ use crate::helpers::print_response_body_get_json;
 mod helpers;
 
 #[tokio::test]
+async fn test_validate_reg_code_post_and_get() {
+    let app = helpers::create_test_app().await;
+    let token = helpers::create_test_user_and_login().await;
+
+    // create app with valid_key
+    let app_key = format!("KEY_{}", chrono::Utc::now().timestamp());
+    let create_app_body = json!({
+        "name": format!("VA-App-{}", chrono::Utc::now().timestamp()),
+        "app_id": format!("com.va.{}", chrono::Utc::now().timestamp()),
+        "app_vername": "1.0.0",
+        "app_vercode": 1,
+        "app_download_url": "https://example.com/dl",
+        "app_res_url": "https://example.com/res",
+        "app_update_info": "",
+        "app_valid_key": app_key,
+        "trial_days": 0,
+        "sort_order": 0,
+        "status": 1
+    });
+    let req = Request::builder().method("POST").uri("/api/admin/apps")
+        .header("authorization", format!("Bearer {}", token))
+        .header("content-type","application/json")
+        .body(Body::from(create_app_body.to_string())).unwrap();
+    let resp = app.clone().oneshot(req).await.unwrap();
+    let json = print_response_body_get_json(resp, "create_app_for_validate").await;
+    let app_id = json["data"]["id"].as_i64().unwrap() as i32;
+
+    // create time-based reg code
+    let code = format!("CODE_{}", chrono::Utc::now().timestamp());
+    let create_rc = json!({
+        "code": code,
+        "app_id": app_id,
+        "valid_days": 7,
+        "max_devices": 1,
+        "status": 0,
+        "code_type": 0
+    });
+    let req = Request::builder().method("POST").uri("/api/admin/reg_codes")
+        .header("authorization", format!("Bearer {}", token))
+        .header("content-type","application/json")
+        .body(Body::from(create_rc.to_string())).unwrap();
+    let _ = app.clone().oneshot(req).await.unwrap();
+
+    // POST validate
+    let req = Request::builder().method("POST").uri("/api/reg/validate")
+        .header("content-type","application/json")
+        .body(Body::from(json!({"code":code, "app_key":app_key, "device_id":"dev-1"}).to_string())).unwrap();
+    let resp = app.clone().oneshot(req).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+
+    // GET validate
+    let req = Request::builder().method("GET")
+        .uri(&format!("/api/reg/validate?code={}&app_key={}&device_id=dev-1", code, app_key))
+        .body(Body::empty()).unwrap();
+    let resp = app.oneshot(req).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+}
+
+#[tokio::test]
 async fn test_get_reg_codes_list() {
     let app = helpers::create_test_app().await;
     let token = helpers::create_test_user_and_login().await;

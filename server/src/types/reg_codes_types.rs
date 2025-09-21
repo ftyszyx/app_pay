@@ -17,7 +17,7 @@ pub struct CreateRegCodeReq {
     pub total_count: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, ToSchema, Debug, Validate, IntoParams)]
 pub struct RegCodeValidateReq {
     pub code: String,
     pub app_key: String,
