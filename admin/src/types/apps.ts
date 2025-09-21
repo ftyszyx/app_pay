@@ -9,6 +9,8 @@ export interface AppModel {
     app_download_url: string
     app_res_url: string
     app_update_info?: string | null
+    app_valid_key: string
+    trial_days: number
     sort_order: number
     status: number
     created_at: string
@@ -31,6 +33,8 @@ export interface AddAppReq {
     app_download_url: string
     app_res_url: string
     app_update_info?: string | null
+    app_valid_key?: string | null
+    trial_days?: number | null
     sort_order: number
     status: number
 }
@@ -43,6 +47,8 @@ export interface UpdateAppReq {
     app_download_url?: string
     app_res_url?: string
     app_update_info?: string | null
+    app_valid_key?: string | null
+    trial_days?: number | null
     sort_order?: number
     status?: number
 }

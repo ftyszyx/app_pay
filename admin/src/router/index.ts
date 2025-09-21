@@ -6,6 +6,7 @@ import OrderAdminView from '@/views/admin/OrderAdminView.vue'
 import UserAdminView from '@/views/admin/UserAdminView.vue'
 import AppAdminView from '@/views/admin/AppAdminView.vue'
 import ResourceAdminView from '@/views/admin/ResourceAdminView.vue'
+import RegCodesAdminView from '@/views/admin/RegCodesAdminView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -75,6 +76,11 @@ const router = createRouter({
                     path: RoutePath.AdminResources,
                     name: RouteName.AdminResources,
                     component: ResourceAdminView
+                }
+                ,{
+                    path: '/admin/reg_codes',
+                    name: 'admin_reg_codes',
+                    component: RegCodesAdminView
                 }
             ]
         }

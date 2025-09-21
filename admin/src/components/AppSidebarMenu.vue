@@ -19,6 +19,7 @@ const menuItems: AdminMenuItem[] = [
   { label: 'menu.orders', icon: 'Tickets', path: RoutePath.AdminOrders },
   { label: 'menu.users', icon: 'User', path: RoutePath.AdminUsers },
   { label: 'menu.resources', icon: 'Picture', path: RoutePath.AdminResources },
+  { label: 'Reg Codes', icon: 'Tickets', path: '/admin/reg_codes' },
 ]
 </script>
 

@@ -38,6 +38,17 @@
             <span class="ml-2 text-gray-500">(#{{ row.app_vercode }})</span>
           </template>
         </el-table-column>
+        <el-table-column label="Valid Key" min-width="260">
+          <template #default="{ row }">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-600 break-all">{{ row.app_valid_key }}</span>
+              <el-button size="small" @click="copyKey(row.app_valid_key)">Copy</el-button>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="Trial Days" width="120">
+          <template #default="{ row }">{{ row.trial_days }}</template>
+        </el-table-column>
         <el-table-column prop="status" :label="$t('apps.status')" width="100">
           <template #default="scope">
             <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">{{
@@ -119,6 +130,16 @@
         <el-form-item :label="$t('apps.update_info')" prop="app_update_info">
           <el-input v-model="form.app_update_info" type="textarea" :rows="3" />
         </el-form-item>
+        <el-form-item label="App Valid Key" prop="app_valid_key">
+          <el-input v-model="(form as any).app_valid_key">
+            <template #append>
+              <el-button @click="genAppKey">Generate</el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="Trial Days" prop="trial_days">
+          <el-input-number v-model.number="(form as any).trial_days" :min="0" />
+        </el-form-item>
         <el-form-item :label="$t('apps.sort_order')" prop="sort_order">
           <el-input-number v-model="form.sort_order" :min="0" />
         </el-form-item>
@@ -188,6 +209,8 @@ const emptyForm: AddAppReq = {
   app_download_url: "",
   app_res_url: "",
   app_update_info: "",
+  app_valid_key: "",
+  trial_days: 0,
   sort_order: 0,
   status: 1,
 };
@@ -219,6 +242,8 @@ const openEdit = (row: AppModel) => {
     app_download_url: row.app_download_url,
     app_res_url: row.app_res_url,
     app_update_info: row.app_update_info || "",
+    app_valid_key: row.app_valid_key || "",
+    trial_days: row.trial_days ?? 0,
     sort_order: row.sort_order,
     status: row.status,
   });
@@ -244,6 +269,12 @@ const submitForm = async (formRef: FormInstance|undefined) => {
   ElMessage.success("Saved");
 };
 
+function genAppKey(){
+  const ts = Date.now().toString(36)
+  const rand = Math.random().toString(36).slice(2)
+  ;(form as any).app_valid_key = `${ts}-${rand}`
+}
+
 const confirmDelete = async (row: AppModel) => {
   try {
     await ElMessageBox.confirm(t("apps.delete_confirm", { name: row.name }), t("common.confirm"), {
@@ -266,6 +297,15 @@ const formatTime = (iso: string) => {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
+
+async function copyKey(key: string){
+  try {
+    await navigator.clipboard.writeText(key || '')
+    ElMessage.success('Copied')
+  } catch (_) {
+    ElMessage.error('Copy failed')
+  }
+}
 </script>
 
 <style scoped></style>
