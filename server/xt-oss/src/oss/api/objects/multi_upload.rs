@@ -573,7 +573,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatemultipartupload)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_init.rs)
-    pub fn InitiateMultipartUpload(&self, object: &'a str) -> InitiateMultipartUploadBuilder {
+    pub fn InitiateMultipartUpload(&self, object: &'a str) -> InitiateMultipartUploadBuilder<'_> {
         InitiateMultipartUploadBuilder::new(self, object)
     }
 
@@ -581,7 +581,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpart)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_upload_part.rs)
-    pub fn UploadPart(&self, object: &'a str) -> UploadPartBuilder {
+    pub fn UploadPart(&self, object: &'a str) -> UploadPartBuilder<'_> {
         UploadPartBuilder::new(self, object)
     }
 
@@ -590,7 +590,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/uploadpartcopy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_upload_part.rs)
-    pub fn UploadPartCopy(&self) -> UploadPartCopyBuilder {
+    pub fn UploadPartCopy(&self) -> UploadPartCopyBuilder<'_> {
         UploadPartCopyBuilder::new(self)
     }
 
@@ -598,7 +598,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completemultipartupload)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_comp.rs)
-    pub fn CompleteMultipartUpload(&self, object: &'a str) -> CompleteMultipartUploadBuilder {
+    pub fn CompleteMultipartUpload(&self, object: &'a str) -> CompleteMultipartUploadBuilder<'_> {
         CompleteMultipartUploadBuilder::new(self, object)
     }
 
@@ -606,7 +606,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortmultipartupload)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_abort.rs)
-    pub fn AbortMultipartUpload(&self, object: &'a str) -> AbortMultipartUploadBuilder {
+    pub fn AbortMultipartUpload(&self, object: &'a str) -> AbortMultipartUploadBuilder<'_> {
         AbortMultipartUploadBuilder::new(self, object)
     }
 
@@ -615,7 +615,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listmultipartuploads)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list.rs)
-    pub fn ListMultipartUploads(&self) -> ListMultipartUploadsBuilder {
+    pub fn ListMultipartUploads(&self) -> ListMultipartUploadsBuilder<'_> {
         ListMultipartUploadsBuilder::new(self)
     }
 
@@ -623,7 +623,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listparts)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_mutil_list_part.rs)
-    pub fn ListParts(&self, object: &'a str) -> ListPartsBuilder {
+    pub fn ListParts(&self, object: &'a str) -> ListPartsBuilder<'_> {
         ListPartsBuilder::new(self, object)
     }
 }

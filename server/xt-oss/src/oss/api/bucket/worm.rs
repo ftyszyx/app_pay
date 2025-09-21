@@ -201,7 +201,7 @@ impl<'a> oss::Client<'a> {
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/initiatebucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_init.rs)
     #[allow(non_snake_case)]
-    pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder {
+    pub fn InitiateBucketWorm(&self) -> InitiateBucketWormBuilder<'_> {
         InitiateBucketWormBuilder::new(self)
     }
 
@@ -210,7 +210,7 @@ impl<'a> oss::Client<'a> {
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/abortbucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_abort.rs)
     #[allow(non_snake_case)]
-    pub fn AbortBucketWorm(&self) -> AbortBucketWormBuilder {
+    pub fn AbortBucketWorm(&self) -> AbortBucketWormBuilder<'_> {
         AbortBucketWormBuilder::new(self)
     }
 
@@ -219,7 +219,7 @@ impl<'a> oss::Client<'a> {
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/completebucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_complete.rs)
     #[allow(non_snake_case)]
-    pub fn CompleteBucketWorm(&self, worm_id: &'a str) -> CompleteBucketWormBuilder {
+    pub fn CompleteBucketWorm(&self, worm_id: &'a str) -> CompleteBucketWormBuilder<'_> {
         CompleteBucketWormBuilder::new(self, worm_id)
     }
 
@@ -227,7 +227,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/extendbucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_extend.rs)
-    pub fn ExtendBucketWorm(&self, worm_id: &'a str) -> ExtendBucketWormBuilder {
+    pub fn ExtendBucketWorm(&self, worm_id: &'a str) -> ExtendBucketWormBuilder<'_> {
         ExtendBucketWormBuilder::new(self, worm_id)
     }
 
@@ -235,7 +235,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketworm)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_worm_get.rs)
-    pub fn GetBucketWorm(&self) -> GetBucketWormBuilder {
+    pub fn GetBucketWorm(&self) -> GetBucketWormBuilder<'_> {
         GetBucketWormBuilder::new(self)
     }
 }

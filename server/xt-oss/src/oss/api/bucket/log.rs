@@ -146,7 +146,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketlogging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_put.rs)
-    pub fn PutBucketLogging(&self) -> PutBucketLoggingBuilder {
+    pub fn PutBucketLogging(&self) -> PutBucketLoggingBuilder<'_> {
         PutBucketLoggingBuilder::new(self)
     }
 
@@ -155,7 +155,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlogging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_get.rs)
-    pub fn GetBucketLogging(&self) -> GetBucketLoggingBuilder {
+    pub fn GetBucketLogging(&self) -> GetBucketLoggingBuilder<'_> {
         GetBucketLoggingBuilder::new(&self)
     }
 
@@ -164,7 +164,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlogging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_logging_del.rs)
-    pub fn DeleteBucketLogging(&self) -> DeleteBucketLoggingBuilder {
+    pub fn DeleteBucketLogging(&self) -> DeleteBucketLoggingBuilder<'_> {
         DeleteBucketLoggingBuilder::new(&self)
     }
 }

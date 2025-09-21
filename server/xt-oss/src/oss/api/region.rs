@@ -49,7 +49,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/describeregions)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_describe_regions.rs)
-    pub fn DescribeRegions(&self) -> DescribeRegionsBuilder {
+    pub fn DescribeRegions(&self) -> DescribeRegionsBuilder<'_> {
         DescribeRegionsBuilder::new(self)
     }
 }

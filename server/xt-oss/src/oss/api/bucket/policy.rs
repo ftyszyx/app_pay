@@ -109,7 +109,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_put.rs)
-    pub fn PutBucketPolicy(&self) -> PutBucketPolicyBuilder {
+    pub fn PutBucketPolicy(&self) -> PutBucketPolicyBuilder<'_> {
         PutBucketPolicyBuilder::new(self)
     }
 
@@ -117,7 +117,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_get.rs)
-    pub fn GetBucketPolicy(&self) -> GetBucketPolicyBuilder {
+    pub fn GetBucketPolicy(&self) -> GetBucketPolicyBuilder<'_> {
         GetBucketPolicyBuilder::new(self)
     }
 
@@ -125,7 +125,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketpolicy)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_policy_del.rs)
-    pub fn DeleteBucketPolicy(&self) -> DeleteBucketPolicyBuilder {
+    pub fn DeleteBucketPolicy(&self) -> DeleteBucketPolicyBuilder<'_> {
         DeleteBucketPolicyBuilder::new(self)
     }
 }

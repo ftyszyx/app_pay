@@ -79,7 +79,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketrequestpayment)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_payment_put.rs)
-    pub fn PutBucketRequestPayment(&self, payer: Payer) -> PutBucketRequestPaymentBuilder {
+    pub fn PutBucketRequestPayment(&self, payer: Payer) -> PutBucketRequestPaymentBuilder<'_> {
         PutBucketRequestPaymentBuilder::new(self, payer)
     }
 
@@ -87,7 +87,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketrequestpayment)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_payment_get.rs)
-    pub fn GetBucketRequestPayment(&self) -> GetBucketRequestPaymentBuilder {
+    pub fn GetBucketRequestPayment(&self) -> GetBucketRequestPaymentBuilder<'_> {
         GetBucketRequestPaymentBuilder::new(&self)
     }
 }

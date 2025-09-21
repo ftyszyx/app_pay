@@ -136,7 +136,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketencryption)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_put.rs)
-    pub fn PutBucketEncryption(&self) -> PutBucketEncryptionBuilder {
+    pub fn PutBucketEncryption(&self) -> PutBucketEncryptionBuilder<'_> {
         PutBucketEncryptionBuilder::new(self)
     }
 
@@ -144,7 +144,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketencryption)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_get.rs)
-    pub fn GetBucketEncryption(&self) -> GetBucketEncryptionBuilder {
+    pub fn GetBucketEncryption(&self) -> GetBucketEncryptionBuilder<'_> {
         GetBucketEncryptionBuilder::new(&self)
     }
 
@@ -152,7 +152,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketencryption)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_encryption_del.rs)
-    pub fn DeleteBucketEncryption(&self) -> DeleteBucketEncryptionBuilder {
+    pub fn DeleteBucketEncryption(&self) -> DeleteBucketEncryptionBuilder<'_> {
         DeleteBucketEncryptionBuilder::new(&self)
     }
 }

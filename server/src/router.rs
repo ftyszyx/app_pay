@@ -88,6 +88,7 @@ use utoipa::{
     modifiers(&SecurityAddon),
     tags( (name = "app-pay", description = "App Pay API"))
 )]
+#[allow(dead_code)]
 struct SecurityAddon;
 
 impl Modify for SecurityAddon {

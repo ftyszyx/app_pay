@@ -10,7 +10,7 @@ pub trait BillTrait {
         bill_type: Option<String>,
         tar_type: Option<String>,
         with_mchid: bool,
-    ) -> BoxFuture<BillResponse>;
+    ) -> BoxFuture<'_, BillResponse>;
     /// 申请资金账单
     #[allow(dead_code)]
     fn fund_bill(
@@ -18,11 +18,11 @@ pub trait BillTrait {
         bill_date: String,
         account_type: Option<String>,
         tar_type: Option<String>,
-    ) -> BoxFuture<BillResponse>;
+    ) -> BoxFuture<'_, BillResponse>;
     /// 下载帐单
     #[allow(dead_code)]
     //fn download(&self,download_url: &str) -> WeaResult<Bytes>;
-    fn download(&self, download_url: &str) -> BoxFuture<reqwest::Response>;
+    fn download(&self, download_url: &str) -> BoxFuture<'_, reqwest::Response>;
 }
 impl BillTrait for Payment<WechatConfig> {
     fn trade_bill(
@@ -31,7 +31,7 @@ impl BillTrait for Payment<WechatConfig> {
         bill_type: Option<String>,
         tar_type: Option<String>,
         with_mchid: bool,
-    ) -> BoxFuture<BillResponse> {
+    ) -> BoxFuture<'_, BillResponse> {
         let mut url = format!(
             "/v3/bill/tradebill?bill_date={}&bill_type={}&tar_type={}",
             bill_date,
@@ -48,7 +48,7 @@ impl BillTrait for Payment<WechatConfig> {
         bill_date: String,
         account_type: Option<String>,
         tar_type: Option<String>,
-    ) -> BoxFuture<BillResponse> {
+    ) -> BoxFuture<'_, BillResponse> {
         let url = format!(
             "/v3/bill/fundflowbill?bill_date={}&account_type={}&tar_type={}",
             bill_date,
@@ -57,7 +57,7 @@ impl BillTrait for Payment<WechatConfig> {
         );
         Box::pin(async move { self.do_request::<BillResponse>(&url, "GET", "").await })
     }
-    fn download(&self, download_url: &str) -> BoxFuture<reqwest::Response> {
+    fn download(&self, download_url: &str) -> BoxFuture<'_, reqwest::Response> {
         let download_url = download_url.replace("https://api.mch.weixin.qq.com", "");
         Box::pin(async move {
             let req_builder = self.build_request_builder(&download_url, "GET", "")?;

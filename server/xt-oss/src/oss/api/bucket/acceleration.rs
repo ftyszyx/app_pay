@@ -92,7 +92,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbuckettransferacceleration)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_transfer_acceleration_get.rs)
-    pub fn GetBucketTransferAcceleration(&self) -> GetBucketTransferAccelerationBuilder {
+    pub fn GetBucketTransferAcceleration(&self) -> GetBucketTransferAccelerationBuilder<'_> {
         GetBucketTransferAccelerationBuilder::new(&self)
     }
 }

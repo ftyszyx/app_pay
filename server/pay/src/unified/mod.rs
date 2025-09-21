@@ -195,6 +195,7 @@ pub trait UnifiedPaymentTrait {
 
 /// 统一支付处理器
 pub struct UnifiedPayment {
+    #[allow(dead_code)]
     config: UnifiedPaymentConfig,
     wechat_payment: Option<Payment<WechatConfig>>,
     alipay_payment: Option<Payment<AlipayConfig>>,

@@ -113,7 +113,7 @@ impl<'a> Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listbuckets)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_service_list_buckets.rs)
-    pub fn ListBuckets(&self) -> ListBucketsBuilder {
+    pub fn ListBuckets(&self) -> ListBucketsBuilder<'_> {
         ListBucketsBuilder::new(self)
     }
 }

@@ -26,6 +26,10 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
         valid_days: Set(req.valid_days),
         max_devices: Set(req.max_devices),
         status: Set(req.status),
+        code_type: Set(req.code_type),
+        expire_time: Set(req.expire_time),
+        total_count: Set(req.total_count),
+        use_count: Set(0),
         created_at: Set(Utc::now()),
         updated_at: Set(Utc::now()),
         ..Default::default()
@@ -81,6 +85,11 @@ pub async fn update_impl(
     crate::update_field_if_some!(reg_code, max_devices, req.max_devices);
     crate::update_field_if_some!(reg_code, status, req.status);
     crate::update_field_if_some!(reg_code, binding_time, req.binding_time, option);
+    crate::update_field_if_some!(reg_code, code_type, req.code_type);
+    crate::update_field_if_some!(reg_code, expire_time, req.expire_time, option);
+    crate::update_field_if_some!(reg_code, total_count, req.total_count, option);
+    crate::update_field_if_some!(reg_code, use_count, req.use_count);
+    crate::update_field_if_some!(reg_code, device_id, req.device_id, option);
     reg_code.updated_at = Set(Utc::now());
 
     let updated_reg_code = reg_code.update(&state.db).await?;
@@ -154,6 +163,7 @@ pub async fn get_list_impl(
     crate::filter_if_some!(query, reg_codes::Column::Code, params.code, contains);
     crate::filter_if_some!(query, reg_codes::Column::AppId, params.app_id, eq);
     crate::filter_if_some!(query, reg_codes::Column::Status, params.status, eq);
+    crate::filter_if_some!(query, reg_codes::Column::CodeType, params.code_type, eq);
 
     let paginator = query.paginate(&state.db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);

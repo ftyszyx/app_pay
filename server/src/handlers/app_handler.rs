@@ -27,6 +27,8 @@ pub async fn add_impl(state: &AppState, req: AddAppReq) -> Result<apps::Model, A
         app_download_url: Set(req.app_download_url),
         app_res_url: Set(req.app_res_url),
         app_update_info: Set(req.app_update_info),
+        app_valid_key: Set(req.app_valid_key.unwrap_or_default()),
+        trial_days: Set(req.trial_days.unwrap_or_default()),
         sort_order: Set(req.sort_order),
         created_at: Set(Utc::now()),
         status: Set(req.status),
@@ -68,6 +70,8 @@ pub async fn update_impl(
     crate::update_field_if_some!(app, app_download_url, req.app_download_url);
     crate::update_field_if_some!(app, app_res_url, req.app_res_url);
     crate::update_field_if_some!(app, app_update_info, req.app_update_info, option);
+    crate::update_field_if_some!(app, app_valid_key, req.app_valid_key);
+    crate::update_field_if_some!(app, trial_days, req.trial_days);
     crate::update_field_if_some!(app, sort_order, req.sort_order);
     crate::update_field_if_some!(app, status, req.status);
     let app = app.update(&state.db).await?;

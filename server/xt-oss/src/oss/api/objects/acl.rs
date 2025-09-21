@@ -111,7 +111,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjectacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_put.rs)
-    pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder {
+    pub fn PutObjectACL(&self, object: &'a str) -> PutObjectACLBuilder<'_> {
         PutObjectACLBuilder::new(self, object)
     }
 
@@ -119,7 +119,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_acl_get.rs)
-    pub fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder {
+    pub fn GetObjectACL(&self, object: &'a str) -> GetObjectAclBuilder<'_> {
         GetObjectAclBuilder::new(self, object)
     }
 }

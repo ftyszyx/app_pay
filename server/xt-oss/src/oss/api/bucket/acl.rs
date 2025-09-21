@@ -71,7 +71,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_acl_put.rs)
-    pub fn PutBucketAcl(&self, acl: OssAcl) -> PutBucketAclBuilder {
+    pub fn PutBucketAcl(&self, acl: OssAcl) -> PutBucketAclBuilder<'_> {
         PutBucketAclBuilder::new(self, acl)
     }
 
@@ -80,7 +80,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketacl)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_acl_get.rs)
-    pub fn GetBucketAcl(&self) -> GetBucketAclBuilder {
+    pub fn GetBucketAcl(&self) -> GetBucketAclBuilder<'_> {
         GetBucketAclBuilder::new(&self)
     }
 }

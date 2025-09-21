@@ -3,12 +3,12 @@ use crate::BoxFuture;
 use crate::*;
 pub trait RefundTrait {
     /// 申请退款
-    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<RefundResponse>;
+    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<'_, RefundResponse>;
     /// 查询退款
-    fn query_refund(&self, out_refund_no: &str) -> BoxFuture<RefundResponse>;
+    fn query_refund(&self, out_refund_no: &str) -> BoxFuture<'_, RefundResponse>;
 }
 impl RefundTrait for Payment<WechatConfig> {
-    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<RefundResponse> {
+    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<'_, RefundResponse> {
         let mut new_data: ReqRefundOrder;
         if self.is_sp() {
             new_data = ReqRefundOrder {
@@ -28,7 +28,7 @@ impl RefundTrait for Payment<WechatConfig> {
                 .await
         })
     }
-    fn query_refund(&self, out_refund_no: &str) -> BoxFuture<RefundResponse> {
+    fn query_refund(&self, out_refund_no: &str) -> BoxFuture<'_, RefundResponse> {
         let url = format!("/v3/refund/domestic/refunds/{}", out_refund_no);
         let url = self.get_uri(&url, true, false);
         Box::pin(async move { self.do_request::<RefundResponse>(&url, "GET", "").await })

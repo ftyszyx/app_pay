@@ -340,7 +340,7 @@ impl<'a> Client<'a> {
         Self { options, request }
     }
 
-    pub fn options(&self) -> &Options {
+    pub fn options(&self) -> &Options<'a> {
         &self.options
     }
 

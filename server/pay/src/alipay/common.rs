@@ -28,9 +28,9 @@ pub trait BaseTrait {
     /// 查询订单支付宝订单号
     fn query_order_by_trade_no<'a>(&'a self, trade_no: &'a str) -> BoxFuture<'a, ResOrderBody>;
     /// 关闭订单
-    fn close_order(&self, body: ReqCloseOrderBody) -> BoxFuture<ResCloseOrderBody>;
+    fn close_order(&self, body: ReqCloseOrderBody) -> BoxFuture<'_, ResCloseOrderBody>;
     /// 撤销订单
-    fn cancel_order(&self, body: ReqCancelOrderBody) -> BoxFuture<ResCancelOrderBody>;
+    fn cancel_order(&self, body: ReqCancelOrderBody) -> BoxFuture<'_, ResCancelOrderBody>;
     /// 预处理异步通知此方法仅针对异步URL通知的数据进行验签
     /// 如当面付的预下单通知，APP支付的异步通知等
     fn notify(&self, query_str: &str) -> WeaResult<NotifyOrderBody>;
@@ -118,7 +118,7 @@ impl BaseTrait for Payment<AlipayConfig> {
         Box::pin(fut)
     }
     //close order
-    fn close_order(&self, body: ReqCloseOrderBody) -> BoxFuture<ResCloseOrderBody> {
+    fn close_order(&self, body: ReqCloseOrderBody) -> BoxFuture<'_, ResCloseOrderBody> {
         let fut = async move {
             let url = self.get_uri("alipay.trade.close");
             let order_body = serde_json::to_string(&body)?;
@@ -128,7 +128,7 @@ impl BaseTrait for Payment<AlipayConfig> {
         Box::pin(fut)
     }
     //cancel order
-    fn cancel_order(&self, body: ReqCancelOrderBody) -> BoxFuture<ResCancelOrderBody> {
+    fn cancel_order(&self, body: ReqCancelOrderBody) -> BoxFuture<'_, ResCancelOrderBody> {
         let fut = async move {
             let url = self.get_uri("alipay.trade.cancel");
             let order_body = serde_json::to_string(&body)?;

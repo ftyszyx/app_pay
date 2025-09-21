@@ -172,7 +172,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_put.rs)
-    pub fn PutObjectTagging(&self, object: &'a str) -> PutObjectTaggingBuilder {
+    pub fn PutObjectTagging(&self, object: &'a str) -> PutObjectTaggingBuilder<'_> {
         PutObjectTaggingBuilder::new(self, object)
     }
 
@@ -180,7 +180,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_get.rs)
-    pub fn GetObjectTagging(&self, object: &'a str) -> GetObjectTaggingbuilder {
+    pub fn GetObjectTagging(&self, object: &'a str) -> GetObjectTaggingbuilder<'_> {
         GetObjectTaggingbuilder::new(&self, object)
     }
 
@@ -188,7 +188,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deleteobjecttagging)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_tag_del.rs)
-    pub fn DeleteObjectTagging(&self, object: &'a str) -> DeleteObjectTaggingBuilder {
+    pub fn DeleteObjectTagging(&self, object: &'a str) -> DeleteObjectTaggingBuilder<'_> {
         DeleteObjectTaggingBuilder::new(self, object)
     }
 }

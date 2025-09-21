@@ -87,7 +87,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketreferer)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_put.rs)
-    pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder {
+    pub fn PutBucketReferer(&self) -> PutBucketRefererBuilder<'_> {
         PutBucketRefererBuilder::new(self)
     }
 
@@ -95,7 +95,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketreferer)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_referer_get.rs)
-    pub fn GetBucketReferer(&self) -> GetBucketRefererBuilder {
+    pub fn GetBucketReferer(&self) -> GetBucketRefererBuilder<'_> {
         GetBucketRefererBuilder::new(self)
     }
 }

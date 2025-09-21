@@ -4,10 +4,10 @@ use crate::*;
 pub trait BillTrait {
     /// 申请交易账单
     /// 帐单下载地址30秒后失效
-    fn trade_bill(&self, query: ReqBillQuery) -> BoxFuture<ResBill>;
+    fn trade_bill(&self, query: ReqBillQuery) -> BoxFuture<'_, ResBill>;
 }
 impl BillTrait for Payment<AlipayConfig> {
-    fn trade_bill(&self, query: ReqBillQuery) -> BoxFuture<ResBill> {
+    fn trade_bill(&self, query: ReqBillQuery) -> BoxFuture<'_, ResBill> {
         Box::pin(async move {
             let query = serde_json::to_string(&query)?;
             let url = self.get_uri("alipay.data.dataservice.bill.downloadurl.query");

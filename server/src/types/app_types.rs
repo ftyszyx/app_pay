@@ -5,7 +5,7 @@ use crate::utils::convert::from_str_optional;
 
 use crate::types::common::ListParamsReq;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, ToSchema, Debug, Validate,Default)]
 pub struct AddAppReq {
     pub name: String,
     pub app_id: String,
@@ -14,6 +14,8 @@ pub struct AddAppReq {
     pub app_download_url: String,
     pub app_res_url: String,
     pub app_update_info: Option<String>,
+    pub app_valid_key: Option<String>,
+    pub trial_days: Option<i32>,
     pub sort_order: i32,
     pub status: i16,
 }
@@ -27,6 +29,8 @@ pub struct UpdateAppReq {
     pub app_download_url: Option<String>,
     pub app_res_url: Option<String>,
     pub app_update_info: Option<String>,
+    pub app_valid_key: Option<String>,
+    pub trial_days: Option<i32>,
     pub sort_order: Option<i32>,
     pub status: Option<i16>,
 }

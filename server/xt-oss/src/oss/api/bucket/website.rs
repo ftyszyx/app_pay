@@ -114,7 +114,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketwebsite)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_put.rs)
-    pub fn PutBucketWebsite(&self) -> PutBucketWebsiteBuilder {
+    pub fn PutBucketWebsite(&self) -> PutBucketWebsiteBuilder<'_> {
         PutBucketWebsiteBuilder::new(self)
     }
 
@@ -122,7 +122,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketwebsite)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_get.rs)
-    pub fn GetBucketWebsite(&self) -> GetBucketWebsiteBuilder {
+    pub fn GetBucketWebsite(&self) -> GetBucketWebsiteBuilder<'_> {
         GetBucketWebsiteBuilder::new(self)
     }
 
@@ -131,7 +131,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketwebsite)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_website_del.rs)
-    pub fn DeleteBucketWebsite(&self) -> DeleteBucketWebsiteBuilder {
+    pub fn DeleteBucketWebsite(&self) -> DeleteBucketWebsiteBuilder<'_> {
         DeleteBucketWebsiteBuilder::new(self)
     }
 }

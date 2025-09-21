@@ -141,7 +141,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn PutBucketTags(&self) -> PutBucketTagsBuilder {
+    pub fn PutBucketTags(&self) -> PutBucketTagsBuilder<'_> {
         PutBucketTagsBuilder::new(self)
     }
 
@@ -149,7 +149,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn GetBucketTags(&self) -> GetBucketTagsBuilder {
+    pub fn GetBucketTags(&self) -> GetBucketTagsBuilder<'_> {
         GetBucketTagsBuilder::new(self)
     }
 
@@ -157,7 +157,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs]()
     /// - [xtoss example]()
-    pub fn DeleteBucketTags(&self) -> DeleteBucketTagsBuilder {
+    pub fn DeleteBucketTags(&self) -> DeleteBucketTagsBuilder<'_> {
         DeleteBucketTagsBuilder::new(self)
     }
 }

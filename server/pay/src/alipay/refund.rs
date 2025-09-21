@@ -3,13 +3,13 @@ use crate::*;
 
 pub trait RefundTrait {
     /// 申请退款
-    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<ResRefundResponse>;
+    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<'_, ResRefundResponse>;
 
     /// 查询退款
-    fn query_refund(&self, refund_query: ReqRefundQuery) -> BoxFuture<ResRefundQuery>;
+    fn query_refund(&self, refund_query: ReqRefundQuery) -> BoxFuture<'_, ResRefundQuery>;
 }
 impl RefundTrait for Payment<AlipayConfig> {
-    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<ResRefundResponse> {
+    fn refund(&self, data: ReqRefundOrder) -> BoxFuture<'_, ResRefundResponse> {
         Box::pin(async move {
             let refund_body = serde_json::to_string(&data)?;
             let url = self.get_uri("alipay.trade.refund");
@@ -18,7 +18,7 @@ impl RefundTrait for Payment<AlipayConfig> {
         })
     }
     // query_refund
-    fn query_refund(&self, refund_query: ReqRefundQuery) -> BoxFuture<ResRefundQuery> {
+    fn query_refund(&self, refund_query: ReqRefundQuery) -> BoxFuture<'_, ResRefundQuery> {
         Box::pin(async move {
             let refund_query = serde_json::to_string(&refund_query)?;
             let url = self.get_uri("alipay.trade.fastpay.refund.query");

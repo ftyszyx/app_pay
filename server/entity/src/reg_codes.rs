@@ -17,6 +17,11 @@ pub struct Model {
     pub max_devices: i32,
     pub status: i16,
     pub binding_time: Option<DateTime<Utc>>,
+    pub code_type: i16,
+    pub expire_time: Option<DateTime<Utc>>,
+    pub total_count: Option<i32>,
+    pub use_count: i32,
+    pub device_id: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

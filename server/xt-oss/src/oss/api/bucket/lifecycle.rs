@@ -116,7 +116,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketlifecycle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_put.rs)
-    pub fn PutBucketLifecycle(&self) -> PutBucketLifecycleBuilder {
+    pub fn PutBucketLifecycle(&self) -> PutBucketLifecycleBuilder<'_> {
         PutBucketLifecycleBuilder::new(&self)
     }
 
@@ -125,7 +125,7 @@ impl<'a> oss::Client<'a> {
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketlifecycle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_get.rs)
     #[allow(non_snake_case)]
-    pub fn GetBucketLifecycle(&self) -> GetBucketLifecycleBuilder {
+    pub fn GetBucketLifecycle(&self) -> GetBucketLifecycleBuilder<'_> {
         GetBucketLifecycleBuilder::new(&self)
     }
 
@@ -136,7 +136,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketlifecycle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_lifecycle_del.rs)
-    pub fn DeleteBucketLifecycle(&self) -> DeleteBucketLifecycleBuilder {
+    pub fn DeleteBucketLifecycle(&self) -> DeleteBucketLifecycleBuilder<'_> {
         DeleteBucketLifecycleBuilder::new(&self)
     }
 }

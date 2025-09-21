@@ -62,7 +62,8 @@ https://github.com/macrozheng/mall
         "device_id": "123456"
     }
     返回 ：
-    成功或者失败
+    成功:返回过期时间或者还有多少次
+    失败：返回错误信息
 
 
 

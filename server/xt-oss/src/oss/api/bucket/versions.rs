@@ -161,14 +161,14 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketversioning)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_put.rs)
-    pub fn PutBucketVersioning(&self, status: VersioningStatus) -> PutBucketVersioningBuilder {
+    pub fn PutBucketVersioning(&self, status: VersioningStatus) -> PutBucketVersioningBuilder<'_> {
         PutBucketVersioningBuilder::new(self, status)
     }
     /// 接口用于获取指定Bucket的版本控制状态。
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketversioning)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_get.rs)
-    pub fn GetBucketVersioning(&self) -> GetBucketVersioningBuilder {
+    pub fn GetBucketVersioning(&self) -> GetBucketVersioningBuilder<'_> {
         GetBucketVersioningBuilder::new(self)
     }
 
@@ -177,7 +177,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/listobjectversions)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_version_list.rs)
-    pub fn ListObjectVersions(&self) -> ListObjectVersionsBuilder {
+    pub fn ListObjectVersions(&self) -> ListObjectVersionsBuilder<'_> {
         ListObjectVersionsBuilder::new(self)
     }
 }

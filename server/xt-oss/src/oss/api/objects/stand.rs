@@ -1216,7 +1216,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_put.rs)
-    pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder {
+    pub fn PutObject(&self, object: &'a str) -> PutObjectBuilder<'_> {
         PutObjectBuilder::new(self, object)
     }
 
@@ -1224,7 +1224,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_get.rs)
-    pub fn GetObject(&self, object: &'a str) -> GetObjectBuilder {
+    pub fn GetObject(&self, object: &'a str) -> GetObjectBuilder<'_> {
         GetObjectBuilder::new(self, object)
     }
 
@@ -1232,7 +1232,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/copyobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_copy.rs)
-    pub fn CopyObject(&self, object: &'a str) -> CopyObjectBuilder {
+    pub fn CopyObject(&self, object: &'a str) -> CopyObjectBuilder<'_> {
         CopyObjectBuilder::new(self, object)
     }
 
@@ -1240,7 +1240,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/appendobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_append.rs)
-    pub fn AppendObject(&self, object: &'a str) -> AppendObjectBuilder {
+    pub fn AppendObject(&self, object: &'a str) -> AppendObjectBuilder<'_> {
         AppendObjectBuilder::new(self, object)
     }
 
@@ -1248,7 +1248,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deleteobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_del.rs)
-    pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder {
+    pub fn DeleteObject(&self, object: &'a str) -> DeleteObjectBuilder<'_> {
         DeleteObjectBuilder::new(self, object)
     }
 
@@ -1256,7 +1256,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletemultipleobjects)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_mutil_del.rs)
-    pub fn DeleteMultipleObjects(&self) -> DeleteMultipleObjectsBuilder {
+    pub fn DeleteMultipleObjects(&self) -> DeleteMultipleObjectsBuilder<'_> {
         DeleteMultipleObjectsBuilder::new(self)
     }
 
@@ -1264,7 +1264,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/headobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_head.rs)
-    pub fn HeadObject(&self, object: &'a str) -> HeadObjectBuilder {
+    pub fn HeadObject(&self, object: &'a str) -> HeadObjectBuilder<'_> {
         HeadObjectBuilder::new(self, object)
     }
 
@@ -1273,7 +1273,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getobjectmeta)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_meta.rs)
-    pub fn GetObjectMeta(&self, object: &'a str) -> GetObjectMetaBuilder {
+    pub fn GetObjectMeta(&self, object: &'a str) -> GetObjectMetaBuilder<'_> {
         GetObjectMetaBuilder::new(self, object)
     }
 
@@ -1281,7 +1281,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/restoreobject)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_object_stand_restore.rs)
-    pub fn RestoreObject(&self, object: &'a str) -> RestoreObjectBuilder {
+    pub fn RestoreObject(&self, object: &'a str) -> RestoreObjectBuilder<'_> {
         RestoreObjectBuilder::new(self, object)
     }
 }

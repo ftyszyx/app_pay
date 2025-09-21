@@ -15,6 +15,8 @@ pub struct Model {
     pub app_download_url: String,
     pub app_res_url: String,
     pub app_update_info: Option<String>,
+    pub app_valid_key: String,
+    pub trial_days: i32,
     pub sort_order: i32,
     pub status: i16,
     pub created_at: DateTime<Utc>,

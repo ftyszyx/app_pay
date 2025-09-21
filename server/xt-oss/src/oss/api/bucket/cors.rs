@@ -186,7 +186,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putbucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_put.rs)
-    pub fn PutBucketCors(&self) -> PutBucketCorsBuilder {
+    pub fn PutBucketCors(&self) -> PutBucketCorsBuilder<'_> {
         PutBucketCorsBuilder::new(&self)
     }
 
@@ -195,7 +195,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getbucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_get.rs)
-    pub fn GetBucketCors(&self) -> GetBucketCorsBuilder {
+    pub fn GetBucketCors(&self) -> GetBucketCorsBuilder<'_> {
         GetBucketCorsBuilder::new(&self)
     }
 
@@ -204,7 +204,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletebucketcors)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_del.rs)
-    pub fn DeleteBucketCors(&self) -> DeleteBucketCorsBuilder {
+    pub fn DeleteBucketCors(&self) -> DeleteBucketCorsBuilder<'_> {
         DeleteBucketCorsBuilder::new(&self)
     }
 
@@ -214,7 +214,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/options)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_cors_options.rs)
-    pub fn Options(&self, object: &'a str) -> OptionsBuilder {
+    pub fn Options(&self, object: &'a str) -> OptionsBuilder<'_> {
         OptionsBuilder::new(&self, object)
     }
 }

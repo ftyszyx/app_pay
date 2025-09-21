@@ -180,7 +180,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/putstyle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_put.rs)
-    pub fn PutStyle(&self) -> PutStyleBuilder {
+    pub fn PutStyle(&self) -> PutStyleBuilder<'_> {
         PutStyleBuilder::new(self)
     }
 
@@ -188,7 +188,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletestyle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_get.rs)
-    pub fn GetStyle(&self, name: &'a str) -> GetStyleBuilder {
+    pub fn GetStyle(&self, name: &'a str) -> GetStyleBuilder<'_> {
         GetStyleBuilder::new(self, name)
     }
 
@@ -196,7 +196,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/getstyle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_list.rs)
-    pub fn ListStyle(&self) -> ListStyleBuilder {
+    pub fn ListStyle(&self) -> ListStyleBuilder<'_> {
         ListStyleBuilder::new(self)
     }
 
@@ -204,7 +204,7 @@ impl<'a> oss::Client<'a> {
     ///
     /// - [official docs](https://help.aliyun.com/zh/oss/developer-reference/deletestyle)
     /// - [xtoss example](https://github.com/isme-sun/xt_oss/blob/main/examples/api_bucket_style_del.rs)
-    pub fn DeleteStyle(&self, name: &'a str) -> DeleteStyleBuilder {
+    pub fn DeleteStyle(&self, name: &'a str) -> DeleteStyleBuilder<'_>  {
         DeleteStyleBuilder::new(self, name)
     }
 }
