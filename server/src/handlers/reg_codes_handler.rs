@@ -207,3 +207,51 @@ pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<RegCodeInfo, Ap
         None => Err(AppError::not_found("reg_codes".to_string(), Some(id))),
     }
 }
+
+/// Validate registration code for device
+#[utoipa::path(
+    post,
+    path = "/api/reg/validate",
+    request_body = RegCodeValidateReq,
+    responses((status = 200, description = "Success", body = RegCodeValidateResp))
+)]
+pub async fn validate_code(
+    State(state): State<AppState>,
+    Json(req): Json<RegCodeValidateReq>,
+) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
+    // find app by app_valid_key
+    let app = apps::Entity::find()
+        .filter(apps::Column::AppValidKey.eq(req.app_key.clone()))
+        .one(&state.db)
+        .await?;
+    let app = app.ok_or(AppError::not_found("apps".to_string(), None))?;
+    // find reg code
+    let rc = reg_codes::Entity::find().filter(reg_codes::Column::Code.eq(req.code.clone()).and(reg_codes::Column::AppId.eq(app.id)))
+        .one(&state.db).await?;
+    let rc = rc.ok_or(AppError::not_found("reg_code".to_string(), None))?;
+    // logic by type
+    let mut active = rc.clone().into_active_model();
+    match rc.code_type {
+        0 => { // time-based
+            // compute expire by created_at + valid_days if not set
+            let created = rc.created_at;
+            let expire = rc.expire_time.or_else(|| Some(created + chrono::Duration::days(rc.valid_days as i64)));
+            let now = chrono::Utc::now();
+            if let Some(exp) = expire { if now > exp { return Err(AppError::Message("code expired".into())); } }
+            // bind device id
+            if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id)); active.status = Set(1); active.update(&state.db).await?; }
+            Ok(ApiResponse::success(RegCodeValidateResp { code_type: 0, expire_time: expire, remaining_count: None }))
+        }
+        1 => { // count-based
+            let total = rc.total_count.unwrap_or(0);
+            let used = rc.use_count;
+            if used >= total { return Err(AppError::Message("code used up".into())); }
+            active.use_count = Set(used + 1);
+            if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id.clone())); }
+            active.status = Set(1);
+            active.update(&state.db).await?;
+            Ok(ApiResponse::success(RegCodeValidateResp { code_type: 1, expire_time: None, remaining_count: Some(total - used - 1) }))
+        }
+        _ => Err(AppError::Message("invalid code type".into())),
+    }
+}

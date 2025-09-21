@@ -265,6 +265,7 @@ pub fn create_router(app_state: AppState) -> Router {
         .route("/", get(handlers::handler))
         .route("/api/register", post(handlers::auth::register))
         .route("/api/login", post(handlers::auth::login))
+        .route("/api/reg/validate", post(handlers::reg_codes_handler::validate_code))
         .nest("/api/admin", admin_routes)
         // vuefinder adapter
         .route(

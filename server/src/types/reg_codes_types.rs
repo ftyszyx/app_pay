@@ -18,6 +18,20 @@ pub struct CreateRegCodeReq {
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+pub struct RegCodeValidateReq {
+    pub code: String,
+    pub app_key: String,
+    pub device_id: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Debug)]
+pub struct RegCodeValidateResp {
+    pub code_type: i16,
+    pub expire_time: Option<DateTime<Utc>>,
+    pub remaining_count: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
 pub struct UpdateRegCodeReq {
     pub code: Option<String>,
     pub app_id: Option<i32>,
