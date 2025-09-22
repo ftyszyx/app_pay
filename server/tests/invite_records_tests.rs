@@ -13,7 +13,7 @@ mod helpers;
 #[tokio::test]
 async fn test_get_invite_records_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -37,7 +37,7 @@ async fn test_get_invite_records_list() {
 #[tokio::test]
 async fn test_create_invite_record() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create a user to be the invitee
     let create_user_body = json!({
@@ -114,7 +114,7 @@ async fn test_create_invite_record() {
 #[tokio::test]
 async fn test_update_invite_record() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create users first
     let create_user_body = json!({
@@ -208,7 +208,7 @@ async fn test_update_invite_record() {
 #[tokio::test]
 async fn test_get_invite_record_by_id() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create users first
     let create_user_body = json!({
@@ -296,7 +296,7 @@ async fn test_get_invite_record_by_id() {
 #[tokio::test]
 async fn test_delete_invite_record() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create users first
     let create_user_body = json!({
@@ -387,7 +387,7 @@ async fn test_delete_invite_record() {
 #[tokio::test]
 async fn test_invite_records_pagination() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let test_cases = vec![
         "/api/admin/invite_records/list?page=1&page_size=5",
@@ -419,7 +419,7 @@ async fn test_invite_records_pagination() {
 #[tokio::test]
 async fn test_invite_records_search_filters() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Test various search filters
     let test_cases = vec![
@@ -451,7 +451,7 @@ async fn test_invite_records_search_filters() {
 #[tokio::test]
 async fn test_invite_record_comprehensive_workflow() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create multiple users and test complete workflow
     let create_user1_body = json!({

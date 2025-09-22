@@ -12,7 +12,9 @@ pub struct Config {
 
 #[derive(Debug, Clone)]
 pub struct DatabaseConfig {
-    pub url: String,
+    pub db_url: String,
+    pub db_name: String,
+    pub db_user: String,
     pub max_connections: u32,
     pub min_connections: u32,
     pub connect_timeout_secs: u64,
@@ -61,7 +63,11 @@ impl Config {
 impl DatabaseConfig {
     fn from_env() -> Result<Self, AppError> {
         Ok(DatabaseConfig {
-            url: env::var("DATABASE_URL")
+            db_name: env::var("DB_NAME")
+                .map_err(|_| AppError::Message("DB_NAME must be set".to_string()))?,
+            db_user: env::var("DB_USER")
+                .map_err(|_| AppError::Message("DB_USER must be set".to_string()))?,
+            db_url: env::var("DATABASE_URL")
                 .map_err(|_| AppError::Message("DATABASE_URL must be set".to_string()))?,
             max_connections: env::var("DB_MAX_CONNECTIONS")
                 .unwrap_or_else(|_| "100".to_string())

@@ -5,7 +5,7 @@ mod helpers;
 #[tokio::test]
 async fn test_get_oss_sts_success() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")

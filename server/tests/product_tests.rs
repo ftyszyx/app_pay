@@ -10,7 +10,7 @@ mod helpers;
 #[tokio::test]
 async fn test_get_products_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -33,7 +33,7 @@ async fn test_get_products_list() {
 #[tokio::test]
 async fn test_products_pagination() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let test_cases = vec![
         "/api/admin/products/list?page=1&page_size=5",

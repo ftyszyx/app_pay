@@ -13,7 +13,7 @@ mod helpers;
 #[tokio::test]
 async fn test_validate_reg_code_post_and_get() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // create app with valid_key
     let app_key = format!("KEY_{}", chrono::Utc::now().timestamp());
@@ -30,10 +30,13 @@ async fn test_validate_reg_code_post_and_get() {
         "sort_order": 0,
         "status": 1
     });
-    let req = Request::builder().method("POST").uri("/api/admin/apps")
+    let req = Request::builder()
+        .method("POST")
+        .uri("/api/admin/apps")
         .header("authorization", format!("Bearer {}", token))
-        .header("content-type","application/json")
-        .body(Body::from(create_app_body.to_string())).unwrap();
+        .header("content-type", "application/json")
+        .body(Body::from(create_app_body.to_string()))
+        .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
     let json = print_response_body_get_json(resp, "create_app_for_validate").await;
     let app_id = json["data"]["id"].as_i64().unwrap() as i32;
@@ -48,23 +51,36 @@ async fn test_validate_reg_code_post_and_get() {
         "status": 0,
         "code_type": 0
     });
-    let req = Request::builder().method("POST").uri("/api/admin/reg_codes")
+    let req = Request::builder()
+        .method("POST")
+        .uri("/api/admin/reg_codes")
         .header("authorization", format!("Bearer {}", token))
-        .header("content-type","application/json")
-        .body(Body::from(create_rc.to_string())).unwrap();
+        .header("content-type", "application/json")
+        .body(Body::from(create_rc.to_string()))
+        .unwrap();
     let _ = app.clone().oneshot(req).await.unwrap();
 
     // POST validate
-    let req = Request::builder().method("POST").uri("/api/reg/validate")
-        .header("content-type","application/json")
-        .body(Body::from(json!({"code":code, "app_key":app_key, "device_id":"dev-1"}).to_string())).unwrap();
+    let req = Request::builder()
+        .method("POST")
+        .uri("/api/reg/validate")
+        .header("content-type", "application/json")
+        .body(Body::from(
+            json!({"code":code, "app_key":app_key, "device_id":"dev-1"}).to_string(),
+        ))
+        .unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     // GET validate
-    let req = Request::builder().method("GET")
-        .uri(&format!("/api/reg/validate?code={}&app_key={}&device_id=dev-1", code, app_key))
-        .body(Body::empty()).unwrap();
+    let req = Request::builder()
+        .method("GET")
+        .uri(&format!(
+            "/api/reg/validate?code={}&app_key={}&device_id=dev-1",
+            code, app_key
+        ))
+        .body(Body::empty())
+        .unwrap();
     let resp = app.oneshot(req).await.unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 }
@@ -72,7 +88,7 @@ async fn test_validate_reg_code_post_and_get() {
 #[tokio::test]
 async fn test_get_reg_codes_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -95,7 +111,7 @@ async fn test_get_reg_codes_list() {
 #[tokio::test]
 async fn test_create_reg_code() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // First create an app to associate with the reg code
     let create_app_body = json!({
@@ -160,7 +176,7 @@ async fn test_create_reg_code() {
 #[tokio::test]
 async fn test_update_reg_code() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // First create an app
     let create_app_body = json!({
@@ -239,7 +255,7 @@ async fn test_update_reg_code() {
 #[tokio::test]
 async fn test_get_reg_code_by_id() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create an app first
     let create_app_body = json!({
@@ -311,7 +327,7 @@ async fn test_get_reg_code_by_id() {
 #[tokio::test]
 async fn test_delete_reg_code() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create an app first
     let create_app_body = json!({
@@ -382,13 +398,16 @@ async fn test_delete_reg_code() {
 
     let response = app.oneshot(request).await.unwrap();
     let json = print_response_body_get_json(response, "delete_reg_code_response").await;
-    assert_eq!(json["code"].as_i64().unwrap(), app_server::constants::APP_NOT_FOUND as i64);
+    assert_eq!(
+        json["code"].as_i64().unwrap(),
+        app_server::constants::APP_NOT_FOUND as i64
+    );
 }
 
 #[tokio::test]
 async fn test_reg_codes_pagination() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let test_cases = vec![
         "/api/admin/reg_codes/list?page=1&page_size=5",
@@ -420,7 +439,7 @@ async fn test_reg_codes_pagination() {
 #[tokio::test]
 async fn test_reg_codes_search_filters() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Test various search filters
     let test_cases = vec![
@@ -452,7 +471,7 @@ async fn test_reg_codes_search_filters() {
 #[tokio::test]
 async fn test_reg_code_validation_errors() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Test with invalid data
     let invalid_reg_code_body = json!({

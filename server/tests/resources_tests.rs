@@ -15,7 +15,7 @@ fn unique_suffix() -> String {
 #[tokio::test]
 async fn test_get_resources_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -38,7 +38,7 @@ async fn test_get_resources_list() {
 #[tokio::test]
 async fn test_create_resource() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let suffix = unique_suffix();
     let create_body = json!({
@@ -73,7 +73,7 @@ async fn test_create_resource() {
 #[tokio::test]
 async fn test_get_resource_by_id() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // create first
     let suffix = unique_suffix();
@@ -112,7 +112,7 @@ async fn test_get_resource_by_id() {
 #[tokio::test]
 async fn test_update_resource() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // create
     let suffix = unique_suffix();
@@ -154,7 +154,7 @@ async fn test_update_resource() {
 #[tokio::test]
 async fn test_delete_resource() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // create
     let suffix = unique_suffix();
@@ -201,5 +201,3 @@ async fn test_resources_without_auth() {
     let response = app.oneshot(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
-
-

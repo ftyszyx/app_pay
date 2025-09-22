@@ -11,7 +11,7 @@ mod helpers;
 #[tokio::test]
 async fn test_get_users_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -35,7 +35,7 @@ async fn test_get_users_list() {
 #[tokio::test]
 async fn test_get_users_list_default_pagination() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -51,7 +51,7 @@ async fn test_get_users_list_default_pagination() {
 #[tokio::test]
 async fn test_get_users_list_with_search() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -73,7 +73,7 @@ async fn test_get_users_list_with_search() {
 #[tokio::test]
 async fn test_create_user() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let create_user_body = json!({
         "username": format!("new_user_{}", chrono::Utc::now().timestamp()),
@@ -103,7 +103,7 @@ async fn test_create_user() {
 #[tokio::test]
 async fn test_get_user_by_id() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // 先创建一个用户
     let create_user_body = json!({
@@ -146,7 +146,7 @@ async fn test_get_user_by_id() {
 #[tokio::test]
 async fn test_update_user() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // 先创建一个用户
     let create_user_body = json!({
@@ -195,7 +195,7 @@ async fn test_update_user() {
 #[tokio::test]
 async fn test_delete_user() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // 先创建一个用户
     let create_user_body = json!({
@@ -237,7 +237,7 @@ async fn test_delete_user() {
 #[tokio::test]
 async fn test_get_nonexistent_user() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")

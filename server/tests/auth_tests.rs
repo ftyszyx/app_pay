@@ -123,7 +123,7 @@ async fn test_login_invalid_credentials() {
 #[tokio::test]
 async fn test_get_current_user() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
     let request = Request::builder()
         .method("GET")
         .uri("/api/admin/me")

@@ -13,7 +13,7 @@ mod helpers;
 #[tokio::test]
 async fn test_get_orders_list() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("GET")
@@ -37,7 +37,7 @@ async fn test_get_orders_list() {
 #[tokio::test]
 async fn test_get_order_by_id() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create prerequisites
     let pay_method_body = json!({
@@ -131,7 +131,7 @@ async fn test_get_order_by_id() {
 #[tokio::test]
 async fn test_orders_pagination() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let test_cases = vec![
         "/api/admin/orders/list?page=1&page_size=5",
@@ -163,7 +163,7 @@ async fn test_orders_pagination() {
 #[tokio::test]
 async fn test_orders_search_filters() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Test various search filters
     let test_cases = vec![
@@ -195,7 +195,7 @@ async fn test_orders_search_filters() {
 #[tokio::test]
 async fn test_order_comprehensive_workflow() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Create prerequisites
     let pay_method_body = json!({

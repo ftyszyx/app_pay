@@ -24,6 +24,7 @@ async fn ensure_test_database_exists() {
         .env("PGCLIENTENCODING", "UTF8")
         .arg(&database_url)
         .args(["-tA", "-q", "-v", "ON_ERROR_STOP=1"]) // 仅输出值，安静模式
+        .args(["-c", &check_sql])
         .output()
         .expect("failed to run psql for database existence check");
     if !output.status.success() {
@@ -36,6 +37,7 @@ async fn ensure_test_database_exists() {
         .trim()
         .starts_with('1');
     if !exists {
+        println!("database {} not exists, creating...", db_name);
         let create_sql = format!(
             "CREATE DATABASE \"{}\" WITH TEMPLATE template0 ENCODING 'UTF8'",
             db_name
@@ -53,6 +55,8 @@ async fn ensure_test_database_exists() {
                 String::from_utf8_lossy(&out.stderr)
             );
         }
+    } else {
+        println!("database {} exists", db_name);
     }
 }
 
@@ -61,13 +65,18 @@ fn escape_sql_literal(s: &str) -> String {
 }
 
 fn run_init_sql_with_psql() {
+    println!("running init.sql...");
+    let db_name = env::var("DB_NAME").expect("DB_NAME not set");
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
+    let init_sql_file = format!("deploy/postgres/init/init.sql");
+    let connect_url = format!("{}/{}", database_url, db_name);
+    println!("connect_url:{}", connect_url);
     let output = Command::new("psql")
         .env("PGCLIENTENCODING", "UTF8")
-        .arg(&database_url)
+        .arg(&connect_url)
         .args(["-v", "ON_ERROR_STOP=1", "-q"]) // 安静模式，失败即停止
         .args(["-c", "SET client_min_messages = warning;"]) // 隐藏 NOTICE
-        .args(["-f", "deploy/postgres/init/init.sql"])
+        .args(["-f", &init_sql_file])
         .output()
         .expect("failed to spawn psql");
     if !output.status.success() {
@@ -76,6 +85,10 @@ fn run_init_sql_with_psql() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
+    println!(
+        "init.sql completed:{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
 }
 
 pub async fn create_test_app() -> Router {
@@ -102,8 +115,7 @@ pub async fn print_response_body_get_json(
 }
 
 #[allow(dead_code)]
-pub async fn create_test_user_and_login() -> String {
-    let app = create_test_app().await;
+pub async fn create_test_user_and_login(app: &Router) -> String {
     // 注册用户
     let register_body = json!({
         "username": "testuser",
@@ -136,7 +148,7 @@ pub async fn create_test_user_and_login() -> String {
         .body(Body::from(login_body.to_string()))
         .unwrap();
 
-    let response = app.oneshot(request).await.unwrap();
+    let response = app.clone().oneshot(request).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     let json = print_response_body_get_json(response, "login_response").await;
     json["data"]["token"].as_str().unwrap().to_string()

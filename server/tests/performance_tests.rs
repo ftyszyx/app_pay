@@ -7,7 +7,7 @@ mod helpers;
 #[tokio::test]
 async fn test_concurrent_requests() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
     let start = Instant::now();
     let mut handles = Vec::new();
     // 创建50个并发请求
@@ -53,7 +53,7 @@ async fn test_concurrent_requests() {
 #[tokio::test]
 async fn test_response_times() {
     let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let endpoints = vec![
         "/api/admin/users/list",
