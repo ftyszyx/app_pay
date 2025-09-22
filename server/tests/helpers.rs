@@ -9,6 +9,7 @@ use http_body_util::BodyExt;
 use serde_json::json;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use std::env;
+use std::process::Command;
 use tower::ServiceExt;
 
 async fn ensure_test_database_exists() {
@@ -54,13 +55,20 @@ async fn ensure_test_database_exists() {
 
 fn run_init_sql_with_psql() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
-    let status = Command::new("psql")
-        .arg(&database_url) // 也可用 -h/-p/-U/-d 分别传
-        .args(["-v", "ON_ERROR_STOP=1"]) // 任一语句失败即退出
-        .args(["-f", "server/deploy/postgres/init/init.sql"])
-        .status()
+    let output = Command::new("psql")
+        .env("PGCLIENTENCODING", "UTF8")
+        .arg(&database_url)
+        .args(["-v", "ON_ERROR_STOP=1", "-q"]) // 安静模式，失败即停止
+        .args(["-c", "SET client_min_messages = warning;"]) // 隐藏 NOTICE
+        .args(["-f", "deploy/postgres/init/init.sql"])
+        .output()
         .expect("failed to spawn psql");
-    assert!(status.success(), "psql init.sql failed");
+    if !output.status.success() {
+        panic!(
+            "psql init.sql failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
 }
 
 fn extract_database_name(url: &str) -> Option<String> {
@@ -79,6 +87,7 @@ pub async fn create_test_app() -> Router {
     dotenvy::from_filename(".env.test").unwrap();
     // 确保测试数据库存在（若不存在则创建），再初始化应用
     ensure_test_database_exists().await;
+    run_init_sql_with_psql();
     let app_state = app::init_app()
         .await
         .unwrap_or_else(|e| panic!("failed to initialize app:{}", e.to_string()));
