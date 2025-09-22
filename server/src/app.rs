@@ -20,7 +20,6 @@ impl FormatTime for East8Timer {
 }
 
 pub async fn init_app() -> Result<AppState, AppError> {
-    dotenvy::dotenv().map_err(|e| AppError::Message(e.to_string()))?;
     init_log();
     // 加载配置
     let config = Config::from_env()

@@ -2,6 +2,7 @@ use app_server::{app, router};
 use std::net::SocketAddr;
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().unwrap_or_else(|_| panic!("failed to load .env file"));
     let app_state = app::init_app()
         .await
         .unwrap_or_else(|e| panic!("failed to initialize app:{}", e.to_string()));

@@ -3,3 +3,4 @@ deploy/mysql/data/
 deploy/postgres/data/
 logs/
 .env
+.env.test
