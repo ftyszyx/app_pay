@@ -10,6 +10,7 @@ export enum RouteName {
     AdminUsers = 'users',
     AdminApps = 'apps',
     AdminResources = 'resources',
+    AdminRegCodes = 'reg_codes',
 }
 
 
@@ -25,4 +26,5 @@ export enum RoutePath {
     AdminUsers = '/' + RouteName.Admin + '/' + RouteName.AdminUsers,
     AdminApps = '/' + RouteName.Admin + '/' + RouteName.AdminApps,
     AdminResources = '/' + RouteName.Admin + '/' + RouteName.AdminResources,
+    AdminRegCodes = '/' + RouteName.Admin + '/' + RouteName.AdminRegCodes,
 }

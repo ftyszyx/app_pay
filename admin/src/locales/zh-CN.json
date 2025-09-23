@@ -19,7 +19,13 @@
     "save": "保存",
     "please_check_form": "请检查表单",
     "cancel": "取消",
-    "upload": "上传"
+    "upload": "上传",
+    "deleted": "已删除",
+    "created": "已创建",
+    "copied": "已复制",
+    "copy_failed": "复制失败",
+    "copy": "复制",
+    "generate": "生成"
   },
   "auth": {
     "welcome": "欢迎",
@@ -44,7 +50,8 @@
     "products": "商品",
     "orders": "订单",
     "users": "用户",
-    "resources": "资源"
+    "resources": "资源",
+    "reg_codes": "注册码"
   },
   "dashboard": {
     "title": "仪表盘",
@@ -132,6 +139,30 @@
     "input_app_id": "请输入应用ID",
     "input_version_name": "请输入版本名称",
     "input_version_code": "请输入版本号",
-    "delete_confirm": "确定删除应用 {name} 吗？"
+    "delete_confirm": "确定删除应用 {name} 吗？",
+    "valid_key": "密钥",
+    "trial_days": "试用天数",
+    "title": "应用管理"
+  },
+  "reg_codes": {
+    "delete_code_confirm": "确认删除注册码 {code} 吗？",
+    "delete_selected_codes_confirm": "确认删除选中注册码吗？",
+    "title": "注册码管理",
+    "search_code": "注册码",
+    "type_time": "时间",
+    "type_count": "数量",
+    "batch_create": "批量创建",
+    "batch_delete": "批量删除",
+    "export_csv": "导出CSV",
+    "code": "注册码",
+    "app": "应用",
+    "type": "类型",
+    "total_days": "总天数",
+    "used": "已使用",
+    "status": "状态",
+    "created": "创建时间",
+    "quantity": "数量",
+    "valid_days": "有效天数",
+    "total_count": "总数量"
   }
 }

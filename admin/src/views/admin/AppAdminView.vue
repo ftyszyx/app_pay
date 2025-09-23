@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <el-card shadow="hover">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Applications</h2>
+        <h2 class="text-xl font-semibold">{{ $t('apps.title') }}</h2>
         <div class="flex items-center gap-2">
           <el-input v-model="query.name" :placeholder="$t('common.search_by_name')" clearable class="w-64" />
           <el-button type="primary" @click="reload">
@@ -38,7 +38,7 @@
             <span class="ml-2 text-gray-500">(#{{ row.app_vercode }})</span>
           </template>
         </el-table-column>
-        <el-table-column label="Valid Key" min-width="260">
+        <el-table-column :label="$t('apps.valid_key')" min-width="260">
           <template #default="{ row }">
             <div class="flex items-center gap-2">
               <span class="text-gray-600 break-all">{{ row.app_valid_key }}</span>
@@ -46,7 +46,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Trial Days" width="120">
+        <el-table-column :label="$t('apps.trial_days')" width="120">
           <template #default="{ row }">{{ row.trial_days }}</template>
         </el-table-column>
         <el-table-column prop="status" :label="$t('apps.status')" width="100">
@@ -130,14 +130,14 @@
         <el-form-item :label="$t('apps.update_info')" prop="app_update_info">
           <el-input v-model="form.app_update_info" type="textarea" :rows="3" />
         </el-form-item>
-        <el-form-item label="App Valid Key" prop="app_valid_key">
+        <el-form-item :label="$t('apps.valid_key')" prop="app_valid_key">
           <el-input v-model="(form as any).app_valid_key">
             <template #append>
-              <el-button @click="genAppKey">Generate</el-button>
+              <el-button @click="genAppKey">{{ $t('common.generate') }}</el-button>
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item label="Trial Days" prop="trial_days">
+        <el-form-item :label="$t('apps.trial_days')" prop="trial_days">
           <el-input-number v-model.number="(form as any).trial_days" :min="0" />
         </el-form-item>
         <el-form-item :label="$t('apps.sort_order')" prop="sort_order">
@@ -152,8 +152,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialog.visible = false">Cancel</el-button>
-          <el-button type="primary" @click="submitForm(formRef)">Confirm</el-button>
+          <el-button @click="dialog.visible = false">{{ $t('common.cancel') }}</el-button>
+          <el-button type="primary" @click="submitForm(formRef)">{{ $t('common.confirm') }}</el-button>
         </span>
       </template>
     </el-dialog>

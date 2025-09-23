@@ -26,7 +26,13 @@
     "save": "",
     "upload": "",
     "search_by_name": "",
-    "new": ""
+    "new": "",
+    "deleted": "",
+    "created": "",
+    "copied": "",
+    "copy_failed": "",
+    "copy": "",
+    "generate": ""
   },
   "auth": {
     "password_mismatch": "",
@@ -120,6 +126,39 @@
     "version_code": "",
     "download_url": "",
     "resource_url": "",
-    "sort_order": ""
+    "sort_order": "",
+    "valid_key": "",
+    "trial_days": "",
+    "title": ""
+  },
+  "menu": {
+    "reg_codes": "",
+    "dashboard": "",
+    "apps": "",
+    "products": "",
+    "orders": "",
+    "users": "",
+    "resources": ""
+  },
+  "reg_codes": {
+    "delete_code_confirm": "",
+    "delete_selected_codes_confirm": "",
+    "title": "",
+    "search_code": "",
+    "type_time": "",
+    "type_count": "",
+    "batch_create": "",
+    "batch_delete": "",
+    "export_csv": "",
+    "code": "",
+    "app": "",
+    "type": "",
+    "total_days": "",
+    "used": "",
+    "status": "",
+    "created": "",
+    "quantity": "",
+    "valid_days": "",
+    "total_count": ""
   }
 }

@@ -2,21 +2,21 @@
   <div class="space-y-4">
     <el-card shadow="hover">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Registration Codes</h2>
+        <h2 class="text-xl font-semibold">{{ $t('reg_codes.title') }}</h2>
         <div class="flex items-center gap-2">
-          <el-input v-model="query.code" placeholder="Code" clearable class="w-56" />
+          <el-input v-model="query.code" :placeholder="$t('reg_codes.search_code')" clearable class="w-56" />
           <el-select v-model.number="query.app_id" placeholder="App" clearable class="w-48">
             <el-option v-for="opt in appOptions" :key="opt.id" :label="opt.name" :value="opt.id" />
           </el-select>
           <el-select v-model="query.code_type" placeholder="Type" clearable class="w-36">
-            <el-option label="Time" :value="0" />
+            <el-option :label="$t('reg_codes.type_time')" :value="0" />
             <el-option label="Count" :value="1" />
           </el-select>
-          <el-button type="primary" @click="reload">Search</el-button>
-          <el-button @click="resetFilters">Reset</el-button>
-          <el-button type="success" @click="openBatchDialog">Batch Create</el-button>
-          <el-button type="danger" :disabled="!selectedIds.length" @click="batchDelete">Batch Delete</el-button>
-          <el-button @click="exportCsv">Export CSV</el-button>
+            <el-button type="primary" @click="reload">{{ $t('common.search') }}</el-button>
+          <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
+          <el-button type="success" @click="openBatchDialog">{{ $t('reg_codes.batch_create') }}</el-button>
+          <el-button type="danger" :disabled="!selectedIds.length" @click="batchDelete">{{ $t('reg_codes.batch_delete') }}</el-button>
+          <el-button @click="exportCsv">{{ $t('reg_codes.export_csv') }}</el-button>
         </div>
       </div>
     </el-card>
@@ -25,31 +25,31 @@
       <el-table :data="rows" stripe size="large" style="width: 100%" @selection-change="onSelChange">
         <el-table-column type="selection" width="50" />
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="Code" min-width="200">
+        <el-table-column :label="$t('reg_codes.code')" min-width="200">
           <template #default="{ row }">
             <div class="flex items-center gap-2">
               <span class="text-gray-800 break-all">{{ row.code }}</span>
-              <el-button size="small" @click="copy(row.code)">Copy</el-button>
+              <el-button size="small" @click="copy(row.code)">{{ $t('common.copy') }}</el-button>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="App" min-width="160">
+        <el-table-column :label="$t('reg_codes.app')" min-width="160">
           <template #default="{ row }">
             <span>{{ row.app_name || row.app_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Type" width="100">
-          <template #default="{ row }">{{ row.code_type === 1 ? 'Count' : 'Time' }}</template>
+        <el-table-column :label="$t('reg_codes.type')" width="100">
+          <template #default="{ row }">{{ row.code_type === 1 ? $t('reg_codes.type_count') : $t('reg_codes.type_time') }}</template>
         </el-table-column>
-        <el-table-column label="Total/Days" width="120">
+        <el-table-column :label="$t('reg_codes.total_days')" width="120">
           <template #default="{ row }">{{ row.code_type === 1 ? (row.total_count ?? '-') : row.valid_days }}</template>
         </el-table-column>
-        <el-table-column prop="use_count" label="Used" width="100" />
-        <el-table-column prop="status" label="Status" width="100" />
-        <el-table-column prop="created_at" label="Created" min-width="180" />
-        <el-table-column label="Actions" width="120" fixed="right">
+        <el-table-column prop="use_count" :label="$t('reg_codes.used')" width="100" />
+        <el-table-column prop="status" :label="$t('reg_codes.status')" width="100" />
+        <el-table-column prop="created_at" :label="$t('reg_codes.created')" min-width="180" />
+        <el-table-column :label="$t('common.actions')" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="danger" @click="del(row.id)">Delete</el-button>
+            <el-button size="small" type="danger" @click="del(row.id)">{{ $t('common.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -67,26 +67,26 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="batch.visible" title="Batch Create" width="520px">
+    <el-dialog v-model="batch.visible" :title="$t('reg_codes.batch_create')" width="520px">
       <el-form label-width="140px">
-        <el-form-item label="App">
+        <el-form-item :label="$t('reg_codes.app')">
           <el-select v-model.number="batch.app_id" placeholder="Select App" class="w-full">
             <el-option v-for="opt in appOptions" :key="opt.id" :label="opt.name" :value="opt.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Quantity"><el-input-number v-model.number="batch.quantity" :min="1" /></el-form-item>
-        <el-form-item label="Type">
+        <el-form-item :label="$t('reg_codes.quantity')"><el-input-number v-model.number="batch.quantity" :min="1" /></el-form-item>
+        <el-form-item :label="$t('reg_codes.type')">
           <el-radio-group v-model="batch.code_type">
-            <el-radio :label="0">Time</el-radio>
+            <el-radio :label="0">{{ $t('reg_codes.type_time') }}</el-radio>
             <el-radio :label="1">Count</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="batch.code_type===0" label="Valid Days"><el-input-number v-model.number="batch.valid_days" :min="1" /></el-form-item>
-        <el-form-item v-else label="Total Count"><el-input-number v-model.number="batch.total_count" :min="1" /></el-form-item>
+        <el-form-item v-if="batch.code_type===0" :label="$t('reg_codes.valid_days')"><el-input-number v-model.number="batch.valid_days" :min="1" /></el-form-item>
+        <el-form-item v-else :label="$t('reg_codes.total_count')"><el-input-number v-model.number="batch.total_count" :min="1" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="batch.visible=false">Cancel</el-button>
-        <el-button type="primary" @click="submitBatch">Confirm</el-button>
+        <el-button @click="batch.visible=false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitBatch">{{ $t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -98,6 +98,8 @@ import { fetchRegCodes, deleteRegCode, batchCreateRegCodes } from '@/apis/reg_co
 import { fetchApps } from '@/apis/apps'
 import type { RegCodeModel, ListRegCodesParams, BatchCreateRegCodesReq } from '@/types/reg_codes'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 const rows = ref<RegCodeModel[]>([])
 const appOptions = ref<{id:number,name:string}[]>([])
@@ -119,15 +121,15 @@ function handlePageChange(p:number){ page.value=p; reload() }
 function handleSizeChange(s:number){ pageSize.value=s; page.value=1; reload() }
 
 async function del(id:number){
-  await ElMessageBox.confirm('Delete this code?','Confirm',{type:'warning'})
+  await ElMessageBox.confirm(t('reg_codes.delete_code_confirm'),t('common.confirm'),{type:'warning'})
   await deleteRegCode(id)
-  ElMessage.success('Deleted')
+  ElMessage.success(t('common.deleted'))
   reload()
 }
 async function batchDelete(){
-  await ElMessageBox.confirm('Delete selected codes?','Confirm',{type:'warning'})
+  await ElMessageBox.confirm(t('reg_codes.delete_selected_codes_confirm'),t('common.confirm'),{type:'warning'})
   for(const id of selectedIds.value){ await deleteRegCode(id) }
-  ElMessage.success('Deleted')
+  ElMessage.success(t('common.deleted'))
   reload()
 }
 function exportCsv(){
@@ -146,11 +148,11 @@ function openBatchDialog(){ if((!batch.app_id || batch.app_id===0) && appOptions
 async function submitBatch(){
   await batchCreateRegCodes(batch)
   batch.visible=false
-  ElMessage.success('Created')
+  ElMessage.success(t('common.created'))
   reload()
 }
 
-async function copy(text:string){ try{ await navigator.clipboard.writeText(text); ElMessage.success('Copied') }catch{ ElMessage.error('Copy failed') } }
+async function copy(text:string){ try{ await navigator.clipboard.writeText(text); ElMessage.success(t('common.copied')) }catch{ ElMessage.error(t('common.copy_failed')) } }
 
 onMounted(async ()=>{ await loadApps(); await reload() })
 
