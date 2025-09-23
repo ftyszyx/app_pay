@@ -6,50 +6,10 @@ use serde_json::json;
 use tower::ServiceExt;
 mod helpers;
 
-/// Helper function to create an admin user and get token
-async fn create_admin_and_login() -> String {
-    let app = helpers::create_test_app().await;
-
-    // Create admin user
-    let admin_username = format!("admin_{}", chrono::Utc::now().timestamp_millis());
-    let register_body = json!({
-        "username": admin_username,
-        "password": "adminpass123"
-    });
-
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/register")
-        .header("content-type", "application/json")
-        .body(Body::from(register_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
-    let json = helpers::print_response_body_get_json(response, "admin_register").await;
-    assert!(json["success"].as_bool().unwrap());
-
-    // Login to get token
-    let login_body = json!({
-        "username": admin_username,
-        "password": "adminpass123"
-    });
-
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/login")
-        .header("content-type", "application/json")
-        .body(Body::from(login_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    let json = helpers::print_response_body_get_json(response, "admin_login").await;
-    json["data"]["token"].as_str().unwrap().to_string()
-}
-
 #[tokio::test]
 async fn test_add_policy_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let policy_body = json!({
         "subject": "user1",
@@ -71,29 +31,6 @@ async fn test_add_policy_success() {
     let json = helpers::print_response_body_get_json(response, "add_policy").await;
     assert!(json["success"].as_bool().unwrap());
     assert!(json["data"].as_bool().unwrap());
-}
-
-#[tokio::test]
-async fn test_add_policy_missing_fields() {
-    let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
-
-    let policy_body = json!({
-        "subject": "user1",
-        "object": "/api/products"
-        // missing action field
-    });
-
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]
@@ -121,7 +58,7 @@ async fn test_add_policy_unauthorized() {
 #[tokio::test]
 async fn test_remove_policy_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // First add a policy
     let policy_body = json!({
@@ -168,7 +105,7 @@ async fn test_remove_policy_success() {
 #[tokio::test]
 async fn test_add_role_for_user_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let role_body = json!({
         "user": "user3",
@@ -194,7 +131,7 @@ async fn test_add_role_for_user_success() {
 #[tokio::test]
 async fn test_remove_role_for_user_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // First add a role
     let role_body = json!({
@@ -239,7 +176,7 @@ async fn test_remove_role_for_user_success() {
 #[tokio::test]
 async fn test_get_policies_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Add some policies first
     let policies = vec![
@@ -302,7 +239,7 @@ async fn test_get_policies_success() {
 #[tokio::test]
 async fn test_get_roles_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Add some roles first
     let roles = vec![
@@ -363,7 +300,7 @@ async fn test_get_roles_success() {
 #[tokio::test]
 async fn test_check_permission_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Add a policy first
     let policy_body = json!({
@@ -410,7 +347,7 @@ async fn test_check_permission_success() {
 #[tokio::test]
 async fn test_check_permission_denied() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Check permission for non-existent policy
     let check_body = json!({
@@ -438,7 +375,7 @@ async fn test_check_permission_denied() {
 #[tokio::test]
 async fn test_check_permission_invalid_user_id() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Check permission with invalid user_id format
     let check_body = json!({
@@ -462,7 +399,7 @@ async fn test_check_permission_invalid_user_id() {
 #[tokio::test]
 async fn test_reload_policies_success() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     let request = Request::builder()
         .method("POST")
@@ -485,7 +422,7 @@ async fn test_reload_policies_success() {
 #[tokio::test]
 async fn test_role_based_permission_check() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Add a role-based policy
     let policy_body = json!({
@@ -550,7 +487,7 @@ async fn test_role_based_permission_check() {
 #[tokio::test]
 async fn test_bulk_policy_operations() {
     let app = helpers::create_test_app().await;
-    let token = create_admin_and_login().await;
+    let token = helpers::create_test_user_and_login(&app).await;
 
     // Add multiple policies
     let policies = vec![

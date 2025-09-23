@@ -13,11 +13,11 @@ cargo run
 test all
 
 ```
-cargo test 
+cargo test -- --test-threads=1
 ```
 
 test apptest
 
 ```
-cargo test --test app_tests
+cargo test --test app_tests -- --test-threads=1
 ```
