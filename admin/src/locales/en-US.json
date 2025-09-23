@@ -159,6 +159,9 @@
     "created": "",
     "quantity": "",
     "valid_days": "",
-    "total_count": ""
+    "total_count": "",
+    "binding_time": "",
+    "expire_time": "",
+    "used_count": ""
   }
 }

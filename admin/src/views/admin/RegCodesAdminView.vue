@@ -38,13 +38,16 @@
             <span>{{ row.app_name || row.app_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('reg_codes.type')" width="100">
-          <template #default="{ row }">{{ row.code_type === 1 ? $t('reg_codes.type_count') : $t('reg_codes.type_time') }}</template>
+        <el-table-column prop="valid_days" :label="$t('reg_codes.valid_days')" width="120">
         </el-table-column>
-        <el-table-column :label="$t('reg_codes.total_days')" width="120">
-          <template #default="{ row }">{{ row.code_type === 1 ? (row.total_count ?? '-') : row.valid_days }}</template>
+        <el-table-column prop="binding_time" :label="$t('reg_codes.binding_time')" width="120">
         </el-table-column>
-        <el-table-column prop="use_count" :label="$t('reg_codes.used')" width="100" />
+        <el-table-column prop="expire_time" :label="$t('reg_codes.expire_time')" width="120">
+        </el-table-column>
+        <el-table-column prop="total_count" :label="$t('reg_codes.total_count')" width="120">
+        </el-table-column>
+        <el-table-column prop="use_count" :label="$t('reg_codes.used_count')" width="120">
+        </el-table-column>
         <el-table-column prop="status" :label="$t('reg_codes.status')" width="100" />
         <el-table-column prop="created_at" :label="$t('reg_codes.created')" min-width="180" />
         <el-table-column :label="$t('common.actions')" width="120" fixed="right">
@@ -78,7 +81,7 @@
         <el-form-item :label="$t('reg_codes.type')">
           <el-radio-group v-model="batch.code_type">
             <el-radio :label="0">{{ $t('reg_codes.type_time') }}</el-radio>
-            <el-radio :label="1">Count</el-radio>
+            <el-radio :label="1">{{ $t('reg_codes.type_count') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="batch.code_type===0" :label="$t('reg_codes.valid_days')"><el-input-number v-model.number="batch.valid_days" :min="1" /></el-form-item>

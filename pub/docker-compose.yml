@@ -1,0 +1,62 @@
+services:
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    env_file:
+      - ../server/.env
+    environment:
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://redis:6379/
+      - LISTEN_PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+    environment:
+      - VITE_BASE_URL=/api
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file:
+      - ../server/.env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../server/deploy/postgres/data:/var/lib/postgresql/data
+      - ../server/deploy/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /etc/timezone:/etc/timezone
+    env_file:
+      - ../server/.env
+    ports:
+      - "6379:6379"
+

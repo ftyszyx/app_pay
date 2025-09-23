@@ -7,7 +7,7 @@
     "check": "vue-tsc -b",
     "build": "vue-tsc -b && vite build",
     "tailwind": "tailwindcss -i ./src/assets/main.css -o ./src/assets/main_output.css --watch",
-     "getlang": "extract-keys",
+    "getlang": "extract-keys",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -23,15 +23,16 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.11",
+    "@types/ali-oss": "^6.16.11",
     "@types/node": "^24.0.10",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue/tsconfig": "^0.7.0",
     "fast-glob": "^3.3.3",
     "glob": "^10.3.10",
+    "i18n-key-extractor": "file:packages/i18n-key-extractor",
     "tailwindcss": "^4.1.11",
     "typescript": "~5.8.3",
     "unplugin-auto-import": "^19.3.0",
-     "i18n-key-extractor": "file:packages/i18n-key-extractor",
     "unplugin-vue-components": "^28.8.0",
     "vite": "^7.0.0",
     "vue-tsc": "^2.2.10"

@@ -106,8 +106,8 @@
     "input_price": "请输入价格"
   },
   "home": {
-    "title": "欢迎来到我们的商店",
-    "subtitle": "购买优秀软件注册码的最佳地方。",
+    "title": "欢迎",
+    "subtitle": "欢迎使用App管理后台",
     "nav_home": "首页",
     "nav_products": "产品",
     "nav_admin": "后台"
@@ -150,7 +150,7 @@
     "title": "注册码管理",
     "search_code": "注册码",
     "type_time": "时间",
-    "type_count": "数量",
+    "type_count": "次数",
     "batch_create": "批量创建",
     "batch_delete": "批量删除",
     "export_csv": "导出CSV",
@@ -163,6 +163,9 @@
     "created": "创建时间",
     "quantity": "数量",
     "valid_days": "有效天数",
-    "total_count": "总数量"
+    "total_count": "总次数",
+    "binding_time": "绑定时间",
+    "expire_time": "过期时间",
+    "used_count": "已使用次数"
   }
 }
