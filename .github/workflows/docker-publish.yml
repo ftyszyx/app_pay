@@ -6,10 +6,10 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
     inputs:
-      version:
-        description: "版本号 (例如: v1.0.0)"
+      tag:
+        description: "tag"
         required: true
-        default: "latest"
+        default: "test"
         type: string
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
           context: ./server
           file: ./server/Dockerfile.release
           push: true
-          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/app_pay:${{ inputs.version }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/app_pay:${{ inputs.tag }}
 
       # 非手动触发时使用 metadata 生成的标签
       - name: Build and push (auto)
