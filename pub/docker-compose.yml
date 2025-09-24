@@ -9,29 +9,13 @@ services:
       - LISTEN_PORT=3000
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_started
+      redis:
+        condition: service_started 
     ports:
       - "3000:3000"
-    restart: unless-stopped
-
-  admin:
-    build:
-      context: ../admin
-      dockerfile: Dockerfile
-    environment:
-      - VITE_BASE_URL=/api
-      - VITE_OSS_REGION=${OSS_REGION}
-      - VITE_OSS_BUCKET=${OSS_BUCKET}
-    ports:
-      - "8080:80"
-    depends_on:
-      - server
     volumes:
-      - ./deploy/nginx/templates:/etc/nginx/templates
-      - ./deploy/nginx/conf:/etc/nginx/conf.d
-      - ./deploy/nginx/logs:/var/log/nginx
+      - ./deploy/server/logs:/app/logs
     restart: unless-stopped
 
   db:

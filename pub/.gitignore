@@ -1,1 +1,3 @@
 deploy/postgres/data/
+deploy/server/logs/
+.env

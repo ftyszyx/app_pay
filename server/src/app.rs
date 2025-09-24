@@ -7,7 +7,7 @@ use aliyun_sts::StsClient;
 use chrono::{FixedOffset, Utc};
 use migration::{Migrator, MigratorTrait};
 use std::sync::Arc;
-use tracing_appender::rolling;
+use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::{fmt::time::FormatTime, layer::SubscriberExt, util::SubscriberInitExt};
 struct East8Timer;
 
@@ -20,7 +20,6 @@ impl FormatTime for East8Timer {
 }
 
 pub async fn init_app() -> Result<AppState, AppError> {
-    init_log();
     // 加载配置
     let config = Config::from_env()
         .map_err(|e| AppError::Message(format!("config load failed:{}", e.to_string())))?;
@@ -59,24 +58,21 @@ pub async fn init_app() -> Result<AppState, AppError> {
     Ok(app_state)
 }
 
-pub fn init_log() {
-    // 初始化日志
+pub fn init_log() -> WorkerGuard {
+    // 同时输出到文件和 stdout，并保留 guard 确保文件日志 flush
     let file_appender = rolling::daily("logs", "app.log");
-    let (non_blocking_appender, _guard) = tracing_appender::non_blocking(file_appender);
-    let result = tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "error".into()),
-        )
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_timer(East8Timer)
-                .with_ansi(false)
-                .with_writer(non_blocking_appender),
-        )
-        .with(tracing_subscriber::fmt::layer().with_timer(East8Timer))
+    let (non_blocking_appender, guard) = tracing_appender::non_blocking(file_appender);
+    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "info".into());
+    let fmt_file = tracing_subscriber::fmt::layer()
+        .with_timer(East8Timer)
+        .with_ansi(false)
+        .with_writer(non_blocking_appender);
+    let fmt_stdout = tracing_subscriber::fmt::layer().with_timer(East8Timer);
+    let _ = tracing_subscriber::registry()
+        .with(env_filter)
+        .with(fmt_file)
+        .with(fmt_stdout)
         .try_init();
-    if let Err(e) = result {
-        tracing::warn!("Failed to set global default subscriber: {}", e);
-    }
+    guard
 }
