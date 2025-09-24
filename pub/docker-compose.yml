@@ -4,10 +4,8 @@ services:
       context: ../server
       dockerfile: Dockerfile
     env_file:
-      - ../server/.env
+      - .env
     environment:
-      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      - REDIS_URL=redis://redis:6379/
       - LISTEN_PORT=3000
     depends_on:
       db:
@@ -24,17 +22,21 @@ services:
       dockerfile: Dockerfile
     environment:
       - VITE_BASE_URL=/api
+      - VITE_OSS_REGION=${OSS_REGION}
+      - VITE_OSS_BUCKET=${OSS_BUCKET}
     ports:
       - "8080:80"
     depends_on:
       - server
+    volumes:
+      - ./deploy/nginx/templates:/etc/nginx/templates
+      - ./deploy/nginx/conf:/etc/nginx/conf.d
+      - ./deploy/nginx/logs:/var/log/nginx
     restart: unless-stopped
 
   db:
     image: postgres:17-alpine
     restart: unless-stopped
-    env_file:
-      - ../server/.env
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
@@ -42,8 +44,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ../server/deploy/postgres/data:/var/lib/postgresql/data
-      - ../server/deploy/postgres/init:/docker-entrypoint-initdb.d
+      - ./deploy/postgres/data:/var/lib/postgresql/data
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -55,8 +57,5 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime
       - /etc/timezone:/etc/timezone
-    env_file:
-      - ../server/.env
     ports:
       - "6379:6379"
-

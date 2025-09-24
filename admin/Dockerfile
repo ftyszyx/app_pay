@@ -1,16 +1,22 @@
 # Stage 1: Build frontend
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
+ENV NPM_CACHE_FOLDER=/root/.npm
+# 增加Node.js内存限制
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --no-audit --no-fund
+COPY paokage*.json ./
+RUN npm config set loglevel=http
+RUN npm config set cache ${NPM_CACHE_FOLDER} 
+# restrict package.lock.json
+RUN --mount=type=cache,target=${NPM_CACHE_FOLDER},sharing=locked \
+RUN npm config set registry https://registry.npmmirror.com/
 COPY . .
 RUN npm run build
 
 # Stage 2: Serve with Nginx
-FROM nginx:alpine
+FROM nginx:1.27.4-alpine
 WORKDIR /usr/share/nginx/html
 COPY --from=build /app/dist/ .
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx","-g","daemon off;"]
 

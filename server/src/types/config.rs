@@ -67,7 +67,7 @@ impl DatabaseConfig {
                 .map_err(|_| AppError::Message("DB_NAME must be set".to_string()))?,
             db_user: env::var("DB_USER")
                 .map_err(|_| AppError::Message("DB_USER must be set".to_string()))?,
-            db_url: env::var("DATABASE_URL")
+            db_url: env::var("DB_URL")
                 .map_err(|_| AppError::Message("DATABASE_URL must be set".to_string()))?,
             max_connections: env::var("DB_MAX_CONNECTIONS")
                 .unwrap_or_else(|_| "100".to_string())
