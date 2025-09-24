@@ -11,11 +11,6 @@ on:
         required: true
         default: "latest"
         type: string
-      labels:
-        description: "标签"
-        required: false
-        default: "test"
-        type: string
 
 jobs:
   push_to_registry:
