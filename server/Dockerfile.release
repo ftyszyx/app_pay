@@ -18,7 +18,7 @@ FROM debian:12-slim as runner
 WORKDIR /usr/src/app
 # Install required runtime libraries for the binary (OpenSSL, certs)
 # RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources \
- RUN apt-get update
+ RUN apt-get update \
    # --no-install-recommends  只安装必要的依赖包
  && apt-get install -y --no-install-recommends pkg-config libssl-dev libpq-dev nodejs npm curl \
  && rm -rf /var/lib/apt/lists/*
