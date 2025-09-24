@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM rust:1.87-slim as builder
+FROM rust:1.87-slim AS builder
 ENV CARGO_HOME=/usr/local/cargo
 # Install build dependencies, including postgresql client and nodejs/npm for swagger-ui
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     && mkdir -p /usr/src/out \
     && cp target/release/app_server /usr/src/out/app_server
 
-FROM debian:12-slim as runner
+FROM debian:12-slim AS runner
 WORKDIR /usr/src/app
 # Install required runtime libraries for the binary (OpenSSL, certs)
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources \

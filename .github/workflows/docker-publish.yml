@@ -51,8 +51,7 @@ jobs:
           context: ./server
           file: ./server/Dockerfile.release
           push: true
-          tags: ${{ inputs.version }}
-          labels: ${{ inputs.labels }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/app-pay:${{ inputs.version }}
 
       # 非手动触发时使用 metadata 生成的标签
       - name: Build and push (auto)
