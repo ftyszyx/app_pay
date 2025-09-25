@@ -1,6 +1,6 @@
 services:
   server:
-    image: ftyszyx752/app_pay:latest
+    image: ftyszyx752/LicenseHub:main
     env_file:
       - .env
     environment:

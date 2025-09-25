@@ -1,4 +1,4 @@
-# app_pay
+# LicenseHub
 
 pay for app
 
