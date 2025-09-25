@@ -16,6 +16,8 @@ jobs:
   push_to_registry:
     name: Build and push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    env:
+      DOCKERNAME: licensehub
     permissions:
       contents: read
       packages: write
@@ -36,7 +38,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/LicenseHub
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERNAME }}
 
       # 手动触发时使用用户输入的版本号
       - name: Build and push (manual)
@@ -46,7 +48,7 @@ jobs:
           context: ./server
           file: ./server/Dockerfile.release
           push: true
-          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/LicenseHub:${{ inputs.tag }}
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERNAME }}:${{ inputs.tag }}
 
       # 非手动触发时使用 metadata 生成的标签
       - name: Build and push (auto)
