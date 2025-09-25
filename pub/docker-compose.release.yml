@@ -1,6 +1,6 @@
 services:
   server:
-    image: ftyszyx752/LicenseHub:main
+    image: ftyszyx752/licensehub:test
     env_file:
       - .env
     environment:
@@ -36,8 +36,5 @@ services:
   redis:
     image: redis:latest
     restart: unless-stopped
-    volumes:
-      - /etc/localtime:/etc/localtime
-      - /etc/timezone:/etc/timezone
     ports:
       - "6379:6379"
