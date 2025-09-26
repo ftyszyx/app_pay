@@ -16,7 +16,7 @@ async fn main() {
     // 启动服务器
     let addr = SocketAddr::from((
         host.parse::<std::net::Ipv4Addr>()
-            .unwrap_or_else(|_| std::net::Ipv4Addr::new(127, 0, 0, 1)),
+            .unwrap_or_else(|_| std::net::Ipv4Addr::new(0, 0, 0, 0)),
         port,
     ));
     tracing::info!("Server starting on {}", addr);

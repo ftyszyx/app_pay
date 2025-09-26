@@ -4,12 +4,14 @@ use axum::{
     Router, middleware,
     routing::{delete, get, post, put},
 };
+// use axum::response::Redirect;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use utoipa::{
     Modify, OpenApi,
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
 };
+// use utoipa_swagger_ui::SwaggerUi;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -89,7 +91,8 @@ use utoipa::{
     tags( (name = "app-pay", description = "App Pay API"))
 )]
 #[allow(dead_code)]
-struct SecurityAddon;
+struct ApiDoc;
+// struct SecurityAddon;
 
 impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
@@ -278,6 +281,8 @@ pub fn create_router(app_state: AppState) -> Router {
             post(handlers::auth::change_password),
         )
         // .nest("/api/payment", payment_routes)
+        // .route("/swagger/", get(|| async { Redirect::permanent("/swagger/index.html") }))
+        // .merge(SwaggerUi::new("/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(app_state)
         .layer(cors)
         .layer(TraceLayer::new_for_http())

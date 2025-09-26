@@ -110,7 +110,7 @@ impl JwtConfig {
 impl ServerConfig {
     fn from_env() -> Result<Self, AppError> {
         Ok(ServerConfig {
-            host: env::var("LISTEN_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
+            host: env::var("LISTEN_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             port: env::var("LISTEN_PORT")
                 .unwrap_or_else(|_| "3000".to_string())
                 .parse()

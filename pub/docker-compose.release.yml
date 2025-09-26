@@ -3,8 +3,6 @@ services:
     image: ftyszyx752/licensehub:test
     env_file:
       - .env
-    environment:
-      - LISTEN_PORT=3000
     depends_on:
       db:
         condition: service_started
