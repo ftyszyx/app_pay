@@ -20,3 +20,8 @@ docker compose up server
 ```
 docker compose up -d
 ```
+
+## build web
+```
+python build_web.py --base-url https://appapi.bytefuse.cn/api
+```

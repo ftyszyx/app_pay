@@ -7,7 +7,7 @@ import { i18n } from '@/utils/i18n'
 export type SupportedLocale = 'en' | 'zh-cn'
 
 export const useLocaleStore = defineStore('locale', () => {
-    const current = ref<SupportedLocale>((localStorage.getItem('locale') as SupportedLocale) || 'en')
+    const current = ref<SupportedLocale>((localStorage.getItem('locale') as SupportedLocale) || 'zh-cn')
 
     const setLocale = (loc: SupportedLocale) => { current.value = loc }
 
