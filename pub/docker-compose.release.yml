@@ -4,14 +4,14 @@ services:
     env_file:
       - .env
     environment:
-      - LISTEN_PORT=21600
+      - LISTEN_PORT=3000
     depends_on:
       db:
         condition: service_started
       redis:
         condition: service_started 
     ports:
-      - "3000:3000"
+      - "21600:3000"
     volumes:
       - ./deploy/server/logs:/app/logs
     restart: unless-stopped
