@@ -4,7 +4,7 @@ services:
     env_file:
       - .env
     environment:
-      - LISTEN_PORT=3000
+      - LISTEN_PORT=21600
     depends_on:
       db:
         condition: service_started
