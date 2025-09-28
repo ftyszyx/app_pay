@@ -33,3 +33,7 @@ python build_web.py --base-url https://appapi.bytefuse.cn/api
 ```
 
 cp -rf web /opt/1panel/www/sites/apps.bytefuse.cn/index
+
+
+## rerun docker
+docker compose -f docker-compose.release.yml up --force-recreate server
