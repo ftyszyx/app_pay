@@ -4,3 +4,10 @@ target
 .env 
 logs/
 .idea/
+
+# Exclude local database volumes and sockets from build context
+**/*.sock
+
+# Common noise
+**/.DS_Store
+**/Thumbs.db

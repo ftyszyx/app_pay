@@ -1,3 +1,4 @@
+use axum::http;
 use crate::handlers::{self, middleware::auth, middleware::error_handler};
 use crate::types::common::AppState;
 use axum::{
@@ -92,7 +93,7 @@ use utoipa::{
 )]
 #[allow(dead_code)]
 struct ApiDoc;
-// struct SecurityAddon;
+struct SecurityAddon;
 
 impl Modify for SecurityAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
@@ -263,7 +264,10 @@ pub fn create_router(app_state: AppState) -> Router {
     //     )
     //     .route("/notify", post(handlers::payment_handler::payment_notify));
 
-    let cors = CorsLayer::new().allow_origin(Any);
+    let cors = CorsLayer::new()
+    .allow_origin(Any)
+    .allow_methods([http::Method::GET, http::Method::POST, http::Method::PUT, http::Method::DELETE, http::Method::OPTIONS])
+    .allow_headers(Any);
     Router::new()
         .route("/", get(handlers::handler))
         .route("/api/register", post(handlers::auth::register))
@@ -280,9 +284,6 @@ pub fn create_router(app_state: AppState) -> Router {
             "/api/admin/me/password",
             post(handlers::auth::change_password),
         )
-        // .nest("/api/payment", payment_routes)
-        // .route("/swagger/", get(|| async { Redirect::permanent("/swagger/index.html") }))
-        // .merge(SwaggerUi::new("/swagger").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(app_state)
         .layer(cors)
         .layer(TraceLayer::new_for_http())
