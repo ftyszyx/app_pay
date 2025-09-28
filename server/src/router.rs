@@ -110,6 +110,7 @@ pub fn create_router(app_state: AppState) -> Router {
     let admin_routes = Router::new()
         //users
         .route("/me", get(handlers::auth::get_current_user))
+        .route("/me/password", post(handlers::auth::change_password))
         .route("/users", post(handlers::user_handler::add))
         .route("/users/list", get(handlers::user_handler::get_list))
         .route("/users/{id}", get(handlers::user_handler::get_by_id))
@@ -279,10 +280,6 @@ pub fn create_router(app_state: AppState) -> Router {
         .route(
             "/api/vuefinder/list",
             get(handlers::vuefinder_handler::list),
-        )
-        .route(
-            "/api/admin/me/password",
-            post(handlers::auth::change_password),
         )
         .with_state(app_state)
         .layer(cors)
