@@ -16,6 +16,12 @@ docker compose build server
 docker compose up server 
 ```
 
+## recreate docker
+```
+docker compose down server
+docker compose up --force-recreate server
+```
+
 ## run all
 ```
 docker compose up -d
@@ -25,3 +31,5 @@ docker compose up -d
 ```
 python build_web.py --base-url https://appapi.bytefuse.cn/api
 ```
+
+cp -rf web /opt/1panel/www/sites/apps.bytefuse.cn/index
