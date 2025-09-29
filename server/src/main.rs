@@ -1,5 +1,6 @@
 use app_server::{app, router};
 use std::net::SocketAddr;
+use salvo::prelude::*;
 #[tokio::main]
 async fn main() {
     // Load .env if present; do not fail when missing (use env vars instead)
@@ -12,7 +13,7 @@ async fn main() {
         .unwrap_or_else(|e| panic!("failed to initialize app:{}", e.to_string()));
     let host = app_state.config.server.host.clone();
     let port = app_state.config.server.port;
-    let app = router::create_router(app_state);
+    let app_router = router::create_router(app_state);
     // 启动服务器
     let addr = SocketAddr::from((
         host.parse::<std::net::Ipv4Addr>()
@@ -20,6 +21,6 @@ async fn main() {
         port,
     ));
     tracing::info!("Server starting on {}", addr);
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let acceptor = tokio::net::TcpListener::bind(addr).await.unwrap();
+    Server::new(acceptor).serve(app_router).await;
 }

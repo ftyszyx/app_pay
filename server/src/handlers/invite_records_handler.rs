@@ -5,20 +5,17 @@ use sea_orm::{
     Select,
      prelude::Expr, sea_query::Alias, JoinType, QuerySelect,  RelationTrait
 };
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 
 // Create InviteRecord
-#[utoipa::path(
-    post,
-    path = "/api/admin/invite_records",
-    security(("api_key" = [])),
-    request_body = CreateInviteRecordReq,
-    responses((status = 200, description = "Success", body = invite_records::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<CreateInviteRecordReq>,
+    depot: &mut Depot,
+    req: JsonBody<CreateInviteRecordReq>,
 ) -> Result<ApiResponse<invite_records::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -38,19 +35,14 @@ pub async fn add_impl(
 }
 
 // Update InviteRecord
-#[utoipa::path(
-    put,
-    path = "/api/admin/invite_records/{id}",
-    security(("api_key" = [])),
-    request_body = UpdateInviteRecordReq,
-    responses((status = 200, description = "Success", body = InviteRecordInfo))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UpdateInviteRecordReq>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<UpdateInviteRecordReq>,
 ) -> Result<ApiResponse<invite_records::Model>, AppError> {
-    let record = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let record = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(record))
 }
 
@@ -73,17 +65,13 @@ pub async fn update_impl(
 }
 
 // Delete InviteRecord
-#[utoipa::path(
-    delete,
-    path = "/api/admin/invite_records/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -98,18 +86,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get InviteRecords List
-#[utoipa::path(
-    get,
-    path = "/api/admin/invite_records/list",
-    security(("api_key" = [])),
-    params(SearchInviteRecordsParams),
-    responses((status = 200, description = "Success", body = PagingResponse<InviteRecordInfo>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<SearchInviteRecordsParams>,
+    depot: &mut Depot,
+    params: QueryParam<SearchInviteRecordsParams>,
 ) -> Result<ApiResponse<PagingResponse<InviteRecordInfo>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -162,17 +145,13 @@ pub async fn get_list_impl(
 }
 
 // Get InviteRecord by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/invite_records/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = InviteRecordInfo))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<InviteRecordInfo>, AppError> {
-    let record = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let record = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(record))
 }
 

@@ -1,8 +1,7 @@
-use axum::{Json, http::StatusCode, response::IntoResponse};
+use salvo::{Json, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
 pub struct ApiResponse<T> {
     pub code: u16,
     pub message: String,

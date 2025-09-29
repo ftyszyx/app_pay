@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use crate::utils::convert::from_str_optional;
 

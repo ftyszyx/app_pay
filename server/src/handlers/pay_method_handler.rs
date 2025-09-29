@@ -1,19 +1,16 @@
 use crate::types::pay_method_types::*;
 crate::import_crud_macro!();
 use entity::pay_methods;
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 // Create PayMethod
-#[utoipa::path(
-    post,
-    path = "/api/admin/pay_methods",
-    security(("api_key" = [])),
-    request_body = PayMethodCreatePayload,
-    responses((status = 200, description = "Success", body = pay_methods::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<PayMethodCreatePayload>,
+    depot: &mut Depot,
+    req: JsonBody<PayMethodCreatePayload>,
 ) -> Result<ApiResponse<pay_methods::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -32,19 +29,14 @@ pub async fn add_impl(
 }
 
 // Update PayMethod
-#[utoipa::path(
-    put,
-    path = "/api/admin/pay_methods/{id}",
-    security(("api_key" = [])),
-    request_body = PayMethodUpdatePayload,
-    responses((status = 200, description = "Success", body = pay_methods::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<PayMethodUpdatePayload>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<PayMethodUpdatePayload>,
 ) -> Result<ApiResponse<pay_methods::Model>, AppError> {
-    let pay_method = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let pay_method = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(pay_method))
 }
 
@@ -63,17 +55,13 @@ pub async fn update_impl(
 }
 
 // Delete PayMethod
-#[utoipa::path(
-    delete,
-    path = "/api/admin/pay_methods/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -90,18 +78,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get PayMethods List
-#[utoipa::path(
-    get,
-    path = "/api/admin/pay_methods/list",
-    security(("api_key" = [])),
-    params(ListPayMethodsParams),
-    responses((status = 200, description = "Success", body = PagingResponse<pay_methods::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<ListPayMethodsParams>,
+    depot: &mut Depot,
+    params: QueryParam<ListPayMethodsParams>,
 ) -> Result<ApiResponse<PagingResponse<pay_methods::Model>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -121,17 +104,13 @@ pub async fn get_list_impl(
 }
 
 // Get PayMethod by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/pay_methods/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = pay_methods::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<pay_methods::Model>, AppError> {
-    let pay_method = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let pay_method = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(pay_method))
 }
 

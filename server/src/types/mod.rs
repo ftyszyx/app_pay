@@ -13,5 +13,4 @@ pub mod resource_types;
 pub mod reg_codes_types;
 pub mod response;
 pub mod role_types;
-pub mod type_macro;
 pub mod user_types;

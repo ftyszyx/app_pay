@@ -5,10 +5,6 @@ macro_rules! import_crud_macro {
         use crate::types::common::{AppState, PagingResponse};
         use crate::types::error::AppError;
         use crate::types::response::ApiResponse;
-        use axum::{
-            Json,
-            extract::{Path, Query, State},
-        };
         use chrono::Utc;
         use sea_orm::{
             ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, PaginatorTrait,

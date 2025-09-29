@@ -1,20 +1,17 @@
 use crate::types::reg_codes_types::*;
 crate::import_crud_macro!();
 use entity::{apps, reg_codes};
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 
 // Create RegCode
-#[utoipa::path(
-    post,
-    path = "/api/admin/reg_codes",
-    security(("api_key" = [])),
-    request_body = CreateRegCodeReq,
-    responses((status = 200, description = "Success", body = RegCodeInfo))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<CreateRegCodeReq>,
+    depot: &mut Depot,
+    req: JsonBody<CreateRegCodeReq>,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -52,19 +49,14 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
 }
 
 // Update RegCode
-#[utoipa::path(
-    put,
-    path = "/api/admin/reg_codes/{id}",
-    security(("api_key" = [])),
-    request_body = UpdateRegCodeReq,
-    responses((status = 200, description = "Success", body = RegCodeInfo))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UpdateRegCodeReq>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<UpdateRegCodeReq>,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
-    let reg_code = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let reg_code = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(reg_code))
 }
 
@@ -110,17 +102,13 @@ pub async fn update_impl(
 }
 
 // Delete RegCode
-#[utoipa::path(
-    delete,
-    path = "/api/admin/reg_codes/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -133,18 +121,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get RegCodes List
-#[utoipa::path(
-    get,
-    path = "/api/admin/reg_codes/list",
-    security(("api_key" = [])),
-    params(SearchRegCodesParams),
-    responses((status = 200, description = "Success", body = PagingResponse<RegCodeInfo>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<SearchRegCodesParams>,
+    depot: &mut Depot,
+    params: QueryParam<SearchRegCodesParams>,
 ) -> Result<ApiResponse<PagingResponse<RegCodeInfo>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -182,17 +165,13 @@ pub async fn get_list_impl(
 }
 
 // Get RegCode by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/reg_codes/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = RegCodeInfo))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
-    let reg_code = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let reg_code = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(reg_code))
 }
 
@@ -209,32 +188,24 @@ pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<RegCodeInfo, Ap
 }
 
 /// Validate registration code for device
-#[utoipa::path(
-    post,
-    path = "/api/reg/validate",
-    request_body = RegCodeValidateReq,
-    responses((status = 200, description = "Success", body = RegCodeValidateResp))
-)]
+#[handler]
 pub async fn validate_code(
-    State(state): State<AppState>,
-    Json(req): Json<RegCodeValidateReq>,
+    depot: &mut Depot,
+    req: JsonBody<RegCodeValidateReq>,
 ) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
-    let resp = validate_code_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let resp = validate_code_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(resp))
 }
 
 /// Validate registration code for device (GET)
-#[utoipa::path(
-    get,
-    path = "/api/reg/validate",
-    params(RegCodeValidateReq),
-    responses((status = 200, description = "Success", body = RegCodeValidateResp))
-)]
+#[handler]
 pub async fn validate_code_get(
-    State(state): State<AppState>,
-    Query(req): Query<RegCodeValidateReq>,
+    depot: &mut Depot,
+    req: QueryParam<RegCodeValidateReq>,
 ) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
-    let resp = validate_code_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let resp = validate_code_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(resp))
 }
 

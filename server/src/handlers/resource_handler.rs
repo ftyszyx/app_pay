@@ -2,10 +2,8 @@ use crate::types::common::{AppState, PagingResponse};
 use crate::types::error::AppError;
 use crate::types::resource_types::*;
 use crate::types::response::ApiResponse;
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-};
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 use entity::resources;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, ModelTrait, PaginatorTrait,
@@ -13,18 +11,13 @@ use sea_orm::{
 };
 
 // Create Resource
-#[utoipa::path(
-    post,
-    path = "/api/admin/resources",
-    security(("api_key" = [])),
-    request_body = ResourceCreatePayload,
-    responses((status = 200, description = "Success", body = resources::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<ResourceCreatePayload>,
+    depot: &mut Depot,
+    req: JsonBody<ResourceCreatePayload>,
 ) -> Result<ApiResponse<resources::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -47,19 +40,14 @@ pub async fn add_impl(
 }
 
 // Update Resource
-#[utoipa::path(
-    put,
-    path = "/api/admin/resources/{id}",
-    security(("api_key" = [])),
-    request_body = ResourceUpdatePayload,
-    responses((status = 200, description = "Success", body = resources::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<ResourceUpdatePayload>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<ResourceUpdatePayload>,
 ) -> Result<ApiResponse<resources::Model>, AppError> {
-    let entity = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -83,17 +71,13 @@ pub async fn update_impl(
 }
 
 // Delete Resource (soft)
-#[utoipa::path(
-    delete,
-    path = "/api/admin/resources/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -105,18 +89,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Resources List
-#[utoipa::path(
-    get,
-    path = "/api/admin/resources/list",
-    security(("api_key" = [])),
-    params(ListResourcesParams),
-    responses((status = 200, description = "Success", body = PagingResponse<resources::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<ListResourcesParams>,
+    depot: &mut Depot,
+    params: QueryParam<ListResourcesParams>,
 ) -> Result<ApiResponse<PagingResponse<resources::Model>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -145,17 +124,13 @@ pub async fn get_list_impl(
 }
 
 // Get Resource by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/resources/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = resources::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<resources::Model>, AppError> {
-    let entity = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 

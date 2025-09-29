@@ -1,19 +1,14 @@
-use axum::{
-    body::Body,
-    extract::State,
-    http::{Request, StatusCode},
-    middleware::Next,
-    response::Response,
-};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use crate::types::common::{AppState, Claims};
 use http_body_util::BodyExt;
+use salvo::prelude::*;
 
+#[handler]
 pub async fn auth(
-    State(state): State<AppState>,
-    mut req: Request<Body>,
-    next: Next,
-) -> Result<Response, StatusCode> {
+    req: &mut Request,
+    depot:&mut Depot,
+) -> Result<(), StatusCode> {
+    let state = depot.obtain::<AppState>().unwrap();
     let token = req
         .headers()
         .get("Authorization")
@@ -33,25 +28,28 @@ pub async fn auth(
         &Validation::default(),
     )
     .map_err(|_| StatusCode::UNAUTHORIZED)?;
-    
-    req.extensions_mut().insert(decoded.claims);
-    Ok(next.run(req).await)
+    depot.inject(decoded.claims);
+    Ok(())
 }
 
+#[handler]
 pub async fn error_handler(
-    req: Request<Body>,
-    next: Next,
-) -> Response {
-    let response = next.run(req).await;
-    let status=response.status();
-    if status!=StatusCode::OK{
-        let (parts, body) = response.into_parts();
-        let bytes = body.collect().await.unwrap().to_bytes();
-        let body_str=String::from_utf8_lossy(&bytes);
+    req: &mut Request,
+    depot: &mut Depot,
+    res: &mut Response,
+    ctrl: &mut FlowCtrl,
+) -> Result<(), StatusCode> {
+    // 先放行到下游处理
+    ctrl.call_next(req, depot, res).await;
+
+    let status = res.status_code();
+    if status != StatusCode::OK {
+        // 读取并还原响应体，记录错误
+        let body = res.take_body();
+        let bytes = body.bytes().await.unwrap_or_default();
+        let body_str = String::from_utf8_lossy(&bytes);
         tracing::error!("Response status: {} body: {}", status, body_str);
-        Response::from_parts(parts, Body::from(bytes))
+        res.set_body(Body::from(bytes));
     }
-    else {
-        response
-    }
+    Ok(())
 }

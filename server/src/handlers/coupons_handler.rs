@@ -2,10 +2,8 @@ use crate::types::common::{AppState, PagingResponse};
 use crate::types::coupons_types::*;
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-};
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 use chrono::Utc;
 use entity::coupons;
 use sea_orm::{
@@ -14,18 +12,13 @@ use sea_orm::{
 };
 
 // Create Coupon
-#[utoipa::path(
-    post,
-    path = "/api/admin/coupons",
-    security(("api_key" = [])),
-    request_body = CreateCouponReq,
-    responses((status = 200, description = "Success", body = coupons::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<CreateCouponReq>,
+    depot: &mut Depot,
+    req: JsonBody<CreateCouponReq>,
 ) -> Result<ApiResponse<coupons::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -50,19 +43,14 @@ pub async fn add_impl(state: &AppState, req: CreateCouponReq) -> Result<coupons:
 }
 
 // Update Coupon
-#[utoipa::path(
-    put,
-    path = "/api/admin/coupons/{id}",
-    security(("api_key" = [])),
-    request_body = UpdateCouponReq,
-    responses((status = 200, description = "Success", body = coupons::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UpdateCouponReq>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<UpdateCouponReq>,
 ) -> Result<ApiResponse<coupons::Model>, AppError> {
-    let coupon = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let coupon = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(coupon))
 }
 
@@ -96,38 +84,32 @@ pub async fn update_impl(
 }
 
 // Get coupon by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/coupons/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = coupons::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<coupons::Model>, AppError> {
-    let coupon = coupons::Entity::find_by_id(id)
+    let state = depot.obtain::<AppState>().unwrap();
+    let id_val = id.into_inner();
+    let coupon = coupons::Entity::find_by_id(id_val)
         .one(&state.db)
         .await?
-        .ok_or(AppError::not_found("coupon", Some(id)))?;
+        .ok_or(AppError::not_found("coupon", Some(id_val)))?;
     Ok(ApiResponse::success(coupon))
 }
 
 // Delete coupon
-#[utoipa::path(
-    delete,
-    path = "/api/admin/coupons/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success"))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<String>, AppError> {
-    let existing = coupons::Entity::find_by_id(id)
+    let state = depot.obtain::<AppState>().unwrap();
+    let id_val = id.into_inner();
+    let existing = coupons::Entity::find_by_id(id_val)
         .one(&state.db)
         .await?
-        .ok_or(AppError::not_found("coupon", Some(id)))?;
+        .ok_or(AppError::not_found("coupon", Some(id_val)))?;
 
     coupons::Entity::delete_by_id(existing.id)
         .exec(&state.db)
@@ -137,17 +119,13 @@ pub async fn delete(
 }
 
 // Get coupons list with pagination and filtering
-#[utoipa::path(
-    get,
-    path = "/api/admin/coupons/list",
-    security(("api_key" = [])),
-    params(SearchCouponsParams),
-    responses((status = 200, description = "Success", body = PagingResponse<coupons::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<SearchCouponsParams>,
+    depot: &mut Depot,
+    params: QueryParam<SearchCouponsParams>,
 ) -> Result<ApiResponse<PagingResponse<coupons::Model>>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let params = params.into_inner();
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
     let mut query = coupons::Entity::find().order_by_desc(coupons::Column::CreatedAt);

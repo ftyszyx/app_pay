@@ -1,19 +1,16 @@
 use crate::types::orders_types::*;
 use entity::orders;
 crate::import_crud_macro!();
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 
-#[utoipa::path(
-    post,
-    path = "/api/admin/orders",
-    security(("api_key" = [])),
-    request_body = CreateOrderReq,
-    responses((status = 200, description = "Success", body = orders::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<CreateOrderReq>,
+    depot: &mut Depot,
+    req: JsonBody<CreateOrderReq>,
 ) -> Result<ApiResponse<orders::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -37,19 +34,14 @@ pub async fn add_impl(state: &AppState, req: CreateOrderReq) -> Result<orders::M
 }
 
 // Update Order
-#[utoipa::path(
-    put,
-    path = "/api/admin/orders/{id}",
-    security(("api_key" = [])),
-    request_body = UpdateOrderReq,
-    responses((status = 200, description = "Success", body = orders::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UpdateOrderReq>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<UpdateOrderReq>,
 ) -> Result<ApiResponse<orders::Model>, AppError> {
-    let order = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let order = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(order))
 }
 
@@ -74,17 +66,13 @@ pub async fn update_impl(
 }
 
 // Delete Order
-#[utoipa::path(
-    delete,
-    path = "/api/admin/orders/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -96,18 +84,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Orders List
-#[utoipa::path(
-    get,
-    path = "/api/admin/orders/list",
-    security(("api_key" = [])),
-    params(SearchOrdersParams),
-    responses((status = 200, description = "Success", body = PagingResponse<OrderInfo>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<SearchOrdersParams>,
+    depot: &mut Depot,
+    params: QueryParam<SearchOrdersParams>,
 ) -> Result<ApiResponse<PagingResponse<OrderInfo>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -134,18 +117,15 @@ pub async fn get_list_impl(
 }
 
 // Get Order by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/orders/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = orders::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<OrderInfo>, AppError> {
-    let query = orders::Entity::find_by_id(id).one(&state.db).await?;
-    let order = query.ok_or_else(|| AppError::not_found("orders".to_string(), Some(id)))?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let id_val = id.into_inner();
+    let query = orders::Entity::find_by_id(id_val).one(&state.db).await?;
+    let order = query.ok_or_else(|| AppError::not_found("orders".to_string(), Some(id_val)))?;
     let order = OrderInfo::try_from(order)?;
     Ok(ApiResponse::success(order))
 }

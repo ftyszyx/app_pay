@@ -5,7 +5,6 @@ use crate::utils::redis_cache::RedisCache;
 use aliyun_sts::StsClient;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use utoipa::ToSchema;
 
 #[derive(Deserialize, ToSchema, Debug, Serialize)]
 pub struct ListParamsReq {

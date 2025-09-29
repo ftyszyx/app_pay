@@ -1,6 +1,6 @@
 use crate::types::common::AppState;
 use crate::types::error::AppError;
-use axum::{Json, extract::State};
+use salvo::prelude::*;
 use entity::resources;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
@@ -29,10 +29,13 @@ pub struct VfListResp {
 }
 
 /// GET /api/vuefinder/list
+#[handler]
 pub async fn list(
-    State(state): State<AppState>,
-    axum::extract::Query(q): axum::extract::Query<ListQuery>,
+    depot: &mut Depot,
+    q: salvo_oapi::extract::QueryParam<ListQuery>,
 ) -> Result<Json<VfListResp>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let q = q.into_inner();
     let base = q.path.unwrap_or_else(|| "/".to_string());
     let mut dirs = Vec::new();
     let mut files = Vec::new();

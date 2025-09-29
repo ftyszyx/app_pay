@@ -1,20 +1,17 @@
 use crate::types::role_types::*;
 use entity::roles;
 crate::import_crud_macro!();
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 
 // Create Role
-#[utoipa::path(
-    post,
-    path = "/api/admin/roles",
-    security(("api_key" = [])),
-    request_body = RoleCreatePayload,
-    responses((status = 200, description = "Success", body = roles::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<RoleCreatePayload>,
+    depot: &mut Depot,
+    req: JsonBody<RoleCreatePayload>,
 ) -> Result<ApiResponse<roles::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -30,19 +27,14 @@ pub async fn add_impl(state: &AppState, req: RoleCreatePayload) -> Result<roles:
 }
 
 // Update Role
-#[utoipa::path(
-    put,
-    path = "/api/admin/roles/{id}",
-    security(("api_key" = [])),
-    request_body = RoleUpdatePayload,
-    responses((status = 200, description = "Success", body = roles::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<RoleUpdatePayload>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<RoleUpdatePayload>,
 ) -> Result<ApiResponse<roles::Model>, AppError> {
-    let role = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let role = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(role))
 }
 
@@ -60,17 +52,13 @@ pub async fn update_impl(
 }
 
 // Delete Role
-#[utoipa::path(
-    delete,
-    path = "/api/admin/roles/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -84,18 +72,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Roles List
-#[utoipa::path(
-    get,
-    path = "/api/admin/roles/list",
-    security(("api_key" = [])),
-    params(ListRolesParams),
-    responses((status = 200, description = "Success", body = PagingResponse<roles::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<ListRolesParams>,
+    depot: &mut Depot,
+    params: QueryParam<ListRolesParams>,
 ) -> Result<ApiResponse<PagingResponse<roles::Model>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -117,17 +100,13 @@ pub async fn get_list_impl(
 }
 
 // Get Role by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/roles/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = roles::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<roles::Model>, AppError> {
-    let role = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let role = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(role))
 }
 

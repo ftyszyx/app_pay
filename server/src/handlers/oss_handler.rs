@@ -5,15 +5,13 @@ use crate::types::common::{AppState, Claims};
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use aliyun_sts::AssumeRoleRequest;
-use axum::Extension;
-use axum::extract::State;
+use salvo::prelude::*;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StsConfigReq {}
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StsCredentialsResp {
     pub access_key_id: String,
     pub access_key_secret: String,
@@ -21,21 +19,17 @@ pub struct StsCredentialsResp {
     pub expiration: String,
 }
 
-#[utoipa::path(
-    get,
-    path = "/api/admin/storage/oss/sts",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = StsCredentialsResp))
-)]
+#[handler]
 pub async fn get_oss_sts(
-    State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    depot: &mut Depot,
 ) -> Result<ApiResponse<StsCredentialsResp>, AppError> {
-    let conf = state.config;
-    let sts = state.aliyun_sts;
+    let state = depot.obtain::<AppState>().unwrap();
+    let _claims = depot.obtain::<Claims>().unwrap();
+    let conf = state.config.clone();
+    let sts = state.aliyun_sts.clone();
     let req = AssumeRoleRequest::new(
         &conf.oss.role_arn,
-        &claims.role.to_string(),
+        &"salvo".to_string(),
         None,
         conf.oss.sts_expire_secs,
     );

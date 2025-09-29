@@ -1,20 +1,17 @@
 use crate::types::product_types::*;
 crate::import_crud_macro!();
 use entity::products;
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 
 // Create Product
-#[utoipa::path(
-    post,
-    path = "/api/admin/products",
-    security(("api_key" = [])),
-    request_body = ProductCreatePayload,
-    responses((status = 200, description = "Success", body = products::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<ProductCreatePayload>,
+    depot: &mut Depot,
+    req: JsonBody<ProductCreatePayload>,
 ) -> Result<ApiResponse<products::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -39,19 +36,14 @@ pub async fn add_impl(
 }
 
 // Update Product
-#[utoipa::path(
-    put,
-    path = "/api/admin/products/{id}",
-    security(("api_key" = [])),
-    request_body = ProductUpdatePayload,
-    responses((status = 200, description = "Success", body = products::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<ProductUpdatePayload>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<ProductUpdatePayload>,
 ) -> Result<ApiResponse<products::Model>, AppError> {
-    let product = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let product = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(product))
 }
 
@@ -77,17 +69,13 @@ pub async fn update_impl(
 }
 
 // Delete Product
-#[utoipa::path(
-    delete,
-    path = "/api/admin/products/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -101,18 +89,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Products List
-#[utoipa::path(
-    get,
-    path = "/api/admin/products/list",
-    security(("api_key" = [])),
-    params(ListProductsParams),
-    responses((status = 200, description = "Success", body = PagingResponse<products::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<ListProductsParams>,
+    depot: &mut Depot,
+    params: QueryParam<ListProductsParams>,
 ) -> Result<ApiResponse<PagingResponse<products::Model>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -139,17 +122,13 @@ pub async fn get_list_impl(
 }
 
 // Get Product by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/products/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = products::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<products::Model>, AppError> {
-    let product = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let product = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(product))
 }
 

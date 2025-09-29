@@ -2,28 +2,21 @@ use crate::types::common::{AppState, PagingResponse};
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
-use axum::{
-    Json,
-    extract::{Path, Query, State},
-};
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
 use chrono::Utc;
 use entity::{ roles, users};
 use migration::{Alias, Expr};
 use sea_orm::{ QueryFilter,JoinType,PaginatorTrait, Select,RelationTrait, ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QuerySelect,  Set};
 
 // Create User
-#[utoipa::path(
-    post,
-    path = "/api/admin/users",
-    security(("api_key" = [])),
-    request_body = UserCreatePayload,
-    responses((status = 200, description = "Success", body = users::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<UserCreatePayload>,
+    depot: &mut Depot,
+    req: JsonBody<UserCreatePayload>,
 ) -> Result<ApiResponse<users::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -41,19 +34,14 @@ pub async fn add_impl(state: &AppState, req: UserCreatePayload) -> Result<users:
 }
 
 // Update User
-#[utoipa::path(
-    put,
-    path = "/api/admin/users/{id}",
-    security(("api_key" = [])),
-    request_body = UserUpdatePayload,
-    responses((status = 200, description = "Success", body = users::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UserUpdatePayload>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
+    req: JsonBody<UserUpdatePayload>,
 ) -> Result<ApiResponse<users::Model>, AppError> {
-    let user = update_impl(&state, id, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let user = update_impl(&state, id.into_inner(), req.into_inner()).await?;
     Ok(ApiResponse::success(user))
 }
 
@@ -77,17 +65,13 @@ pub async fn update_impl(
 }
 
 // Delete User
-#[utoipa::path(
-    delete,
-    path = "/api/admin/users/{id}",
-    security(("api_key" = [])),  
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
-    delete_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
 }
 
@@ -101,18 +85,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Users List
-#[utoipa::path(
-    get,
-    path = "/api/admin/users/list",
-    security(("api_key" = [])),
-    params(SearchUsersParams),
-    responses((status = 200, description = "Success", body = PagingResponse<UserInfo>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<SearchUsersParams>,
+    depot: &mut Depot,
+    params: QueryParam<SearchUsersParams>,
 ) -> Result<ApiResponse<PagingResponse<UserInfo>>, AppError> {
-    let list = get_list_impl(&state, params).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let list = get_list_impl(&state, params.into_inner()).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -151,17 +130,13 @@ pub async fn get_list_impl(
 }
 
 // Get User by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/users/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = UserInfo))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot: &mut Depot,
+    id: QueryParam<i32>,
 ) -> Result<ApiResponse<UserInfo>, AppError> {
-    let user = get_by_id_impl(&state, id).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let user = get_by_id_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(user))
 }
 

@@ -1,287 +1,102 @@
-use axum::http;
-use crate::handlers::{self, middleware::auth, middleware::error_handler};
+use crate::handlers::{self, *};
+use hyper::service;
+use salvo::prelude::*;
+use salvo::cors::{Cors, AllowOrigin};
+use salvo::http::Method;
 use crate::types::common::AppState;
-use axum::{
-    Router, middleware,
-    routing::{delete, get, post, put},
-};
-// use axum::response::Redirect;
-use tower_http::cors::{Any, CorsLayer};
-use tower_http::trace::TraceLayer;
-use utoipa::{
-    Modify, OpenApi,
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-};
-// use utoipa_swagger_ui::SwaggerUi;
 
-#[derive(OpenApi)]
-#[openapi(
-    paths(
-        handlers::auth::register,
-        handlers::auth::login,
-        handlers::auth::change_password,
-        // app
-        handlers::app_handler::add,
-        handlers::app_handler::get_list,
-        handlers::app_handler::get_by_id,
-        handlers::app_handler::update,
-        handlers::app_handler::delete,
-        //users
-        handlers::user_handler::add,
-        handlers::user_handler::get_by_id,
-        handlers::user_handler::update,
-        handlers::user_handler::delete,
-        handlers::user_handler::get_list,
-        //role
-        handlers::role_handler::add,
-        handlers::role_handler::get_list,
-        handlers::role_handler::get_by_id,
-        handlers::role_handler::update,
-        handlers::role_handler::delete,
-        //products
-        handlers::product_handler::add,
-        handlers::product_handler::get_list,
-        handlers::product_handler::get_by_id,
-        handlers::product_handler::update,
-        handlers::product_handler::delete,
-        //resources
-        handlers::resource_handler::add,
-        handlers::resource_handler::get_list,
-        handlers::resource_handler::get_by_id,
-        handlers::resource_handler::update,
-        handlers::resource_handler::delete,
-        //pay_methods
-        handlers::pay_method_handler::add,
-        handlers::pay_method_handler::get_list,
-        handlers::pay_method_handler::get_by_id,
-        handlers::pay_method_handler::update,
-        handlers::pay_method_handler::delete,
-        //invite_records
-        handlers::invite_records_handler::get_list,
-        handlers::invite_records_handler::get_by_id,
-        handlers::invite_records_handler::add,
-        handlers::invite_records_handler::update,
-        handlers::invite_records_handler::delete,
-        //reg_codes
-        handlers::reg_codes_handler::add,
-        handlers::reg_codes_handler::get_list,
-        handlers::reg_codes_handler::get_by_id,
-        handlers::reg_codes_handler::update,
-        handlers::reg_codes_handler::delete,
-        //orders
-        handlers::orders_handler::get_list,
-        handlers::orders_handler::get_by_id,
-        handlers::orders_handler::add,
-        handlers::orders_handler::update,
-        handlers::orders_handler::delete,
-        //coupons
-        handlers::coupons_handler::add,
-        handlers::coupons_handler::get_list,
-        handlers::coupons_handler::get_by_id,
-        handlers::coupons_handler::update,
-        handlers::coupons_handler::delete,
-        //permissions
-        handlers::casbin_handler::add_policy,
-        handlers::casbin_handler::remove_policy,
-        handlers::casbin_handler::add_role_for_user,
-        handlers::casbin_handler::remove_role_for_user,
-        // storage
-        handlers::oss_handler::get_oss_sts,
-    ),
-    modifiers(&SecurityAddon),
-    tags( (name = "app-pay", description = "App Pay API"))
-)]
-#[allow(dead_code)]
-struct ApiDoc;
-struct SecurityAddon;
-
-impl Modify for SecurityAddon {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        if let Some(components) = openapi.components.as_mut() {
-            components.add_security_scheme(
-                "api_key",
-                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("Authorization"))),
-            )
-        }
-    }
-}
 
 pub fn create_router(app_state: AppState) -> Router {
-    let admin_routes = Router::new()
+    let admin_routes = Router::with_path("/api/admin")
+        .hoop(middleware::auth)
+        .push(Router::with_path("me").get(handlers::auth::get_current_user))
         //users
-        .route("/me", get(handlers::auth::get_current_user))
-        .route("/me/password", post(handlers::auth::change_password))
-        .route("/users", post(handlers::user_handler::add))
-        .route("/users/list", get(handlers::user_handler::get_list))
-        .route("/users/{id}", get(handlers::user_handler::get_by_id))
-        .route("/users/{id}", put(handlers::user_handler::update))
-        .route("/users/{id}", delete(handlers::user_handler::delete))
+        .push(Router::with_path("me/password").post(handlers::auth::change_password))
+        .push(Router::with_path("users").post(handlers::user_handler::add))
+        .push(Router::with_path("users/list").get(handlers::user_handler::get_list))
+        .push(Router::with_path("users/{id}").get(handlers::user_handler::get_by_id))
+        .push(Router::with_path("users/{id}").put(handlers::user_handler::update))
+        .push(Router::with_path("users/{id}").delete(handlers::user_handler::delete))
         //apps
-        .route("/apps", post(handlers::app_handler::add))
-        .route("/apps/list", get(handlers::app_handler::get_list))
-        .route("/apps/{id}", get(handlers::app_handler::get_by_id))
-        .route("/apps/{id}", put(handlers::app_handler::update))
-        .route("/apps/{id}", delete(handlers::app_handler::delete))
+        .push(Router::with_path("apps").post(handlers::app_handler::add))
+        .push(Router::with_path("apps/list").get(handlers::app_handler::get_list))
+        .push(Router::with_path("apps/{id}").get(handlers::app_handler::get_by_id))
+        .push(Router::with_path("apps/{id}").put(handlers::app_handler::update))
+        .push(Router::with_path("apps/{id}").delete(handlers::app_handler::delete))
         //roles
-        .route("/roles", post(handlers::role_handler::add))
-        .route("/roles/list", get(handlers::role_handler::get_list))
-        .route("/roles/{id}", get(handlers::role_handler::get_by_id))
-        .route("/roles/{id}", put(handlers::role_handler::update))
-        .route("/roles/{id}", delete(handlers::role_handler::delete))
+        .push(Router::with_path("roles").post(handlers::role_handler::add))
+        .push(Router::with_path("roles/list").get(handlers::role_handler::get_list))
+        .push(Router::with_path("roles/{id}").get(handlers::role_handler::get_by_id))
+        .push(Router::with_path("roles/{id}").put(handlers::role_handler::update))
+        .push(Router::with_path("roles/{id}").delete(handlers::role_handler::delete))
         //products
-        .route("/products", post(handlers::product_handler::add))
-        .route("/products/list", get(handlers::product_handler::get_list))
-        .route("/products/{id}", get(handlers::product_handler::get_by_id))
-        .route("/products/{id}", put(handlers::product_handler::update))
-        .route("/products/{id}", delete(handlers::product_handler::delete))
+        .push(Router::with_path("products").post(handlers::product_handler::add))
+        .push(Router::with_path("products/list").get(handlers::product_handler::get_list))
+        .push(Router::with_path("products/{id}").get(handlers::product_handler::get_by_id))
+        .push(Router::with_path("products/{id}").put(handlers::product_handler::update))
+        .push(Router::with_path("products/{id}").delete(handlers::product_handler::delete))
         //resources
-        .route("/resources", post(handlers::resource_handler::add))
-        .route("/resources/list", get(handlers::resource_handler::get_list))
-        .route(
-            "/resources/{id}",
-            get(handlers::resource_handler::get_by_id),
-        )
-        .route("/resources/{id}", put(handlers::resource_handler::update))
-        .route(
-            "/resources/{id}",
-            delete(handlers::resource_handler::delete),
-        )
+        .push(Router::with_path("resources").post(handlers::resource_handler::add))
+        .push(Router::with_path("resources/list").get(handlers::resource_handler::get_list))
+        .push(Router::with_path("resources/{id}").get(handlers::resource_handler::get_by_id))
+        .push(Router::with_path("resources/{id}").put(handlers::resource_handler::update))
+        .push(Router::with_path("resources/{id}").delete(handlers::resource_handler::delete))
         //pay_methods
-        .route("/pay_methods", post(handlers::pay_method_handler::add))
-        .route(
-            "/pay_methods/list",
-            get(handlers::pay_method_handler::get_list),
-        )
-        .route(
-            "/pay_methods/{id}",
-            get(handlers::pay_method_handler::get_by_id),
-        )
-        .route(
-            "/pay_methods/{id}",
-            put(handlers::pay_method_handler::update),
-        )
-        .route(
-            "/pay_methods/{id}",
-            delete(handlers::pay_method_handler::delete),
-        )
+        .push(Router::with_path("pay_methods").post(handlers::pay_method_handler::add))
+        .push(Router::with_path("pay_methods/list").get(handlers::pay_method_handler::get_list))
+        .push(Router::with_path("pay_methods/{id}").get(handlers::pay_method_handler::get_by_id))
+        .push(Router::with_path("pay_methods/{id}").put(handlers::pay_method_handler::update))
+        .push(Router::with_path("pay_methods/{id}").delete(handlers::pay_method_handler::delete))
         //invite_records
-        .route(
-            "/invite_records/list",
-            get(handlers::invite_records_handler::get_list),
-        )
-        .route(
-            "/invite_records/{id}",
-            get(handlers::invite_records_handler::get_by_id),
-        )
-        .route(
-            "/invite_records/{id}",
-            put(handlers::invite_records_handler::update),
-        )
-        .route(
-            "/invite_records/{id}",
-            delete(handlers::invite_records_handler::delete),
-        )
-        .route(
-            "/invite_records",
-            post(handlers::invite_records_handler::add),
-        )
+        .push(Router::with_path("invite_records/list").get(handlers::invite_records_handler::get_list))
+        .push(Router::with_path("invite_records/{id}").get(handlers::invite_records_handler::get_by_id))
+        .push(Router::with_path("invite_records/{id}").put(handlers::invite_records_handler::update))
+        .push(Router::with_path("invite_records/{id}").delete(handlers::invite_records_handler::delete))
+        .push(Router::with_path("invite_records").post(handlers::invite_records_handler::add))
         //reg_codes
-        .route("/reg_codes", post(handlers::reg_codes_handler::add))
-        .route(
-            "/reg_codes/list",
-            get(handlers::reg_codes_handler::get_list),
-        )
-        .route(
-            "/reg_codes/{id}",
-            get(handlers::reg_codes_handler::get_by_id),
-        )
-        .route("/reg_codes/{id}", put(handlers::reg_codes_handler::update))
-        .route(
-            "/reg_codes/{id}",
-            delete(handlers::reg_codes_handler::delete),
-        )
+        .push(Router::with_path("reg_codes").post(handlers::reg_codes_handler::add))
+        .push(Router::with_path("reg_codes/list").get(handlers::reg_codes_handler::get_list))
+        .push(Router::with_path("reg_codes/{id}").get(handlers::reg_codes_handler::get_by_id))
+        .push(Router::with_path("reg_codes/{id}").put(handlers::reg_codes_handler::update))
+        .push(Router::with_path("reg_codes/{id}").delete(handlers::reg_codes_handler::delete))
         //orders
-        .route("/orders/list", get(handlers::orders_handler::get_list))
-        .route("/orders/{id}", get(handlers::orders_handler::get_by_id))
-        .route("/orders/{id}", put(handlers::orders_handler::update))
-        .route("/orders/{id}", delete(handlers::orders_handler::delete))
-        .route("/orders", post(handlers::orders_handler::add))
+        .push(Router::with_path("orders/list").get(handlers::orders_handler::get_list))
+        .push(Router::with_path("orders/{id}").get(handlers::orders_handler::get_by_id))
+        .push(Router::with_path("orders/{id}").put(handlers::orders_handler::update))
+        .push(Router::with_path("orders/{id}").delete(handlers::orders_handler::delete))
+        .push(Router::with_path("orders").post(handlers::orders_handler::add))
         //coupons
-        .route("/coupons", post(handlers::coupons_handler::add))
-        .route("/coupons/list", get(handlers::coupons_handler::get_list))
-        .route("/coupons/{id}", get(handlers::coupons_handler::get_by_id))
-        .route("/coupons/{id}", put(handlers::coupons_handler::update))
-        .route("/coupons/{id}", delete(handlers::coupons_handler::delete))
-        // storage / oss sts
-        .route("/storage/oss/sts", get(handlers::oss_handler::get_oss_sts))
+        .push(Router::with_path("coupons").post(handlers::coupons_handler::add))
+        .push(Router::with_path("coupons/list").get(handlers::coupons_handler::get_list))
+        .push(Router::with_path("coupons/{id}").get(handlers::coupons_handler::get_by_id))
+        .push(Router::with_path("coupons/{id}").put(handlers::coupons_handler::update))
+        .push(Router::with_path("coupons/{id}").delete(handlers::coupons_handler::delete))
+        //storage/oss/sts
+        .push(Router::with_path("storage/oss/sts").get(handlers::oss_handler::get_oss_sts))
         //permissions
-        .route(
-            "/permissions/policies",
-            post(handlers::casbin_handler::add_policy),
-        )
-        .route(
-            "/permissions/policies",
-            delete(handlers::casbin_handler::remove_policy),
-        )
-        .route(
-            "/permissions/policies",
-            get(handlers::casbin_handler::get_policies),
-        )
-        .route(
-            "/permissions/roles",
-            post(handlers::casbin_handler::add_role_for_user),
-        )
-        .route(
-            "/permissions/roles",
-            delete(handlers::casbin_handler::remove_role_for_user),
-        )
-        .route(
-            "/permissions/roles",
-            get(handlers::casbin_handler::get_roles),
-        )
-        .route(
-            "/permissions/check",
-            post(handlers::casbin_handler::check_permission),
-        )
-        .route(
-            "/permissions/reload",
-            post(handlers::casbin_handler::reload_policies),
-        )
-        .route_layer(middleware::from_fn_with_state(app_state.clone(), auth))
-        .route_layer(middleware::from_fn(error_handler));
+        .push(Router::with_path("permissions/policies").post(handlers::casbin_handler::add_policy))
+        .push(Router::with_path("permissions/policies").delete(handlers::casbin_handler::remove_policy))
+        .push(Router::with_path("permissions/policies").get(handlers::casbin_handler::get_policies))
+        .push(Router::with_path("permissions/roles").post(handlers::casbin_handler::add_role_for_user))
+        .push(Router::with_path("permissions/roles").delete(handlers::casbin_handler::remove_role_for_user))
+        .push(Router::with_path("permissions/roles").get(handlers::casbin_handler::get_roles))
+        .push(Router::with_path("permissions/check").post(handlers::casbin_handler::check_permission))
+        .push(Router::with_path("permissions/reload").post(handlers::casbin_handler::reload_policies))
+        .hoop(middleware::error_handler);
 
-    // let payment_routes = Router::new()
-    //     .route(
-    //         "/alipay/create",
-    //         post(handlers::payment_handler::create_alipay_order),
-    //     )
-    //     .route(
-    //         "/wechat/create",
-    //         post(handlers::payment_handler::create_wechat_order),
-    //     )
-    //     .route(
-    //         "/{payment_type}/query/{out_trade_no}",
-    //         get(handlers::payment_handler::query_payment_order),
-    //     )
-    //     .route("/notify", post(handlers::payment_handler::payment_notify));
-
-    let cors = CorsLayer::new()
-    .allow_origin(Any)
-    .allow_methods([http::Method::GET, http::Method::POST, http::Method::PUT, http::Method::DELETE, http::Method::OPTIONS])
-    .allow_headers(Any);
-    Router::new()
-        .route("/", get(handlers::handler))
-        .route("/api/register", post(handlers::auth::register))
-        .route("/api/login", post(handlers::auth::login))
-        .route("/api/reg/validate", post(handlers::reg_codes_handler::validate_code))
-        .route("/api/reg/validate", get(handlers::reg_codes_handler::validate_code_get))
-        .nest("/api/admin", admin_routes)
-        // vuefinder adapter
-        .route(
-            "/api/vuefinder/list",
-            get(handlers::vuefinder_handler::list),
-        )
-        .with_state(app_state)
-        .layer(cors)
-        .layer(TraceLayer::new_for_http())
+    let cors = Cors::new()
+    .allow_origin(AllowOrigin::any())
+    .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
+    .allow_headers("authorization");
+    let router=Router::new()
+        .push(Router::with_path("/").get(handlers::handler))
+        .push(Router::with_path("/api/register").post(handlers::auth::register))
+        .push(Router::with_path("/api/login").post(handlers::auth::login))
+        .push  (Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
+        .push(Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
+        .push(Router::with_path("/api/reg/validate").get(handlers::reg_codes_handler::validate_code_get))
+        .push( admin_routes)
+        .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list))
+    let service=Service::new(router).hoop(cors).hoop(Logger::new());
+    service
 }

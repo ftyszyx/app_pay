@@ -1,20 +1,23 @@
-use crate::types::app_types::*;
+use chrono::Utc;
 use entity::apps;
-crate::import_crud_macro!();
-
+use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo_oapi::extract::QueryParam;
+use crate::types::app_types::*;
+use crate::types::common::*;
+use crate::types::error::*;
+use crate::types::response::*;
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, EntityTrait,  PaginatorTrait, QueryFilter,
+    QueryOrder, Set,
+};
 // Create App
-#[utoipa::path(
-    post,
-    path = "/api/admin/apps",
-    security(("api_key" = [])),
-    request_body = AddAppReq,
-    responses((status = 200, description = "Success", body = apps::Model))
-)]
+#[handler]
 pub async fn add(
-    State(state): State<AppState>,
-    Json(req): Json<AddAppReq>,
+    depot:&mut Depot,
+    req: JsonBody<AddAppReq>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
-    let entity = add_impl(&state, req).await?;
+    let state = depot.obtain::<AppState>().unwrap();
+    let entity = add_impl(&state, req.into_inner()).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -38,19 +41,14 @@ pub async fn add_impl(state: &AppState, req: AddAppReq) -> Result<apps::Model, A
     Ok(entity)
 }
 
-// Update App
-#[utoipa::path(
-    put,
-    path = "/api/admin/apps/{id}",
-    security(("api_key" = [])),
-    request_body = UpdateAppReq,
-    responses((status = 200, description = "Success", body = apps::Model))
-)]
+#[handler]
 pub async fn update(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
-    Json(req): Json<UpdateAppReq>,
+    depot:&mut Depot,
+    id:QueryParam<i32>,
+    json: JsonBody<UpdateAppReq>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let req = json.into_inner();
     let app = update_impl(&state, id, req).await?;
     Ok(ApiResponse::success(app))
 }
@@ -78,17 +76,13 @@ pub async fn update_impl(
     Ok(app)
 }
 
-// Delete App
-#[utoipa::path(
-    delete,
-    path = "/api/admin/apps/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = serde_json::Value))
-)]
+#[handler]
 pub async fn delete(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot:&mut Depot,
+    id:QueryParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let id = id.into_inner();
     delete_impl(&state, id).await?;
     Ok(ApiResponse::success(()))
 }
@@ -103,17 +97,13 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 }
 
 // Get Apps List
-#[utoipa::path(
-    get,
-    path = "/api/admin/apps/list",
-    security(("api_key" = [])),
-    params(ListAppsParams),
-    responses((status = 200, description = "Success", body = PagingResponse<apps::Model>))
-)]
+#[handler]
 pub async fn get_list(
-    State(state): State<AppState>,
-    Query(params): Query<ListAppsParams>,
+    depot:&mut Depot,
+    params:QueryParam<ListAppsParams>,
 ) -> Result<ApiResponse<PagingResponse<apps::Model>>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let params = params.into_inner();
     let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
@@ -137,16 +127,13 @@ pub async fn get_list_impl(
 }
 
 // Get App by ID
-#[utoipa::path(
-    get,
-    path = "/api/admin/apps/{id}",
-    security(("api_key" = [])),
-    responses((status = 200, description = "Success", body = apps::Model))
-)]
+#[handler]
 pub async fn get_by_id(
-    State(state): State<AppState>,
-    Path(id): Path<i32>,
+    depot:&mut Depot,
+    id:QueryParam<i32>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
+    let state = depot.obtain::<AppState>().unwrap();
+    let id = id.into_inner();
     let app = get_by_id_impl(&state, id).await?;
     Ok(ApiResponse::success(app))
 }
