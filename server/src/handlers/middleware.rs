@@ -42,14 +42,10 @@ pub async fn error_handler(
     // 先放行到下游处理
     ctrl.call_next(req, depot, res).await;
 
-    let status = res.status_code();
-    if status != StatusCode::OK {
-        // 读取并还原响应体，记录错误
-        let body = res.take_body();
-        let bytes = body.bytes().await.unwrap_or_default();
-        let body_str = String::from_utf8_lossy(&bytes);
-        tracing::error!("Response status: {} body: {}", status, body_str);
-        res.set_body(Body::from(bytes));
+    if let Some(code) = res.status_code() {
+        if code.as_u16() >= 400 {
+            tracing::error!("Response status: {}", code);
+        }
     }
     Ok(())
 }
