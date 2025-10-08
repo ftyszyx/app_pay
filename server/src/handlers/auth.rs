@@ -1,6 +1,7 @@
 use crate::constants;
-use crate::handlers::user_handler::{self};
-use crate::types::common::AppState;
+use crate::types::common::{*};
+use crate::types::error::AppError;
+use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
 use crate::utils::jwt::create_jwt;
 use salvo::{prelude::*, oapi::extract::JsonBody};
