@@ -12,8 +12,7 @@ use entity::users;
 use sea_orm::{ ColumnTrait, EntityTrait,  QueryFilter};
 use tracing::info;
 
-// #[handler]
-#[endpoint]
+#[handler]
 pub async fn register(
     json: JsonBody<AuthPayload>,
     depot:&mut Depot,

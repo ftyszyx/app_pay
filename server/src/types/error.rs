@@ -4,7 +4,7 @@ use std::{convert::Infallible, fmt};
 use salvo::{http::{StatusCode, ParseError}, prelude::*};
 
 /// 改进的错误处理系统
-#[derive(Debug,ToSchema)]
+#[derive(Debug)]
 #[allow(dead_code)]
 pub enum AppError {
     /// 数据库相关错误
@@ -172,5 +172,13 @@ impl Writer for AppError {
     async fn write(self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
         res.status_code = Some(StatusCode::OK);
         res.render(Json(ApiResponse::<String>::error_with_message_and_code(self.to_string(), self.error_code())));
+    }
+}
+
+impl salvo_oapi::EndpointOutRegister for AppError {
+    fn register(components: &mut salvo_oapi::Components, operation: &mut salvo_oapi::Operation) {
+        operation
+            .responses
+            .append(&mut salvo::prelude::StatusError::to_responses(components));
     }
 }

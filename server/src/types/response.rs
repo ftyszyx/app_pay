@@ -1,5 +1,7 @@
 use salvo::{http::StatusCode, prelude::*};
 use serde::{Deserialize, Serialize};
+use salvo_oapi::ToSchema;
+
 
 
 #[derive(Serialize, Deserialize,ToSchema)]
@@ -47,6 +49,21 @@ where T: Serialize + Send + Sync + 'static,
     async fn write(self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
         res.status_code = Some(StatusCode::OK);
         res.render(Json(self));
+    }
+}
+
+impl<T> salvo_oapi::EndpointOutRegister for ApiResponse<T>
+where
+    T: salvo_oapi::ToSchema+'static,
+{
+    fn register(components: &mut salvo_oapi::Components, operation: &mut salvo_oapi::Operation) {
+        operation.responses.insert(
+            "200",
+            salvo_oapi::Response::new("Ok").add_content(
+                "application/json",
+                <Self as salvo_oapi::ToSchema>::to_schema(components),
+            ),
+        );
     }
 }
 

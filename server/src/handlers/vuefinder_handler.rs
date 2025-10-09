@@ -109,6 +109,7 @@ fn first_child(base: &str, path: &str) -> Option<String> {
     }
     None
 }
+
 fn join_path(base: &str, name: &str) -> String {
     if base == "/" {
         format!("/{}", name)

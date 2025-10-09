@@ -11,7 +11,7 @@ use sea_orm::{
     QueryOrder, Set, IntoActiveModel,
 };
 // Create App
-#[handler]
+#[endpoint]
 pub async fn add(
     depot:&mut Depot,
     req: JsonBody<AddAppReq>,

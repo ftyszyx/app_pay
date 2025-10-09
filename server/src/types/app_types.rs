@@ -1,10 +1,11 @@
+use salvo_oapi::ToSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 use crate::utils::convert::from_str_optional;
 
 use crate::types::common::ListParamsReq;
 
-#[derive(Serialize, Deserialize,  Debug, Validate,Default)]
+#[derive(Serialize, Deserialize,  Debug, Validate,Default,ToSchema)]
 pub struct AddAppReq {
     pub name: String,
     pub app_id: String,

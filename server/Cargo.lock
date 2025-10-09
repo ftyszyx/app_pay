@@ -1232,6 +1232,7 @@ name = "entity"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "salvo-oapi",
  "sea-orm",
  "serde",
  "utoipa",
