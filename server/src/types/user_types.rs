@@ -1,3 +1,4 @@
+use salvo_oapi::ToSchema;
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
@@ -5,13 +6,13 @@ use validator::Validate;
 use crate::types::common::ListParamsReq;
 use crate::utils::convert::from_str_optional;
 
-#[derive(Deserialize)]
+#[derive(Deserialize,ToSchema)]
 pub struct AuthPayload {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize,ToSchema)]
 pub struct AuthResponse {
     pub token: String,
 }

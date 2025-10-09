@@ -96,6 +96,10 @@ pub fn create_router(app_state: AppState) -> Service {
         .push(Router::with_path("/api/reg/validate").get(handlers::reg_codes_handler::validate_code_get))
         .push( admin_routes)
         .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list));
+    //添加swagger-ui
+    let doc=OpenApi::new("app_server_api", "1.0.0").merge_router(&router);
+    let router=router.unshift(doc.into_router("/api-doc/openapi.json"))
+    .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
     let service=Service::new(router).hoop(cors).hoop(Logger::new());
     service
 }

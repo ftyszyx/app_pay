@@ -2,7 +2,7 @@ use salvo::{http::StatusCode, prelude::*};
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,ToSchema)]
 pub struct ApiResponse<T> {
     pub code: u16,
     pub message: String,

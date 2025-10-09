@@ -5,14 +5,15 @@ use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
 use crate::handlers::user_handler;
 use crate::utils::jwt::create_jwt;
-use salvo::{prelude::*, oapi::extract::JsonBody};
+use salvo::{prelude::*, oapi::extract::*};
 use bcrypt::{verify};
 use entity::roles;
 use entity::users;
 use sea_orm::{ ColumnTrait, EntityTrait,  QueryFilter};
 use tracing::info;
 
-#[handler]
+// #[handler]
+#[endpoint]
 pub async fn register(
     json: JsonBody<AuthPayload>,
     depot:&mut Depot,

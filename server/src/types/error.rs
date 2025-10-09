@@ -4,7 +4,7 @@ use std::{convert::Infallible, fmt};
 use salvo::{http::{StatusCode, ParseError}, prelude::*};
 
 /// 改进的错误处理系统
-#[derive(Debug)]
+#[derive(Debug,ToSchema)]
 #[allow(dead_code)]
 pub enum AppError {
     /// 数据库相关错误
