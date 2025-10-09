@@ -1,9 +1,6 @@
-use axum::{
-    body::Body,
-    http::{Request, StatusCode},
-};
 use serde_json::json;
-use tower::ServiceExt;
+use salvo::prelude::*;
+use salvo::test::TestClient;
 mod helpers;
 
 #[tokio::test]
@@ -17,16 +14,13 @@ async fn test_add_policy_success() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&policy_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "add_policy").await;
     assert!(json["success"].as_bool().unwrap());
@@ -43,16 +37,12 @@ async fn test_add_policy_unauthorized() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        // no authorization header
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .json(&policy_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::UNAUTHORIZED));
 }
 
 #[tokio::test]
@@ -67,15 +57,12 @@ async fn test_remove_policy_success() {
         "action": "create"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&policy_body)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "add_policy_for_removal").await;
     assert!(json["success"].as_bool().unwrap());
 
@@ -86,16 +73,13 @@ async fn test_remove_policy_success() {
         "action": "create"
     });
 
-    let request = Request::builder()
-        .method("DELETE")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(remove_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::delete(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&remove_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "remove_policy").await;
     assert!(json["success"].as_bool().unwrap());
@@ -112,16 +96,13 @@ async fn test_add_role_for_user_success() {
         "role": "editor"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/roles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(role_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/roles"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&role_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "add_role").await;
     assert!(json["success"].as_bool().unwrap());
@@ -139,15 +120,12 @@ async fn test_remove_role_for_user_success() {
         "role": "viewer"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/roles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(role_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/roles"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&role_body)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "add_role_for_removal").await;
     assert!(json["success"].as_bool().unwrap());
 
@@ -157,16 +135,13 @@ async fn test_remove_role_for_user_success() {
         "role": "viewer"
     });
 
-    let request = Request::builder()
-        .method("DELETE")
-        .uri("/api/admin/permissions/roles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(remove_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::delete(helpers::get_url("/api/admin/permissions/roles"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&remove_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "remove_role").await;
     assert!(json["success"].as_bool().unwrap());
@@ -193,29 +168,22 @@ async fn test_get_policies_success() {
     ];
 
     for policy in policies {
-        let request = Request::builder()
-            .method("POST")
-            .uri("/api/admin/permissions/policies")
-            .header("content-type", "application/json")
-            .header("authorization", format!("Bearer {}", token))
-            .body(Body::from(policy.to_string()))
-            .unwrap();
-
-        let response = app.clone().oneshot(request).await.unwrap();
+        let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+            .add_header("content-type", "application/json", true)
+            .add_header("authorization", format!("Bearer {}", token), true)
+            .json(&policy)
+            .send(&app)
+            .await;
         let json = helpers::print_response_body_get_json(response, "add_policy_for_get").await;
         assert!(json["success"].as_bool().unwrap());
     }
 
     // Get all policies
-    let request = Request::builder()
-        .method("GET")
-        .uri("/api/admin/permissions/policies")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::get(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "get_policies").await;
     assert!(json["success"].as_bool().unwrap());
@@ -254,29 +222,22 @@ async fn test_get_roles_success() {
     ];
 
     for role in roles {
-        let request = Request::builder()
-            .method("POST")
-            .uri("/api/admin/permissions/roles")
-            .header("content-type", "application/json")
-            .header("authorization", format!("Bearer {}", token))
-            .body(Body::from(role.to_string()))
-            .unwrap();
-
-        let response = app.clone().oneshot(request).await.unwrap();
+        let response = TestClient::post(helpers::get_url("/api/admin/permissions/roles"))
+            .add_header("content-type", "application/json", true)
+            .add_header("authorization", format!("Bearer {}", token), true)
+            .json(&role)
+            .send(&app)
+            .await;
         let json = helpers::print_response_body_get_json(response, "add_role_for_get").await;
         assert!(json["success"].as_bool().unwrap());
     }
 
     // Get all roles
-    let request = Request::builder()
-        .method("GET")
-        .uri("/api/admin/permissions/roles")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::get(helpers::get_url("/api/admin/permissions/roles"))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "get_roles").await;
     assert!(json["success"].as_bool().unwrap());
@@ -309,15 +270,12 @@ async fn test_check_permission_success() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&policy_body)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "add_policy_for_check").await;
     assert!(json["success"].as_bool().unwrap());
 
@@ -328,16 +286,13 @@ async fn test_check_permission_success() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/check")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(check_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/check"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&check_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "check_permission").await;
     assert!(json["success"].as_bool().unwrap());
@@ -356,16 +311,13 @@ async fn test_check_permission_denied() {
         "action": "delete"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/check")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(check_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/check"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&check_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "check_permission_denied").await;
     assert!(json["success"].as_bool().unwrap());
@@ -384,16 +336,13 @@ async fn test_check_permission_invalid_user_id() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/check")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(check_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/check"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&check_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::BAD_REQUEST));
 }
 
 #[tokio::test]
@@ -401,15 +350,11 @@ async fn test_reload_policies_success() {
     let app = helpers::create_test_app().await;
     let token = helpers::create_test_user_and_login(&app).await;
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/reload")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/reload"))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "reload_policies").await;
     assert!(json["success"].as_bool().unwrap());
@@ -431,15 +376,12 @@ async fn test_role_based_permission_check() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/policies")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(policy_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&policy_body)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "add_role_policy").await;
     assert!(json["success"].as_bool().unwrap());
 
@@ -449,15 +391,12 @@ async fn test_role_based_permission_check() {
         "role": "manager"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/roles")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(role_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/roles"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&role_body)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "assign_role").await;
     assert!(json["success"].as_bool().unwrap());
 
@@ -468,16 +407,13 @@ async fn test_role_based_permission_check() {
         "action": "read"
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/permissions/check")
-        .header("content-type", "application/json")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::from(check_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::post(helpers::get_url("/api/admin/permissions/check"))
+        .add_header("content-type", "application/json", true)
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&check_body)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
 
     let json = helpers::print_response_body_get_json(response, "check_role_permission").await;
     assert!(json["success"].as_bool().unwrap());
@@ -504,28 +440,21 @@ async fn test_bulk_policy_operations() {
             "action": action
         });
 
-        let request = Request::builder()
-            .method("POST")
-            .uri("/api/admin/permissions/policies")
-            .header("content-type", "application/json")
-            .header("authorization", format!("Bearer {}", token))
-            .body(Body::from(policy_body.to_string()))
-            .unwrap();
-
-        let response = app.clone().oneshot(request).await.unwrap();
+        let response = TestClient::post(helpers::get_url("/api/admin/permissions/policies"))
+            .add_header("content-type", "application/json", true)
+            .add_header("authorization", format!("Bearer {}", token), true)
+            .json(&policy_body)
+            .send(&app)
+            .await;
         let json = helpers::print_response_body_get_json(response, "bulk_add_policy").await;
         assert!(json["success"].as_bool().unwrap());
     }
 
     // Verify all policies were added
-    let request = Request::builder()
-        .method("GET")
-        .uri("/api/admin/permissions/policies")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
+    let response = TestClient::get(helpers::get_url("/api/admin/permissions/policies"))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
     let json = helpers::print_response_body_get_json(response, "get_bulk_policies").await;
     assert!(json["success"].as_bool().unwrap());
 

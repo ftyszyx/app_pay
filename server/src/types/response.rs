@@ -29,6 +29,15 @@ impl<T: Serialize> ApiResponse<T> {
             success: false,
         }
     }
+
+    pub fn error_with_message_and_code(message: String, code: u16) -> Self {
+        Self {
+            code,
+            message,
+            data: None,
+            success: false,
+        }
+    }
 }
 
 #[salvo::async_trait]

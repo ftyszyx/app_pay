@@ -25,13 +25,15 @@ impl Adapter for CasbinAdapter {
             .await
             .map_err(|e| CasbinError::from(AdapterError(Box::new(e))))?;
         for r in rules {
-            let rule = vec![r.v0, r.v1, r.v2]
-                .into_iter()
-                .chain(r.v3.into_iter())
-                .chain(r.v4.into_iter())
-                .chain(r.v5.into_iter())
-                .collect::<Vec<String>>();
-            if !m.add_policy("p", &r.ptype, rule) {
+            // Match section and field count to model: p = sub,obj,act (3); g = _,_ (2)
+            let (sec, rule) = if r.ptype.starts_with('p') {
+                ("p", vec![r.v0, r.v1, r.v2])
+            } else if r.ptype.starts_with('g') {
+                ("g", vec![r.v0, r.v1])
+            } else {
+                ("p", vec![r.v0, r.v1, r.v2])
+            };
+            if !m.add_policy(sec, &r.ptype, rule) {
                 return Err(CasbinError::from(AdapterError(Box::new(Error::new(
                     ErrorKind::Other,
                     "Failed to add policy",

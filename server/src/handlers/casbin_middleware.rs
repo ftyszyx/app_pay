@@ -3,7 +3,6 @@ use crate::types::error::AppError;
 use salvo::http::Method;
 use salvo::prelude::*;
 
-/// Casbin 权限检查中间件（Salvo 版本）
 #[handler]
 pub async fn casbin_auth(
     req: &mut Request,

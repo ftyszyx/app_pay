@@ -2,7 +2,7 @@ use crate::types::pay_method_types::*;
 crate::import_crud_macro!();
 use entity::pay_methods;
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{PathParam};
 // Create PayMethod
 #[handler]
 pub async fn add(
@@ -32,7 +32,7 @@ pub async fn add_impl(
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<PayMethodUpdatePayload>,
 ) -> Result<ApiResponse<pay_methods::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -58,7 +58,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
@@ -81,10 +81,11 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<ListPayMethodsParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<pay_methods::Model>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let list = get_list_impl(&state, params.into_inner()).await?;
+    let params = req.parse_queries::<ListPayMethodsParams>()?;
+    let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -107,7 +108,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<pay_methods::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let pay_method = get_by_id_impl(&state, id.into_inner()).await?;

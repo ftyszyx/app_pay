@@ -2,7 +2,7 @@ use crate::types::role_types::*;
 use entity::roles;
 crate::import_crud_macro!();
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{PathParam};
 
 // Create Role
 #[handler]
@@ -30,7 +30,7 @@ pub async fn add_impl(state: &AppState, req: RoleCreatePayload) -> Result<roles:
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<RoleUpdatePayload>,
 ) -> Result<ApiResponse<roles::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -55,7 +55,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
@@ -75,10 +75,11 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<ListRolesParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<roles::Model>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let list = get_list_impl(&state, params.into_inner()).await?;
+    let params = req.parse_queries::<ListRolesParams>()?;
+    let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -103,7 +104,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<roles::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let role = get_by_id_impl(&state, id.into_inner()).await?;

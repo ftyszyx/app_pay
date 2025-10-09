@@ -3,7 +3,7 @@ use crate::types::coupons_types::*;
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{PathParam};
 use chrono::Utc;
 use entity::coupons;
 use sea_orm::{
@@ -46,7 +46,7 @@ pub async fn add_impl(state: &AppState, req: CreateCouponReq) -> Result<coupons:
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<UpdateCouponReq>,
 ) -> Result<ApiResponse<coupons::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -87,7 +87,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<coupons::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let id_val = id.into_inner();
@@ -102,7 +102,7 @@ pub async fn get_by_id(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<String>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let id_val = id.into_inner();
@@ -122,10 +122,10 @@ pub async fn delete(
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<SearchCouponsParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<coupons::Model>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let params = params.into_inner();
+    let params = req.parse_queries::<SearchCouponsParams>()?;
     let page = params.pagination.page.unwrap_or(1);
     let page_size = params.pagination.page_size.unwrap_or(20);
     let mut query = coupons::Entity::find().order_by_desc(coupons::Column::CreatedAt);

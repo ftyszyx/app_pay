@@ -1,7 +1,7 @@
 use chrono::Utc;
 use entity::apps;
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{ PathParam};
 use crate::types::app_types::*;
 use crate::types::common::*;
 use crate::types::error::*;
@@ -44,7 +44,7 @@ pub async fn add_impl(state: &AppState, req: AddAppReq) -> Result<apps::Model, A
 #[handler]
 pub async fn update(
     depot:&mut Depot,
-    id:QueryParam<i32>,
+    id:PathParam<i32>,
     json: JsonBody<UpdateAppReq>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -79,7 +79,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot:&mut Depot,
-    id:QueryParam<i32>,
+    id:PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let id = id.into_inner();
@@ -100,10 +100,10 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot:&mut Depot,
-    params:QueryParam<ListAppsParams>,
+    req:&mut Request,
 ) -> Result<ApiResponse<PagingResponse<apps::Model>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let params = params.into_inner();
+    let params = req.parse_queries::<ListAppsParams>()?;
     let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
@@ -130,7 +130,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot:&mut Depot,
-    id:QueryParam<i32>,
+    id:PathParam<i32>,
 ) -> Result<ApiResponse<apps::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let id = id.into_inner();

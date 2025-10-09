@@ -2,16 +2,17 @@ use crate::types::reg_codes_types::*;
 crate::import_crud_macro!();
 use entity::{apps, reg_codes};
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{PathParam};
 
 // Create RegCode
 #[handler]
 pub async fn add(
     depot: &mut Depot,
-    req: JsonBody<CreateRegCodeReq>,
+    req: &mut Request,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let entity = add_impl(&state, req.into_inner()).await?;
+    let json=req.parse_json::<CreateRegCodeReq>().await?;
+    let entity = add_impl(&state, json).await?;
     Ok(ApiResponse::success(entity))
 }
 
@@ -22,8 +23,8 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
         bind_device_info: Set(req.bind_device_info),
         valid_days: Set(req.valid_days),
         max_devices: Set(req.max_devices),
-        status: Set(req.status),
-        code_type: Set(req.code_type),
+        status: Set(i16::from(req.status)),
+        code_type: Set(i16::from(req.code_type)),
         expire_time: Set(req.expire_time),
         total_count: Set(req.total_count),
         use_count: Set(0),
@@ -52,7 +53,7 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<UpdateRegCodeReq>,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -77,7 +78,7 @@ pub async fn update_impl(
     crate::update_field_if_some!(reg_code, max_devices, req.max_devices);
     crate::update_field_if_some!(reg_code, status, req.status);
     crate::update_field_if_some!(reg_code, binding_time, req.binding_time, option);
-    crate::update_field_if_some!(reg_code, code_type, req.code_type);
+    crate::update_field_if_some!(reg_code, code_type, req.code_type.map(|v| i16::from(v)));
     crate::update_field_if_some!(reg_code, expire_time, req.expire_time, option);
     crate::update_field_if_some!(reg_code, total_count, req.total_count, option);
     crate::update_field_if_some!(reg_code, use_count, req.use_count);
@@ -105,7 +106,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
@@ -124,10 +125,11 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<SearchRegCodesParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<RegCodeInfo>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let list = get_list_impl(&state, params.into_inner()).await?;
+    let params = req.parse_queries::<SearchRegCodesParams>()?;
+    let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -146,7 +148,7 @@ pub async fn get_list_impl(
     crate::filter_if_some!(query, reg_codes::Column::Code, params.code, contains);
     crate::filter_if_some!(query, reg_codes::Column::AppId, params.app_id, eq);
     crate::filter_if_some!(query, reg_codes::Column::Status, params.status, eq);
-    crate::filter_if_some!(query, reg_codes::Column::CodeType, params.code_type, eq);
+    crate::filter_if_some!(query, reg_codes::Column::CodeType, params.code_type.map(|v| i16::from(v)), eq);
 
     let paginator = query.paginate(&state.db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
@@ -168,7 +170,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let reg_code = get_by_id_impl(&state, id.into_inner()).await?;
@@ -202,10 +204,11 @@ pub async fn validate_code(
 #[handler]
 pub async fn validate_code_get(
     depot: &mut Depot,
-    req: QueryParam<RegCodeValidateReq>,
+    req: &mut Request,
 ) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let resp = validate_code_impl(&state, req.into_inner()).await?;
+    let json=req.parse_queries::<RegCodeValidateReq>()?;
+    let resp = validate_code_impl(&state, json).await?;
     Ok(ApiResponse::success(resp))
 }
 
@@ -234,7 +237,7 @@ pub async fn validate_code_impl(
             if let Some(exp) = expire { if now > exp { return Err(AppError::Message("code expired".into())); } }
             // bind device id
             if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id)); active.status = Set(1); active.update(&state.db).await?; }
-            Ok(RegCodeValidateResp { code_type: 0, expire_time: expire, remaining_count: None })
+            Ok(RegCodeValidateResp { code_type: CodeType::Time, expire_time: expire, remaining_count: None })
         }
         1 => { // count-based
             let total = rc.total_count.unwrap_or(0);
@@ -244,7 +247,7 @@ pub async fn validate_code_impl(
             if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id.clone())); }
             active.status = Set(1);
             active.update(&state.db).await?;
-            Ok(RegCodeValidateResp { code_type: 1, expire_time: None, remaining_count: Some(total - used - 1) })
+            Ok(RegCodeValidateResp { code_type: CodeType::Count, expire_time: None, remaining_count: Some(total - used - 1) })
         }
         _ => Err(AppError::Message("invalid code type".into())),
     }

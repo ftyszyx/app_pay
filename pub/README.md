@@ -29,7 +29,8 @@ docker compose up -d
 
 ## build web
 ```
-python build_web.py --base-url https://appapi.bytefuse.cn/api
+# python build_web.py --base-url https://appapi.bytefuse.cn/api
+python build_web.py --base-url http://localhost:3000
 ```
 
 cp -rf web /opt/1panel/www/sites/apps.bytefuse.cn/index

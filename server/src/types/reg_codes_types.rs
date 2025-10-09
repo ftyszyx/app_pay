@@ -3,6 +3,64 @@ use validator::Validate;
 use chrono::{DateTime, Utc};
 use crate::types::common::ListParamsReq;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize)]
+#[repr(i16)]
+#[serde(from = "i16", into = "i16")]
+pub enum CodeType {
+    Time = 0,   // 时间类型
+    Count = 1,  // 次数类型
+}
+
+impl Default for CodeType {
+    fn default() -> Self { CodeType::Time }
+}
+
+impl From<i16> for CodeType {
+    fn from(value: i16) -> Self {
+        match value {
+            0 => CodeType::Time,
+            1 => CodeType::Count,
+            _ => CodeType::Time,
+        }
+    }
+}
+
+impl From<CodeType> for i16 {
+    fn from(value: CodeType) -> Self {
+        value as i16
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize)]
+#[repr(i16)]
+#[serde(from = "i16", into = "i16")]
+pub enum RegCodeStatus {
+    Unused = 0,
+    Used = 1,
+    Expired = 2,
+}
+
+impl Default for RegCodeStatus {
+    fn default() -> Self { RegCodeStatus::Unused }
+}
+
+impl From<i16> for RegCodeStatus {
+    fn from(value: i16) -> Self {
+        match value {
+            0 => RegCodeStatus::Unused,
+            1 => RegCodeStatus::Used,
+            2 => RegCodeStatus::Expired,
+            _ => RegCodeStatus::Unused,
+        }
+    }
+}
+
+impl From<RegCodeStatus> for i16 {
+    fn from(value: RegCodeStatus) -> Self {
+        value as i16
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Validate,Default)]
 pub struct CreateRegCodeReq {
     pub code: String,
@@ -10,8 +68,8 @@ pub struct CreateRegCodeReq {
     pub bind_device_info: Option<serde_json::Value>,
     pub valid_days: i32,
     pub max_devices: i32,
-    pub status: i16,
-    pub code_type: i16,
+    pub status: RegCodeStatus,
+    pub code_type: CodeType,
     pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
 }
@@ -25,7 +83,7 @@ pub struct RegCodeValidateReq {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegCodeValidateResp {
-    pub code_type: i16,
+    pub code_type: CodeType,
     pub expire_time: Option<DateTime<Utc>>,
     pub remaining_count: Option<i32>,
 }
@@ -39,7 +97,7 @@ pub struct UpdateRegCodeReq {
     pub max_devices: Option<i32>,
     pub status: Option<i16>,
     pub binding_time: Option<DateTime<Utc>>,
-    pub code_type: Option<i16>,
+    pub code_type: Option<CodeType>,
     pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
     pub use_count: Option<i32>,
@@ -59,7 +117,7 @@ pub struct SearchRegCodesParams {
     #[serde(default)]
     pub status: Option<i16>,
     #[serde(default)]
-    pub code_type: Option<i16>,
+    pub code_type: Option<CodeType>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Validate)]
@@ -72,7 +130,7 @@ pub struct RegCodeInfo {
     pub max_devices: i32,
     pub status: i16,
     pub binding_time: Option<DateTime<Utc>>,
-    pub code_type: i16,
+    pub code_type: CodeType,
     pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
     pub use_count: i32,
@@ -98,7 +156,7 @@ impl TryFrom<(entity::reg_codes::Model, Option<entity::apps::Model>)> for RegCod
             max_devices: reg_code.max_devices,
             status: reg_code.status,
             binding_time: reg_code.binding_time,
-            code_type: reg_code.code_type,
+            code_type: CodeType::from(reg_code.code_type),
             expire_time: reg_code.expire_time,
             total_count: reg_code.total_count,
             use_count: reg_code.use_count,
@@ -123,7 +181,7 @@ impl TryFrom<entity::reg_codes::Model> for RegCodeInfo {
             max_devices: reg_code.max_devices,
             status: reg_code.status,
             binding_time: reg_code.binding_time,
-            code_type: reg_code.code_type,
+            code_type: CodeType::from(reg_code.code_type),
             expire_time: reg_code.expire_time,
             total_count: reg_code.total_count,
             use_count: reg_code.use_count,

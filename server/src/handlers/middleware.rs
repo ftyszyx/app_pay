@@ -6,8 +6,6 @@ use salvo::prelude::*;
 pub async fn auth(
     req: &mut Request,
     depot:&mut Depot,
-    res: &mut Response,
-    ctrl: &mut FlowCtrl,
 ) -> Result<(), StatusCode>{
     let state = depot.obtain::<AppState>().unwrap();
     let token = req

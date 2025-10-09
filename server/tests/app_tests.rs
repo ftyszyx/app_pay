@@ -34,7 +34,7 @@ async fn test_create_app() {
         "status": 1
     });
 
-    let response = TestClient::post("/api/admin/apps")
+    let response = TestClient::post(helpers::get_url("/api/admin/apps"))
         .add_header("authorization", format!("Bearer {}", token), true)
         .json(&create_app_body)
         .send(&app)
@@ -63,7 +63,7 @@ async fn test_get_app_by_id() {
         "status": 1
     });
 
-    let response = TestClient::post("/api/admin/apps")
+    let response = TestClient::post(helpers::get_url("/api/admin/apps"))
         .add_header("authorization", format!("Bearer {}", token), true)
         .json(&create_app_body)
         .send(&app)
@@ -71,8 +71,9 @@ async fn test_get_app_by_id() {
     let json = print_response_body_get_json(response, "create_app_for_get_by_id").await;
     let app_id = json["data"]["id"].as_i64().unwrap();
 
+    let url=helpers::get_url(&format!("/api/admin/apps/{}", app_id));
     // 然后通过 ID 获取应用
-    let response = TestClient::get(&format!("/api/admin/apps/{}", app_id))
+    let response = TestClient::get(url)
         .add_header("authorization", format!("Bearer {}", token), true)
         .send(&app)
         .await;
@@ -101,7 +102,7 @@ async fn test_update_app() {
         "status": 1
     });
 
-    let response = TestClient::post("/api/admin/apps")
+    let response = TestClient::post(helpers::get_url("/api/admin/apps"))
         .add_header("authorization", format!("Bearer {}", token), true)
         .json(&create_app_body)
         .send(&app)
@@ -116,7 +117,8 @@ async fn test_update_app() {
         "status": 0
     });
 
-    let response = TestClient::put(&format!("/api/admin/apps/{}", app_id))
+    let url = helpers::get_url(&format!("/api/admin/apps/{}", app_id));
+    let response = TestClient::put(url)
         .add_header("authorization", format!("Bearer {}", token), true)
         .json(&update_app_body)
         .send(&app)
@@ -144,7 +146,7 @@ async fn test_delete_app() {
         "status": 1
     });
 
-    let response = TestClient::post("/api/admin/apps")
+    let response = TestClient::post(helpers::get_url("/api/admin/apps"))
         .add_header("authorization", format!("Bearer {}", token), true)
         .json(&create_app_body)
         .send(&app)
@@ -153,7 +155,8 @@ async fn test_delete_app() {
     let app_id = json["data"]["id"].as_i64().unwrap();
 
     // 然后删除应用
-    let response = TestClient::delete(&format!("/api/admin/apps/{}", app_id))
+    let url = helpers::get_url(&format!("/api/admin/apps/{}", app_id));
+    let response = TestClient::delete(url)
         .add_header("authorization", format!("Bearer {}", token), true)
         .send(&app)
         .await;
@@ -170,11 +173,11 @@ async fn test_apps_pagination() {
 
     // 测试不同的分页参数
     let test_cases = vec![
-        "/api/admin/apps/list?page=1&page_size=5",
-        "/api/admin/apps/list?page=2&page_size=10",
-        "/api/admin/apps/list?page=1",       // 使用默认 page_size
-        "/api/admin/apps/list?page_size=20", // 使用默认 page
-        "/api/admin/apps/list",              // 使用所有默认值
+        helpers::get_url("/api/admin/apps/list?page=1&page_size=5"),
+        helpers::get_url("/api/admin/apps/list?page=2&page_size=10"),
+        helpers::get_url("/api/admin/apps/list?page=1"),       // 使用默认 page_size
+        helpers::get_url("/api/admin/apps/list?page_size=20"), // 使用默认 page
+        helpers::get_url("/api/admin/apps/list"),              // 使用所有默认值
     ];
 
     for uri in test_cases {

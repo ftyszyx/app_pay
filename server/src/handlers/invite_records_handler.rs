@@ -5,8 +5,8 @@ use sea_orm::{
     Select,
      prelude::Expr, sea_query::Alias, JoinType, QuerySelect,  RelationTrait
 };
-use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo::{ oapi::extract::JsonBody, prelude::*};
+use salvo_oapi::extract::{PathParam};
 
 // Create InviteRecord
 #[handler]
@@ -38,7 +38,7 @@ pub async fn add_impl(
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<UpdateInviteRecordReq>,
 ) -> Result<ApiResponse<invite_records::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -68,7 +68,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
@@ -89,10 +89,11 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<SearchInviteRecordsParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<InviteRecordInfo>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let list = get_list_impl(&state, params.into_inner()).await?;
+    let params = req.parse_queries::<SearchInviteRecordsParams>()?;
+    let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -148,7 +149,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<InviteRecordInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let record = get_by_id_impl(&state, id.into_inner()).await?;

@@ -1,54 +1,35 @@
-use axum::{
-    body::Body,
-    http::{Request, StatusCode},
-};
-use http_body_util::BodyExt;
-use tower::ServiceExt;
-
+use salvo::prelude::*;
+use salvo::test::TestClient;
 mod helpers;
 
 #[tokio::test]
 async fn test_get_roles_list() {
-    let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login(&app).await;
-
-    let request = Request::builder()
-        .method("GET")
-        .uri("/api/admin/roles/list?page=1&page_size=10")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-
-    assert!(json["success"].as_bool().unwrap());
-    assert!(json["data"]["list"].is_array());
-    assert!(json["data"]["total"].is_number());
+	let app = helpers::create_test_app().await;
+	let token = helpers::create_test_user_and_login(&app).await;
+	let response = TestClient::get(helpers::get_url("/api/admin/roles/list?page=1&page_size=10"))
+		.add_header("authorization", format!("Bearer {}", token), true)
+		.send(&app)
+		.await;
+	assert_eq!(response.status_code, Some(StatusCode::OK));
+	let json = helpers::print_response_body_get_json(response, "get_roles_list").await;
+	assert!(json["success"].as_bool().unwrap());
+	assert!(json["data"]["list"].is_array());
+	assert!(json["data"]["total"].is_number());
 }
 
 #[tokio::test]
 async fn test_roles_pagination() {
-    let app = helpers::create_test_app().await;
-    let token = helpers::create_test_user_and_login(&app).await;
-
-    let test_cases = vec![
-        "/api/admin/roles/list?page=1&page_size=5",
-        "/api/admin/roles/list",
-    ];
-
-    for uri in test_cases {
-        let request = Request::builder()
-            .method("GET")
-            .uri(uri)
-            .header("authorization", format!("Bearer {}", token))
-            .body(Body::empty())
-            .unwrap();
-
-        let response = app.clone().oneshot(request).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
-    }
+	let app = helpers::create_test_app().await;
+	let token = helpers::create_test_user_and_login(&app).await;
+	let test_cases = vec![
+		helpers::get_url("/api/admin/roles/list?page=1&page_size=5"),
+		helpers::get_url("/api/admin/roles/list"),
+	];
+	for url in test_cases {
+		let response = TestClient::get(url)
+			.add_header("authorization", format!("Bearer {}", token), true)
+			.send(&app)
+			.await;
+		assert_eq!(response.status_code, Some(StatusCode::OK));
+	}
 }

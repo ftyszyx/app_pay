@@ -87,8 +87,10 @@ fn run_init_sql_with_psql() {
     );
 }
 
+
 pub async fn create_test_app() -> Service {
     dotenvy::from_filename(".env.test").unwrap();
+    let _guard = app::init_log();
     // 确保测试数据库存在（若不存在则创建），再初始化应用
     ensure_test_database_exists().await;
     run_init_sql_with_psql();

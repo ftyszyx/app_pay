@@ -3,7 +3,7 @@ use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
 use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::QueryParam;
+use salvo_oapi::extract::{PathParam};
 use chrono::Utc;
 use entity::{ roles, users};
 use migration::{Alias, Expr};
@@ -37,7 +37,7 @@ pub async fn add_impl(state: &AppState, req: UserCreatePayload) -> Result<users:
 #[handler]
 pub async fn update(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
     req: JsonBody<UserUpdatePayload>,
 ) -> Result<ApiResponse<users::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
@@ -68,7 +68,7 @@ pub async fn update_impl(
 #[handler]
 pub async fn delete(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
@@ -88,10 +88,11 @@ pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
 #[handler]
 pub async fn get_list(
     depot: &mut Depot,
-    params: QueryParam<SearchUsersParams>,
+    req: &mut Request,
 ) -> Result<ApiResponse<PagingResponse<UserInfo>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let list = get_list_impl(&state, params.into_inner()).await?;
+    let params = req.parse_queries::<SearchUsersParams>()?;
+    let list = get_list_impl(&state, params).await?;
     Ok(ApiResponse::success(list))
 }
 
@@ -133,7 +134,7 @@ pub async fn get_list_impl(
 #[handler]
 pub async fn get_by_id(
     depot: &mut Depot,
-    id: QueryParam<i32>,
+    id: PathParam<i32>,
 ) -> Result<ApiResponse<UserInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let user = get_by_id_impl(&state, id.into_inner()).await?;
@@ -147,31 +148,3 @@ pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<UserInfo, AppEr
     let user = result.ok_or_else(|| AppError::not_found("users".to_string(), Some(id)))?;
     return Ok(user);
 }
-
-/*
-use sea_orm::{Select, QuerySelect, RelationTrait, JoinType, Expr, Alias};
-
-pub fn get_query_with_invite_count() -> Select<users::Entity> {
-    let invite_alias = Alias::new("invite_count");
-    
-    users::Entity::find()
-        .select_only()
-        .column_as(users::Column::Id, "id")
-        .column_as(users::Column::Username, "username")
-        .column_as(users::Column::Balance, "balance")
-        .column_as(users::Column::RoleId, "role_id")
-        .column_as(users::Column::CreatedAt, "created_at")
-        // Count invites using a subquery
-        .column_as(
-            Expr::col((invite_alias.clone(), invite_records::Column::InviterUserId)).count(),
-            "invite_count"
-        )
-        .join_as(
-            JoinType::LeftJoin,
-            users::Relation::InviteRecords.def(),
-            invite_alias
-        )
-        .group_by(users::Column::Id)
-        .filter(users::Column::DeletedAt.is_null())
-}
- */

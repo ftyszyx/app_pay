@@ -32,10 +32,10 @@ pub struct VfListResp {
 #[handler]
 pub async fn list(
     depot: &mut Depot,
-    q: salvo_oapi::extract::QueryParam<ListQuery>,
+    req: &mut Request,
 ) -> Result<Json<VfListResp>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let q = q.into_inner();
+    let q = req.parse_queries::<ListQuery>()?;
     let base = q.path.unwrap_or_else(|| "/".to_string());
     let mut dirs = Vec::new();
     let mut files = Vec::new();
