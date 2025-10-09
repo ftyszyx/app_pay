@@ -1,58 +1,70 @@
-use axum::{
-    body::Body,
-    extract::State,
-    http::{Request, StatusCode, Method},
-    middleware::Next,
-    response::Response,
-    Extension,
-};
 use crate::types::common::{AppState, Claims};
 use crate::types::error::AppError;
+use salvo::http::Method;
+use salvo::prelude::*;
 
-/// Casbin权限检查中间件
+/// Casbin 权限检查中间件（Salvo 版本）
+#[handler]
 pub async fn casbin_auth(
-    State(state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-    req: Request<Body>,
-    next: Next,
-) -> Result<Response, StatusCode> {
-    let method = req.method().clone();
-    let path = req.uri().path();
-    
-    // 转换HTTP方法为权限动作
-    let action = match method {
-        Method::GET => "read",
-        Method::POST => "create", 
-        Method::PUT => "update",
-        Method::DELETE => "delete",
-        _ => return Err(StatusCode::METHOD_NOT_ALLOWED),
+    req: &mut Request,
+    depot: &mut Depot,
+    res: &mut Response,
+    ctrl: &mut FlowCtrl,
+) {
+    let state = match depot.obtain::<AppState>() {
+        Ok(s) => s,
+        Err(_) => {
+            res.status_code = Some(StatusCode::INTERNAL_SERVER_ERROR);
+            return;
+        }
+    };
+    let claims = match depot.obtain::<Claims>() {
+        Ok(c) => c,
+        Err(_) => {
+            res.status_code = Some(StatusCode::UNAUTHORIZED);
+            return;
+        }
     };
 
-    // 构建用户标识 - 可以使用用户ID或角色
+    let method = req.method().clone();
+    let path = req.uri().path().to_string();
+    let action = match method {
+        Method::GET => "read",
+        Method::POST => "create",
+        Method::PUT => "update",
+        Method::DELETE => "delete",
+        _ => {
+            res.status_code = Some(StatusCode::METHOD_NOT_ALLOWED);
+            return;
+        }
+    };
+
     let user_id = claims.sub.to_string();
     let role = &claims.role;
 
-    // 检查权限 - 先检查用户权限，再检查角色权限
-    let has_user_permission = state.casbin.enforce(&user_id, path, action).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    
-    let has_role_permission = state.casbin.enforce(role, path, action).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let has_user = match state.casbin.enforce(&user_id, &path, action).await {
+        Ok(v) => v,
+        Err(_) => {
+            res.status_code = Some(StatusCode::INTERNAL_SERVER_ERROR);
+            return;
+        }
+    };
+    let has_role = match state.casbin.enforce(role, &path, action).await {
+        Ok(v) => v,
+        Err(_) => {
+            res.status_code = Some(StatusCode::INTERNAL_SERVER_ERROR);
+            return;
+        }
+    };
 
-    if !has_user_permission && !has_role_permission {
-        tracing::warn!(
-            "Access denied for user {} (role: {}) to {} {}",
-            user_id, role, method, path
-        );
-        return Err(StatusCode::FORBIDDEN);
+    if !has_user && !has_role {
+        tracing::warn!("Access denied for user {} (role: {}) to {} {}", user_id, role, method, path);
+        res.status_code = Some(StatusCode::FORBIDDEN);
+        return;
     }
 
-    tracing::debug!(
-        "Permission granted for user {} (role: {}) to {} {}",
-        user_id, role, method, path
-    );
-
-    Ok(next.run(req).await)
+    tracing::debug!("Permission granted for user {} (role: {}) to {} {}", user_id, role, method, path);
+    ctrl.call_next(req, depot, res).await;
 }
 
 /// 权限检查函数（用于手动检查）
@@ -64,14 +76,10 @@ pub async fn check_permission(
     action: &str,
 ) -> Result<bool, AppError> {
     let user_str = user_id.to_string();
-    
-    // 检查用户权限
     let user_permission = state.casbin.enforce(&user_str, resource, action).await?;
     if user_permission {
         return Ok(true);
     }
-    
-    // 检查角色权限
     let role_permission = state.casbin.enforce(role, resource, action).await?;
     Ok(role_permission)
 }
@@ -87,10 +95,9 @@ pub async fn check_path_permission(
     let action = match method.to_uppercase().as_str() {
         "GET" => "read",
         "POST" => "create",
-        "PUT" => "update", 
+        "PUT" => "update",
         "DELETE" => "delete",
         _ => return Ok(false),
     };
-    
     check_permission(state, user_id, role, path, action).await
 }

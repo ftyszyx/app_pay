@@ -4,7 +4,7 @@ use crate::utils::convert::from_str_optional;
 
 use crate::types::common::ListParamsReq;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate,Default)]
+#[derive(Serialize, Deserialize,  Debug, Validate,Default)]
 pub struct AddAppReq {
     pub name: String,
     pub app_id: String,
@@ -19,7 +19,7 @@ pub struct AddAppReq {
     pub status: i16,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize,  Debug, Validate)]
 pub struct UpdateAppReq {
     pub name: Option<String>,
     pub app_id: Option<String>,
@@ -34,13 +34,13 @@ pub struct UpdateAppReq {
     pub status: Option<i16>,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize )]
 pub struct AppListResponse {
     pub list: Vec<entity::apps::Model>,
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize,  Debug, Default)]
 pub struct ListAppsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

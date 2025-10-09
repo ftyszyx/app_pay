@@ -1,5 +1,6 @@
-use salvo::{Json, http::StatusCode, response::IntoResponse};
+use salvo::{http::StatusCode, prelude::*};
 use serde::{Deserialize, Serialize};
+
 
 #[derive(Serialize, Deserialize)]
 pub struct ApiResponse<T> {
@@ -30,9 +31,13 @@ impl<T: Serialize> ApiResponse<T> {
     }
 }
 
-impl<T: Serialize> IntoResponse for ApiResponse<T> {
-    fn into_response(self) -> axum::response::Response {
-        (StatusCode::OK, Json(self)).into_response()
+#[salvo::async_trait]
+impl<T> Writer for ApiResponse<T>
+where T: Serialize + Send + Sync + 'static,
+{
+    async fn write(self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+        res.status_code = Some(StatusCode::OK);
+        res.render(Json(self));
     }
 }
 

@@ -8,7 +8,7 @@ use crate::types::error::*;
 use crate::types::response::*;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait,  PaginatorTrait, QueryFilter,
-    QueryOrder, Set,
+    QueryOrder, Set, IntoActiveModel,
 };
 // Create App
 #[handler]
@@ -49,7 +49,7 @@ pub async fn update(
 ) -> Result<ApiResponse<apps::Model>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let req = json.into_inner();
-    let app = update_impl(&state, id, req).await?;
+    let app = update_impl(&state, id.into_inner(), req).await?;
     Ok(ApiResponse::success(app))
 }
 

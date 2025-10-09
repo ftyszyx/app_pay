@@ -1,11 +1,10 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use chrono::{DateTime, Utc};
 use crate::types::common::ListParamsReq;
 use crate::utils::convert::from_str_optional;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct CreateCouponReq {
     pub code: String,
     pub name: String,
@@ -19,7 +18,7 @@ pub struct CreateCouponReq {
     pub scope_type: i16,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct UpdateCouponReq {
     pub code: Option<String>,
     pub name: Option<String>,
@@ -33,7 +32,7 @@ pub struct UpdateCouponReq {
     pub scope_type: Option<i16>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct SearchCouponsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
@@ -49,7 +48,7 @@ pub struct SearchCouponsParams {
     pub scope_type: Option<i16>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CouponInfo {
     pub id: i32,
     pub code: String,

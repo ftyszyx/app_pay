@@ -1,13 +1,14 @@
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use crate::types::common::{AppState, Claims};
-use http_body_util::BodyExt;
 use salvo::prelude::*;
 
 #[handler]
 pub async fn auth(
     req: &mut Request,
     depot:&mut Depot,
-) -> Result<(), StatusCode> {
+    res: &mut Response,
+    ctrl: &mut FlowCtrl,
+) -> Result<(), StatusCode>{
     let state = depot.obtain::<AppState>().unwrap();
     let token = req
         .headers()
@@ -29,6 +30,7 @@ pub async fn auth(
     )
     .map_err(|_| StatusCode::UNAUTHORIZED)?;
     depot.inject(decoded.claims);
+    // ctrl.call_next(req, depot, res).await;
     Ok(())
 }
 
@@ -38,14 +40,13 @@ pub async fn error_handler(
     depot: &mut Depot,
     res: &mut Response,
     ctrl: &mut FlowCtrl,
-) -> Result<(), StatusCode> {
+) {
     // 先放行到下游处理
     ctrl.call_next(req, depot, res).await;
-
-    if let Some(code) = res.status_code() {
+    if let Some(code) = res.status_code{
         if code.as_u16() >= 400 {
             tracing::error!("Response status: {}", code);
         }
     }
-    Ok(())
+    ctrl.call_next(req, depot, res).await;
 }

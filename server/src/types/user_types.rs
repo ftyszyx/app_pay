@@ -1,30 +1,29 @@
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use crate::types::common::ListParamsReq;
 use crate::utils::convert::from_str_optional;
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize)]
 pub struct AuthPayload {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize)]
 pub struct AuthResponse {
     pub token: String,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct UserCreatePayload {
     pub username: String,
     pub password: String,
     pub role_id: Option<i32>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct UserUpdatePayload {
     pub username: Option<String>,
     pub password: Option<String>,
@@ -32,13 +31,13 @@ pub struct UserUpdatePayload {
     pub balance: Option<i64>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct ChangePasswordPayload {
     pub old_password: String,
     pub new_password: String,
 }
 
-#[derive(Deserialize, Serialize, ToSchema, Debug,FromQueryResult)]
+#[derive(Deserialize, Serialize, Debug,FromQueryResult)]
 pub struct UserInfo {
     pub id: i32,
     pub username: String,
@@ -52,13 +51,13 @@ pub struct UserInfo {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(ToSchema, Serialize)]
+#[derive(Serialize)]
 pub struct User {
     pub id: i32,
     pub username: String,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct SearchUsersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

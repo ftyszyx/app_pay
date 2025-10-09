@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use crate::utils::convert::from_str_optional;
 
@@ -9,19 +8,19 @@ use crate::types::common::ListParamsReq;
 //     WechatPay{name:String,appid:String,mch_id:String,app_secret:String},
 // }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct PayMethodCreatePayload {
     pub name: String,
     pub remark: Option<String>,
     pub config: Option<serde_json::Value>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct PayMethodUpdatePayload {
     pub name: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct ListPayMethodsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

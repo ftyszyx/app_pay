@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use utoipa::ToSchema;
 
 /// 统一创建支付订单请求
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct CreatePaymentOrderReq {
     /// 支付提供商 ("wechat" 或 "alipay")
     pub provider: String,
@@ -32,7 +31,7 @@ pub struct CreatePaymentOrderReq {
 }
 
 /// 支付订单响应
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct PaymentOrderResponse {
     /// 是否成功
     pub success: bool,
@@ -49,7 +48,7 @@ pub struct PaymentOrderResponse {
 }
 
 /// 支付订单查询响应
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct PaymentQueryResponse {
     /// 是否成功
     pub success: bool,
@@ -70,7 +69,7 @@ pub struct PaymentQueryResponse {
 }
 
 /// 支付通知响应
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct PaymentNotifyResponse {
     /// 是否成功
     pub success: bool,
@@ -91,7 +90,7 @@ pub struct PaymentNotifyResponse {
 }
 
 // 保留旧的类型定义以兼容现有代码
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct CreateAlipayOrderReq {
     pub out_trade_no: String,
     pub total_amount: String,
@@ -99,7 +98,7 @@ pub struct CreateAlipayOrderReq {
     pub payment_method: String, // "app", "web", "qr"
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct CreateWechatOrderReq {
     pub out_trade_no: String,
     pub total: i32, // 分为单位
@@ -108,7 +107,7 @@ pub struct CreateWechatOrderReq {
     pub openid: Option<String>, // JSAPI时必填
 }
 
-#[derive(Deserialize, ToSchema, Debug)]
+#[derive(Deserialize,  Debug)]
 pub struct PaymentNotifyReq {
     pub payment_type: String, // "alipay" or "wechat"
     pub notify_data: String,

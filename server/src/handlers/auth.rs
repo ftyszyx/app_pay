@@ -3,6 +3,7 @@ use crate::types::common::{*};
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
+use crate::handlers::user_handler;
 use crate::utils::jwt::create_jwt;
 use salvo::{prelude::*, oapi::extract::JsonBody};
 use bcrypt::{verify};

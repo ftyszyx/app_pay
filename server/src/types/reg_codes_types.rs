@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use chrono::{DateTime, Utc};
 use crate::types::common::ListParamsReq;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate,Default)]
+#[derive(Serialize, Deserialize, Debug, Validate,Default)]
 pub struct CreateRegCodeReq {
     pub code: String,
     pub app_id: i32,
@@ -17,21 +16,21 @@ pub struct CreateRegCodeReq {
     pub total_count: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate, IntoParams)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct RegCodeValidateReq {
     pub code: String,
     pub app_key: String,
     pub device_id: String,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RegCodeValidateResp {
     pub code_type: i16,
     pub expire_time: Option<DateTime<Utc>>,
     pub remaining_count: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct UpdateRegCodeReq {
     pub code: Option<String>,
     pub app_id: Option<i32>,
@@ -47,7 +46,7 @@ pub struct UpdateRegCodeReq {
     pub device_id: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct SearchRegCodesParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
@@ -63,7 +62,7 @@ pub struct SearchRegCodesParams {
     pub code_type: Option<i16>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct RegCodeInfo {
     pub id: i32,
     pub code: String,

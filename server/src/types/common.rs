@@ -6,7 +6,7 @@ use aliyun_sts::StsClient;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Deserialize, ToSchema, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize)]
 pub struct ListParamsReq {
     #[serde(deserialize_with = "from_str_optional", default)]
     pub page: Option<u64>,
@@ -23,7 +23,7 @@ impl Default for ListParamsReq {
     }
 }
 
-#[derive(Debug, ToSchema, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct PagingResponse<T> {
     pub list: Vec<T>,
     pub page: u64,

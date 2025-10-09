@@ -1,26 +1,25 @@
 use crate::types::common::ListParamsReq;
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct RoleCreatePayload {
     pub name: String,
     pub remark: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct RoleUpdatePayload {
     pub name: Option<String>,
 }
 
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct RoleListResponse {
     pub list: Vec<entity::roles::Model>,
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct ListRolesParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

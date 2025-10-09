@@ -1,7 +1,6 @@
-use axum::response::IntoResponse;
 use sea_orm::DbErr;
 use std::{convert::Infallible, fmt};
-
+use salvo::{http::StatusCode, prelude::*};
 use crate::types::response::ApiResponse;
 
 /// 改进的错误处理系统
@@ -128,20 +127,6 @@ impl fmt::Display for AppError {
     }
 }
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> axum::response::Response {
-        let error_code = self.error_code();
-        let message = self.to_string();
-        let response = ApiResponse::<()> {
-            code: error_code,
-            message,
-            data: None,
-            success: false,
-        };
-        return response.into_response();
-    }
-}
-
 impl From<validator::ValidationErrors> for AppError {
     fn from(errors: validator::ValidationErrors) -> Self {
         tracing::error!("Validation errors: {:?}", errors);
@@ -172,5 +157,13 @@ impl From<Infallible> for AppError {
     fn from(err: Infallible) -> Self {
         tracing::error!("Infallible error: {:?}", err);
         Self::Message("Infallible error".to_string())
+    }
+}
+
+#[salvo::async_trait]
+impl Writer for AppError {
+    async fn write(self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
+        res.status_code = Some(StatusCode::OK);
+        res.render(Json(ApiResponse::<String>::error_with_message(self.to_string())));
     }
 }

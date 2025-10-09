@@ -1,32 +1,17 @@
-use axum::{
-    body::Body,
-    http::{Request, StatusCode},
-};
-use http_body_util::BodyExt;
 use serde_json::json;
-use tower::ServiceExt;
-
+use salvo::prelude::*;
+use salvo::test::{TestClient};
 use crate::helpers::print_response_body_get_json;
-
 mod helpers;
 
 #[tokio::test]
 async fn test_get_apps_list() {
     let app = helpers::create_test_app().await;
     let token = helpers::create_test_user_and_login(&app).await;
-    let request = Request::builder()
-        .method("GET")
-        .uri("/api/admin/apps/list?page=1&page_size=10")
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-
+    let url=helpers::get_url("/api/admin/apps/list?page=1&page_size=10");
+    let response= TestClient::get(url).add_header("authorization", format!("Bearer {}", token),true).send(&app).await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
+    let json = helpers::print_response_body_get_json(response, "get_apps_list").await;
     assert!(json["success"].as_bool().unwrap());
     assert!(json["data"]["list"].is_array());
     assert!(json["data"]["total"].is_number());
@@ -49,15 +34,11 @@ async fn test_create_app() {
         "status": 1
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/apps")
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(create_app_body.to_string()))
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
+    let response = TestClient::post("/api/admin/apps")
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&create_app_body)
+        .send(&app)
+        .await;
     let bodyjson = print_response_body_get_json(response, "create_app").await;
     assert!(bodyjson["success"].as_bool().unwrap());
     assert!(bodyjson["data"]["id"].is_number());
@@ -82,32 +63,21 @@ async fn test_get_app_by_id() {
         "status": 1
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/apps")
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(create_app_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    let response = TestClient::post("/api/admin/apps")
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&create_app_body)
+        .send(&app)
+        .await;
+    let json = print_response_body_get_json(response, "create_app_for_get_by_id").await;
     let app_id = json["data"]["id"].as_i64().unwrap();
 
     // 然后通过 ID 获取应用
-    let request = Request::builder()
-        .method("GET")
-        .uri(&format!("/api/admin/apps/{}", app_id))
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    let response = TestClient::get(&format!("/api/admin/apps/{}", app_id))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
+    let json = print_response_body_get_json(response, "get_app_by_id").await;
 
     assert!(json["success"].as_bool().unwrap());
     assert_eq!(json["data"]["id"].as_i64().unwrap(), app_id);
@@ -131,15 +101,11 @@ async fn test_update_app() {
         "status": 1
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/apps")
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(create_app_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
+    let response = TestClient::post("/api/admin/apps")
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&create_app_body)
+        .send(&app)
+        .await;
     let bodyjson = print_response_body_get_json(response, "create_app").await;
     let app_id = bodyjson["data"]["id"].as_i64().unwrap();
 
@@ -150,16 +116,11 @@ async fn test_update_app() {
         "status": 0
     });
 
-    let request = Request::builder()
-        .method("PUT")
-        .uri(&format!("/api/admin/apps/{}", app_id))
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(update_app_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
-    // assert_eq!(response.status(), StatusCode::OK);
+    let response = TestClient::put(&format!("/api/admin/apps/{}", app_id))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&update_app_body)
+        .send(&app)
+        .await;
     let bodyjson = helpers::print_response_body_get_json(response, "update_app").await;
     assert!(bodyjson["success"].as_bool().unwrap());
     assert_eq!(bodyjson["data"]["id"].as_i64().unwrap(), app_id);
@@ -183,32 +144,21 @@ async fn test_delete_app() {
         "status": 1
     });
 
-    let request = Request::builder()
-        .method("POST")
-        .uri("/api/admin/apps")
-        .header("authorization", format!("Bearer {}", token))
-        .header("content-type", "application/json")
-        .body(Body::from(create_app_body.to_string()))
-        .unwrap();
-
-    let response = app.clone().oneshot(request).await.unwrap();
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    let response = TestClient::post("/api/admin/apps")
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .json(&create_app_body)
+        .send(&app)
+        .await;
+    let json = print_response_body_get_json(response, "create_then_delete_app").await;
     let app_id = json["data"]["id"].as_i64().unwrap();
 
     // 然后删除应用
-    let request = Request::builder()
-        .method("DELETE")
-        .uri(&format!("/api/admin/apps/{}", app_id))
-        .header("authorization", format!("Bearer {}", token))
-        .body(Body::empty())
-        .unwrap();
-
-    let response = app.oneshot(request).await.unwrap();
-    assert_eq!(response.status(), StatusCode::OK);
-
-    let body = response.into_body().collect().await.unwrap().to_bytes();
-    let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+    let response = TestClient::delete(&format!("/api/admin/apps/{}", app_id))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .send(&app)
+        .await;
+    assert_eq!(response.status_code, Some(StatusCode::OK));
+    let json = print_response_body_get_json(response, "delete_app").await;
 
     assert!(json["success"].as_bool().unwrap());
 }
@@ -228,14 +178,10 @@ async fn test_apps_pagination() {
     ];
 
     for uri in test_cases {
-        let request = Request::builder()
-            .method("GET")
-            .uri(uri)
-            .header("authorization", format!("Bearer {}", token))
-            .body(Body::empty())
-            .unwrap();
-
-        let response = app.clone().oneshot(request).await.unwrap();
+        let response = TestClient::get(uri)
+            .add_header("authorization", format!("Bearer {}", token), true)
+            .send(&app)
+            .await;
         let bodyjson = print_response_body_get_json(response, "apps_pagination").await;
         assert!(bodyjson["success"].as_bool().unwrap());
 

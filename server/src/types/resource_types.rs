@@ -1,11 +1,10 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 
 use crate::utils::convert::from_str_optional;
 use crate::types::common::ListParamsReq;
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct ResourceCreatePayload {
     pub name: String,
     pub object_key: String,
@@ -16,7 +15,7 @@ pub struct ResourceCreatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate, Default)]
+#[derive(Deserialize, Debug, Validate, Default)]
 pub struct ResourceUpdatePayload {
     pub name: Option<String>,
     pub object_key: Option<String>,
@@ -27,13 +26,13 @@ pub struct ResourceUpdatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct ResourceListResponse {
     pub list: Vec<entity::resources::Model>,
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct ListResourcesParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

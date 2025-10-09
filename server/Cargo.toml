@@ -16,7 +16,8 @@ path = "src/main.rs"
 # 异步
 tokio = { version = "1.46.0", features = ["full"] }
 # web框架
-salvo = { version = "0.84", features = ["logging","oapi","anyhow","cors"] }
+# https://salvo.rs/zh-hans/guide/quick-start.html
+salvo = { version = "0.84", features = ["logging","oapi","anyhow","cors","affix-state","test"] }
 salvo-oapi = { version = "0.84", features = ["swagger-ui"] }
 # 序列化
 serde = { version = "1.0.219", features = ["derive"] }
@@ -60,6 +61,7 @@ hmac-sha1 = "0.2"
 tower = { version = "0.5.2", features = ["util"] }
 tower-service = "0.3"
 hyper = { version = "1.0", features = ["full"] }
+# axum = { version = "0.8.4" }
 mime = "0.3"
 
 [workspace]

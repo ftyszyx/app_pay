@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use chrono::{DateTime, Utc};
 use crate::types::common::ListParamsReq;
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct CreateOrderReq {
     pub order_id: String,
     pub user_info: Option<serde_json::Value>,
@@ -17,7 +16,7 @@ pub struct CreateOrderReq {
     pub updated_by: i32,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate)]
 pub struct UpdateOrderReq {
     pub order_id: Option<String>,
     pub user_info: Option<serde_json::Value>,
@@ -29,7 +28,7 @@ pub struct UpdateOrderReq {
     pub updated_by: Option<i32>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct SearchOrdersParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,
@@ -45,7 +44,7 @@ pub struct SearchOrdersParams {
     pub created_by: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, ToSchema, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct OrderInfo {
     pub id: i32,
     pub order_id: String,

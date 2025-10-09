@@ -1,11 +1,10 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 use validator::Validate;
 use crate::utils::convert::from_str_optional;
 
 use crate::types::common::ListParamsReq;
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct ProductCreatePayload {
     pub name: String,
     pub price: i32,
@@ -18,7 +17,7 @@ pub struct ProductCreatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Validate)]
+#[derive(Deserialize, Debug, Validate)]
 pub struct ProductUpdatePayload {
     pub name: Option<String>,
     pub price: Option<i32>,
@@ -31,13 +30,13 @@ pub struct ProductUpdatePayload {
     pub remark: Option<String>,
 }
 
-#[derive(Serialize, ToSchema, Debug)]
+#[derive(Serialize, Debug)]
 pub struct ProductListResponse {
     pub list: Vec<entity::products::Model>,
     pub total: u64,
 }
 
-#[derive(Deserialize, ToSchema, Debug, Default, IntoParams)]
+#[derive(Deserialize, Debug, Default)]
 pub struct ListProductsParams {
     #[serde(flatten)]
     pub pagination: ListParamsReq,

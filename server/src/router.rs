@@ -1,14 +1,14 @@
 use crate::handlers::{self, *};
-use hyper::service;
 use salvo::prelude::*;
 use salvo::cors::{Cors, AllowOrigin};
 use salvo::http::Method;
 use crate::types::common::AppState;
 
 
-pub fn create_router(app_state: AppState) -> Router {
+pub fn create_router(app_state: AppState) -> Service {
     let admin_routes = Router::with_path("/api/admin")
         .hoop(middleware::auth)
+        .hoop(middleware::error_handler)
         .push(Router::with_path("me").get(handlers::auth::get_current_user))
         //users
         .push(Router::with_path("me/password").post(handlers::auth::change_password))
@@ -81,22 +81,21 @@ pub fn create_router(app_state: AppState) -> Router {
         .push(Router::with_path("permissions/roles").delete(handlers::casbin_handler::remove_role_for_user))
         .push(Router::with_path("permissions/roles").get(handlers::casbin_handler::get_roles))
         .push(Router::with_path("permissions/check").post(handlers::casbin_handler::check_permission))
-        .push(Router::with_path("permissions/reload").post(handlers::casbin_handler::reload_policies))
-        .hoop(middleware::error_handler);
+        .push(Router::with_path("permissions/reload").post(handlers::casbin_handler::reload_policies));
 
     let cors = Cors::new()
     .allow_origin(AllowOrigin::any())
     .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
-    .allow_headers("authorization");
+    .allow_headers("authorization").into_handler();
     let router=Router::new()
-        .push(Router::with_path("/").get(handlers::handler))
+        .hoop(affix_state::inject(app_state))
         .push(Router::with_path("/api/register").post(handlers::auth::register))
         .push(Router::with_path("/api/login").post(handlers::auth::login))
         .push  (Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
         .push(Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
         .push(Router::with_path("/api/reg/validate").get(handlers::reg_codes_handler::validate_code_get))
         .push( admin_routes)
-        .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list))
+        .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list));
     let service=Service::new(router).hoop(cors).hoop(Logger::new());
     service
 }
