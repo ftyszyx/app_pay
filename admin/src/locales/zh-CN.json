@@ -25,7 +25,8 @@
     "copied": "已复制",
     "copy_failed": "复制失败",
     "copy": "复制",
-    "generate": "生成"
+    "generate": "生成",
+    "settings": "设置"
   },
   "auth": {
     "welcome": "欢迎",

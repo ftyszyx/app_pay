@@ -15,7 +15,7 @@
           </template>
         </el-dropdown>
         <el-dropdown @command="onSettingsCommand">
-          <el-button text>Settings ▾</el-button>
+          <el-button text>{{ $t('common.settings') }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="pwd">{{ $t('auth.change_password') }}</el-dropdown-item>

@@ -56,12 +56,13 @@ pub async fn login(
         resource: "user".to_string(),
         id: None,
     })?;
-    verify(&payload.password, &user_result.0.password)
+    let is_valid = verify(&payload.password, &user_result.0.password)
         .map_err(|_| AppError::auth_failed("User or password error"))?;
+    if !is_valid { return Err(AppError::auth_failed("User or password error")); }
     let role_name = user_result
         .1
         .map_or(constants::USER_ROLE.to_string(), |r| r.name);
-    info!("User logged in: {}", user_result.0.username);
+    tracing::info!("User logged in: {}", user_result.0.username);
     let token = create_jwt(user_result.0.id, role_name, &state.config.jwt)
         .map_err(|_| AppError::auth_failed("Token creation failed"))?;
     Ok(ApiResponse::success(AuthResponse { token }))

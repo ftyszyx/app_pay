@@ -32,7 +32,8 @@
     "upload": "Upload",
     "search_by_name": "Search by name",
     "new": "New",
-    "generate": "Generate"
+    "generate": "Generate",
+    "settings": "Settings"
   },
   "auth": {
     "password_mismatch": "Passwords do not match",
