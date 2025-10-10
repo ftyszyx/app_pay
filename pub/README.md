@@ -54,5 +54,6 @@ python build_web.py --base-url http://localhost:3000
 
 #### 在服务器上执行
 ```
-update_all.sh
+update_web.sh
+update_server.sh
 ```

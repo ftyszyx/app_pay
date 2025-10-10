@@ -1,4 +1,6 @@
-git pull --rebase
-rsync -avz web/ /opt/1panel/www/sites/apps.bytefuse.cn/index/ 
+# stop server
 docker compose -f docker-compose.release.yml down server
+# pull new server image
+docker compose -f docker-compose.release.yml pull server 
+# start server
 docker compose -f docker-compose.release.yml up -d --force-recreate server
