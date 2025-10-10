@@ -89,8 +89,9 @@ pub async fn change_password(
     let claims = depot.obtain::<Claims>().unwrap();
     let user = users::Entity::find_by_id(claims.sub).one(&state.db).await?;
     let user = user.ok_or(AppError::auth_failed("User not found"))?;
-    verify(&payload.old_password, &user.password)
+    let is_valid = verify(&payload.old_password, &user.password)
         .map_err(|_| AppError::auth_failed("Old password incorrect"))?;
+    if !is_valid { return Err(AppError::auth_failed("Old password incorrect")); }
     let mut active = user.into_active_model();
     active.password = Set(bcrypt::hash(payload.new_password.clone(), 10)?);
     let _ = active.update(&state.db).await?;
