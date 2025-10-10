@@ -1,6 +1,6 @@
 services:
   server:
-    image: ftyszyx752/licensehub:main4
+    image: ftyszyx752/licensehub:latest
     env_file:
       - .env
     depends_on:

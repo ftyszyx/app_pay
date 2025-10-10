@@ -54,5 +54,5 @@ python build_web.py --base-url http://localhost:3000
 
 #### 在服务器上执行
 ```
-cp -rf web /opt/1panel/www/sites/apps.bytefuse.cn/index
+update_all.sh
 ```
