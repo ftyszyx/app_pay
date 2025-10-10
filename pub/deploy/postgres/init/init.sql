@@ -28,9 +28,8 @@ CREATE TABLE "users" (
     CONSTRAINT "chk_balance_positive" CHECK ("balance" >= 0)
 );
 CREATE INDEX idx_user_username ON "users" ("username");
+-- admin /admin
 INSERT INTO "users" ( "username", "password", "role_id") VALUES ( 'admin', '$2b$12$/MZyRsK.DcYHh6x4qCy6IOjxO/Wd4RlPSbW.7OiAYqTY4U4CipDIS', 1);
-INSERT INTO "users" ("username", "password", "role_id") VALUES ( 'user', '$2b$12$afVdZp0thpWjIQt/oib50OhlJW3UsAjn9r808ufcLMl2mLgVsDciK', 2);
-INSERT INTO "users" ("username", "password", "role_id") VALUES ( 'guest', '$2b$12$tOtsPnX8UlVgqYL1UbYlHuiCBjEgljGz3xhqbXstwoHdD3rMquSlW', 3);
 
 -- 产品表
 DROP TABLE IF EXISTS "apps" CASCADE;
@@ -306,6 +305,5 @@ INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES (
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'update', '', '', '');
 
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'user', '/*', 'read', '', '', '');
-INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'user', '/*', 'update', '', '', '');
 
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'guest', '/*', 'read', '', '', '');

@@ -33,7 +33,8 @@
     "search_by_name": "Search by name",
     "new": "New",
     "generate": "Generate",
-    "settings": "Settings"
+    "settings": "Settings",
+    "delete_confirm": ""
   },
   "auth": {
     "password_mismatch": "Passwords do not match",
@@ -62,7 +63,10 @@
     "products": "Products",
     "orders": "Orders",
     "users": "Users",
-    "resources": "Resources"
+    "resources": "Resources",
+    "roles": "",
+    "devices": "",
+    "permissions": ""
   },
   "users": {
     "title": "User Management",

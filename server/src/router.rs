@@ -94,7 +94,7 @@ pub fn create_router(app_state: AppState) -> Service {
     .allow_headers(AllowHeaders::any()).into_handler();
     let router=Router::new()
         .hoop(affix_state::inject(app_state))
-        .push(Router::with_path("/api/register").post(handlers::auth::register))
+        // .push(Router::with_path("/api/register").post(handlers::auth::register))
         .push(Router::with_path("/api/login").post(handlers::auth::login))
         .push  (Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
         .push(Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))

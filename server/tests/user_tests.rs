@@ -50,8 +50,7 @@ async fn test_create_user() {
 	let token = helpers::create_test_user_and_login(&app).await;
 	let create_user_body = json!({
 		"username": format!("new_user_{}", chrono::Utc::now().timestamp()),
-		"password": "newuserpass123",
-		"role_id": 1
+		"password": "newuserpass123"
 	});
 	let response = TestClient::post(helpers::get_url("/api/admin/users"))
 		.add_header("authorization", format!("Bearer {}", token), true)

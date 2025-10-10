@@ -26,7 +26,8 @@
     "copy_failed": "复制失败",
     "copy": "复制",
     "generate": "生成",
-    "settings": "设置"
+    "settings": "设置",
+    "delete_confirm": "确认删除"
   },
   "auth": {
     "welcome": "欢迎",
@@ -52,7 +53,10 @@
     "orders": "订单",
     "users": "用户",
     "resources": "资源",
-    "reg_codes": "注册码"
+    "reg_codes": "注册码",
+    "roles": "角色",
+    "devices": "设备",
+    "permissions": "权限"
   },
   "dashboard": {
     "title": "仪表盘",

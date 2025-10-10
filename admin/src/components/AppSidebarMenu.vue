@@ -25,10 +25,14 @@ const menuItems: AdminMenuItem[] = [
   { label: 'menu.orders', icon: 'Tickets', path: RoutePath.AdminOrders },
   //i18n-key: menu.users
   { label: 'menu.users', icon: 'User', path: RoutePath.AdminUsers },
+  //i18n-key: menu.roles
+  { label: 'menu.roles', icon: 'UserFilled', path: RoutePath.AdminRoles },
   //i18n-key: menu.resources
   { label: 'menu.resources', icon: 'Picture', path: RoutePath.AdminResources },
   //i18n-key: menu.devices
   { label: 'menu.devices', icon: 'Iphone', path: RoutePath.AdminDevices },
+  //i18n-key: menu.permissions
+  { label: 'menu.permissions', icon: 'Lock', path: RoutePath.AdminPermissions },
 ]
 </script>
 
