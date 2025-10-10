@@ -14,3 +14,4 @@ pub mod reg_codes_types;
 pub mod response;
 pub mod role_types;
 pub mod user_types;
+pub mod app_devices_types;

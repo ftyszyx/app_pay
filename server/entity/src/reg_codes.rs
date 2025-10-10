@@ -12,7 +12,6 @@ pub struct Model {
     pub id: i32,
     pub code: String,
     pub app_id: i32,
-    pub bind_device_info: Option<Json>,
     pub valid_days: i32,
     pub max_devices: i32,
     pub status: i16,
@@ -21,7 +20,7 @@ pub struct Model {
     pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
     pub use_count: i32,
-    pub device_id: Option<String>,
+    pub device_id: Option<i32>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -36,6 +35,12 @@ pub enum Relation {
     Apps,
     #[sea_orm(has_many = "super::order_reg_codes::Entity")]
     OrderRegCodes,
+    #[sea_orm(
+        belongs_to = "super::app_devices::Entity",
+        from = "Column::DeviceId",
+        to = "super::app_devices::Column::Id"
+    )]
+    AppDevices,
 }
 
 impl Related<super::apps::Entity> for Entity {
@@ -47,6 +52,12 @@ impl Related<super::apps::Entity> for Entity {
 impl Related<super::order_reg_codes::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::OrderRegCodes.def()
+    }
+}
+
+impl Related<super::app_devices::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::AppDevices.def()
     }
 }
 

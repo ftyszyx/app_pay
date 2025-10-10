@@ -67,7 +67,6 @@ impl From<RegCodeStatus> for i16 {
 pub struct CreateRegCodeReq {
     pub code: String,
     pub app_id: i32,
-    pub bind_device_info: Option<serde_json::Value>,
     pub valid_days: i32,
     pub max_devices: i32,
     pub status: RegCodeStatus,
@@ -78,7 +77,7 @@ pub struct CreateRegCodeReq {
 
 #[derive(Serialize, Deserialize, Debug, Validate,ToSchema)]
 pub struct RegCodeValidateReq {
-    pub code: String,
+    pub code: Option<String>,
     pub app_key: String,
     pub device_id: String,
 }
@@ -94,16 +93,11 @@ pub struct RegCodeValidateResp {
 pub struct UpdateRegCodeReq {
     pub code: Option<String>,
     pub app_id: Option<i32>,
-    pub bind_device_info: Option<serde_json::Value>,
     pub valid_days: Option<i32>,
     pub max_devices: Option<i32>,
     pub status: Option<i16>,
-    pub binding_time: Option<DateTime<Utc>>,
     pub code_type: Option<CodeType>,
-    pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
-    pub use_count: Option<i32>,
-    pub device_id: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Default)]
@@ -127,7 +121,6 @@ pub struct RegCodeInfo {
     pub id: i32,
     pub code: String,
     pub app_id: i32,
-    pub bind_device_info: Option<serde_json::Value>,
     pub valid_days: i32,
     pub max_devices: i32,
     pub status: i16,
@@ -136,24 +129,27 @@ pub struct RegCodeInfo {
     pub expire_time: Option<DateTime<Utc>>,
     pub total_count: Option<i32>,
     pub use_count: i32,
-    pub device_id: Option<String>,
+    pub device_id: Option<i32>,
+    pub device_id_str: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub app_name: Option<String>,
+    pub device_info: Option<serde_json::Value>,
 }
 
-impl TryFrom<(entity::reg_codes::Model, Option<entity::apps::Model>)> for RegCodeInfo {
+impl TryFrom<(entity::reg_codes::Model, Option<entity::apps::Model>, Option<entity::app_devices::Model>)> for RegCodeInfo {
     type Error = crate::types::error::AppError;
 
     fn try_from(
-        value: (entity::reg_codes::Model, Option<entity::apps::Model>)
+        value: (entity::reg_codes::Model, Option<entity::apps::Model>, Option<entity::app_devices::Model>)
     ) -> Result<Self, Self::Error> {
-        let (reg_code, app) = value;
+        let (reg_code, app, device) = value;
+        let device_id_str = device.as_ref().map(|d| d.device_id.clone());
+        let device_info = device.as_ref().and_then(|d| d.device_info.clone());
         Ok(Self {
             id: reg_code.id,
             code: reg_code.code,
             app_id: reg_code.app_id,
-            bind_device_info: reg_code.bind_device_info,
             valid_days: reg_code.valid_days,
             max_devices: reg_code.max_devices,
             status: reg_code.status,
@@ -163,6 +159,8 @@ impl TryFrom<(entity::reg_codes::Model, Option<entity::apps::Model>)> for RegCod
             total_count: reg_code.total_count,
             use_count: reg_code.use_count,
             device_id: reg_code.device_id,
+            device_id_str,
+            device_info,
             created_at: reg_code.created_at,
             updated_at: reg_code.updated_at,
             app_name: app.map(|a| a.name),
@@ -178,7 +176,6 @@ impl TryFrom<entity::reg_codes::Model> for RegCodeInfo {
             id: reg_code.id,
             code: reg_code.code,
             app_id: reg_code.app_id,
-            bind_device_info: reg_code.bind_device_info,
             valid_days: reg_code.valid_days,
             max_devices: reg_code.max_devices,
             status: reg_code.status,
@@ -188,6 +185,8 @@ impl TryFrom<entity::reg_codes::Model> for RegCodeInfo {
             total_count: reg_code.total_count,
             use_count: reg_code.use_count,
             device_id: reg_code.device_id,
+            device_id_str: None,
+            device_info: None,
             created_at: reg_code.created_at,
             updated_at: reg_code.updated_at,
             app_name: None,

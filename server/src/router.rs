@@ -83,7 +83,9 @@ pub fn create_router(app_state: AppState) -> Service {
         .push(Router::with_path("permissions/roles").delete(handlers::casbin_handler::remove_role_for_user))
         .push(Router::with_path("permissions/roles").get(handlers::casbin_handler::get_roles))
         .push(Router::with_path("permissions/check").post(handlers::casbin_handler::check_permission))
-        .push(Router::with_path("permissions/reload").post(handlers::casbin_handler::reload_policies));
+        .push(Router::with_path("permissions/reload").post(handlers::casbin_handler::reload_policies))
+        //devices
+        .push(Router::with_path("devices/list").get(handlers::device_handler::get_list));
 
     let cors = Cors::new()
     .allow_origin(AllowOrigin::any())

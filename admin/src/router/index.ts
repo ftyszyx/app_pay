@@ -9,6 +9,7 @@ import ResourceAdminView from '@/views/admin/ResourceAdminView.vue'
 import RegCodesAdminView from '@/views/admin/RegCodesAdminView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
+import DevicesAdminView from '@/views/admin/DevicesAdminView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { RouteName, RoutePath } from '@/types'
 
@@ -76,6 +77,11 @@ const router = createRouter({
                     path: RoutePath.AdminResources,
                     name: RouteName.AdminResources,
                     component: ResourceAdminView
+                }
+                ,{
+                    path: RoutePath.AdminDevices,
+                    name: RouteName.AdminDevices,
+                    component: DevicesAdminView
                 }
                 ,{
                     path: '/admin/reg_codes',

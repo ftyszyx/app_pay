@@ -59,6 +59,54 @@ async fn test_validate_reg_code_post_and_get() {
 }
 
 #[tokio::test]
+async fn test_validate_device_without_code() {
+    let app = helpers::create_test_app().await;
+    let token = helpers::create_test_user_and_login(&app).await;
+    // create app with trial_days
+    let app_key = format!("KEY_{}", chrono::Utc::now().timestamp());
+    let create_app_body = json!({
+        "name": format!("VA-App-{}", chrono::Utc::now().timestamp()),
+        "app_id": format!("com.va.{}", chrono::Utc::now().timestamp()),
+        "app_vername": "1.0.0",
+        "app_vercode": 1,
+        "app_download_url": "https://example.com/dl",
+        "app_res_url": "https://example.com/res",
+        "app_update_info": "",
+        "app_valid_key": app_key,
+        "trial_days": 7,
+        "sort_order": 0,
+        "status": 1
+    });
+    let resp = TestClient::post(helpers::get_url("/api/admin/apps"))
+        .add_header("authorization", format!("Bearer {}", token), true)
+        .add_header("content-type", "application/json", true)
+        .json(&create_app_body)
+        .send(&app)
+        .await;
+    let _ = print_response_body_get_json(resp, "create_app_for_device_only").await;
+
+    // validate without code, only device binding
+    let resp = TestClient::post(helpers::get_url("/api/reg/validate"))
+        .add_header("content-type", "application/json", true)
+        .json(&json!({"app_key":app_key, "device_id":"dev-only-1"}))
+        .send(&app)
+        .await;
+    assert_eq!(resp.status_code, Some(StatusCode::OK));
+    let json = print_response_body_get_json(resp, "validate_device_only").await;
+    assert!(json["success"].as_bool().unwrap());
+    assert_eq!(json["data"]["code_type"].as_i64().unwrap(), 0); // Time type
+    assert!(json["data"]["expire_time"].is_string());
+
+    // second call should still succeed before expire
+    let resp = TestClient::post(helpers::get_url("/api/reg/validate"))
+        .add_header("content-type", "application/json", true)
+        .json(&json!({"app_key":app_key, "device_id":"dev-only-1"}))
+        .send(&app)
+        .await;
+    assert_eq!(resp.status_code, Some(StatusCode::OK));
+}
+
+#[tokio::test]
 async fn test_get_reg_codes_list() {
     let app = helpers::create_test_app().await;
     let token = helpers::create_test_user_and_login(&app).await;

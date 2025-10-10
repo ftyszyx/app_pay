@@ -16,3 +16,4 @@ pub mod resource_handler;
 pub mod role_handler;
 pub mod user_handler;
 pub mod vuefinder_handler;
+pub mod device_handler;

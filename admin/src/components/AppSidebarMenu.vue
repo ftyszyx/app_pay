@@ -27,6 +27,8 @@ const menuItems: AdminMenuItem[] = [
   { label: 'menu.users', icon: 'User', path: RoutePath.AdminUsers },
   //i18n-key: menu.resources
   { label: 'menu.resources', icon: 'Picture', path: RoutePath.AdminResources },
+  //i18n-key: menu.devices
+  { label: 'menu.devices', icon: 'Iphone', path: RoutePath.AdminDevices },
 ]
 </script>
 

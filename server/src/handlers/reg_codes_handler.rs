@@ -1,6 +1,6 @@
 use crate::types::reg_codes_types::*;
 crate::import_crud_macro!();
-use entity::{apps, reg_codes};
+use entity::{app_devices, apps, reg_codes};
 use salvo::{oapi::extract::JsonBody, prelude::*};
 use salvo_oapi::extract::PathParam;
 
@@ -20,7 +20,6 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
     let active_model = reg_codes::ActiveModel {
         code: Set(req.code),
         app_id: Set(req.app_id),
-        bind_device_info: Set(req.bind_device_info),
         valid_days: Set(req.valid_days),
         max_devices: Set(req.max_devices),
         status: Set(i16::from(req.status)),
@@ -37,11 +36,12 @@ pub async fn add_impl(state: &AppState, req: CreateRegCodeReq) -> Result<RegCode
     // Fetch with app information for response
     let result = reg_codes::Entity::find_by_id(entity.id)
         .find_also_related(apps::Entity)
+        .find_also_related(app_devices::Entity)
         .one(&state.db)
         .await?;
 
     match result {
-        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        Some((reg_code, app, device)) => Ok(RegCodeInfo::try_from((reg_code, app, device))?),
         None => Err(AppError::not_found(
             "reg_codes".to_string(),
             Some(entity.id),
@@ -73,16 +73,11 @@ pub async fn update_impl(
     let mut reg_code: reg_codes::ActiveModel = reg_code.into_active_model();
     crate::update_field_if_some!(reg_code, code, req.code);
     crate::update_field_if_some!(reg_code, app_id, req.app_id);
-    crate::update_field_if_some!(reg_code, bind_device_info, req.bind_device_info, option);
     crate::update_field_if_some!(reg_code, valid_days, req.valid_days);
     crate::update_field_if_some!(reg_code, max_devices, req.max_devices);
     crate::update_field_if_some!(reg_code, status, req.status);
-    crate::update_field_if_some!(reg_code, binding_time, req.binding_time, option);
     crate::update_field_if_some!(reg_code, code_type, req.code_type.map(|v| i16::from(v)));
-    crate::update_field_if_some!(reg_code, expire_time, req.expire_time, option);
     crate::update_field_if_some!(reg_code, total_count, req.total_count, option);
-    crate::update_field_if_some!(reg_code, use_count, req.use_count);
-    crate::update_field_if_some!(reg_code, device_id, req.device_id, option);
     reg_code.updated_at = Set(Utc::now());
 
     let updated_reg_code = reg_code.update(&state.db).await?;
@@ -90,11 +85,12 @@ pub async fn update_impl(
     // Fetch with app information for response
     let result = reg_codes::Entity::find_by_id(updated_reg_code.id)
         .find_also_related(apps::Entity)
+        .find_also_related(app_devices::Entity)
         .one(&state.db)
         .await?;
 
     match result {
-        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        Some((reg_code, app, device)) => Ok(RegCodeInfo::try_from((reg_code, app, device))?),
         None => Err(AppError::not_found(
             "reg_codes".to_string(),
             Some(updated_reg_code.id),
@@ -139,6 +135,7 @@ pub async fn get_list_impl(
 
     let mut query = reg_codes::Entity::find()
         .find_also_related(apps::Entity)
+        .find_also_related(app_devices::Entity)
         .order_by_desc(reg_codes::Column::CreatedAt);
 
     crate::filter_if_some!(query, reg_codes::Column::Id, params.id, eq);
@@ -158,7 +155,7 @@ pub async fn get_list_impl(
 
     let list: Result<Vec<RegCodeInfo>, AppError> = results
         .into_iter()
-        .map(|(reg_code, app)| RegCodeInfo::try_from((reg_code, app)))
+        .map(|(reg_code, app, device)| RegCodeInfo::try_from((reg_code, app, device)))
         .collect();
 
     Ok(PagingResponse {
@@ -182,17 +179,19 @@ pub async fn get_by_id(
 pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<RegCodeInfo, AppError> {
     let result = reg_codes::Entity::find_by_id(id)
         .find_also_related(apps::Entity)
+        .find_also_related(app_devices::Entity)
         .one(&state.db)
         .await?;
 
     match result {
-        Some((reg_code, app)) => Ok(RegCodeInfo::try_from((reg_code, app))?),
+        Some((reg_code, app, device)) => Ok(RegCodeInfo::try_from((reg_code, app, device))?),
         None => Err(AppError::not_found("reg_codes".to_string(), Some(id))),
     }
 }
 
 /// Validate registration code for device
 // #[handler]
+// refer https://github.com/salvo-rs/salvo/blob/main/crates/oapi/docs/endpoint.md
 #[endpoint(tags("reg_codes"))]
 pub async fn validate_code(
     depot: &mut Depot,
@@ -208,7 +207,7 @@ pub async fn validate_code(
 #[endpoint(
     tags( "reg_codes" ),
     parameters(
-        ("code"=String,Query, description = "注册码"),
+        ("code"=Option<String>,Query, description = "注册码"),
     ("app_key"=String, Query, description = "应用校验Key"),
     ("device_id"=String, Query, description = "设备ID")
 ))]
@@ -232,6 +231,42 @@ pub async fn validate_code_impl(
         .one(&state.db)
         .await?;
     let app = app.ok_or(AppError::not_found("apps".to_string(), None))?;
+    let now = chrono::Utc::now();
+    // let app_expire = now + chrono::Duration::days(app.trial_days as i64);
+    if req.code.is_none() {
+        let dev = app_devices::Entity::find()
+            .filter(
+                app_devices::Column::AppId
+                    .eq(app.id)
+                    .and(app_devices::Column::DeviceId.eq(req.device_id.clone())),
+            )
+            .one(&state.db)
+            .await?;
+        let mut expire = now + chrono::Duration::days(app.trial_days as i64);
+        if dev.is_none() {
+            //bind device
+            let _ = app_devices::ActiveModel {
+                app_id: Set(app.id),
+                device_id: Set(req.device_id.clone()),
+                device_info: Set(None),
+                bind_time: Set(Some(Utc::now())),
+                expire_time: Set(Some(expire)),
+                ..Default::default()
+            }
+            .insert(&state.db)
+            .await?;
+        } else {
+            expire = dev.unwrap().expire_time.unwrap();
+            if now > expire {
+                return Err(AppError::Message("device expired".into()));
+            }
+        }
+        return Ok(RegCodeValidateResp {
+            code_type: CodeType::Time,
+            expire_time: Some(expire),
+            remaining_count: None,
+        });
+    }
     // find reg code
     let rc = reg_codes::Entity::find()
         .filter(
@@ -247,10 +282,9 @@ pub async fn validate_code_impl(
     match rc.code_type.into() {
         CodeType::Time => {
             // time-based
-            let now = chrono::Utc::now();
             let expire = rc
                 .expire_time
-                .or_else(|| Some(now+ chrono::Duration::days(rc.valid_days as i64)));
+                .or_else(|| Some(now + chrono::Duration::days(rc.valid_days as i64)));
             if let Some(exp) = expire {
                 if now > exp {
                     active.status = Set(RegCodeStatus::Expired.into());
@@ -260,7 +294,30 @@ pub async fn validate_code_impl(
             }
             // bind device id
             if rc.device_id.is_none() {
-                active.device_id = Set(Some(req.device_id));
+                // create or find app_device
+                let dev = app_devices::Entity::find()
+                    .filter(
+                        app_devices::Column::AppId
+                            .eq(app.id)
+                            .and(app_devices::Column::DeviceId.eq(req.device_id.clone())),
+                    )
+                    .one(&state.db)
+                    .await?;
+                let dev_id = if let Some(d) = dev {
+                    d.id
+                } else {
+                    app_devices::ActiveModel {
+                        app_id: Set(app.id),
+                        device_id: Set(req.device_id.clone()),
+                        device_info: Set(None),
+                        bind_time: Set(Some(Utc::now())),
+                        ..Default::default()
+                    }
+                    .insert(&state.db)
+                    .await?
+                    .id
+                };
+                active.device_id = Set(Some(dev_id));
                 active.status = Set(RegCodeStatus::Used.into());
                 active.binding_time = Set(Some(Utc::now()));
                 active.expire_time = Set(expire);
@@ -281,7 +338,29 @@ pub async fn validate_code_impl(
             }
             active.use_count = Set(used + 1);
             if rc.device_id.is_none() {
-                active.device_id = Set(Some(req.device_id.clone()));
+                let dev = app_devices::Entity::find()
+                    .filter(
+                        app_devices::Column::AppId
+                            .eq(app.id)
+                            .and(app_devices::Column::DeviceId.eq(req.device_id.clone())),
+                    )
+                    .one(&state.db)
+                    .await?;
+                let dev_id = if let Some(d) = dev {
+                    d.id
+                } else {
+                    app_devices::ActiveModel {
+                        app_id: Set(app.id),
+                        device_id: Set(req.device_id.clone()),
+                        device_info: Set(None),
+                        bind_time: Set(Some(Utc::now())),
+                        ..Default::default()
+                    }
+                    .insert(&state.db)
+                    .await?
+                    .id
+                };
+                active.device_id = Set(Some(dev_id));
             }
             active.status = Set(1);
             active.update(&state.db).await?;
