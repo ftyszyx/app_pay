@@ -1,6 +1,6 @@
 use crate::handlers::{self, *};
 use salvo::prelude::*;
-use salvo::cors::{Cors, AllowOrigin};
+use salvo::cors::{Cors, AllowOrigin, AllowHeaders};
 use salvo::http::Method;
 use crate::types::common::AppState;
 use salvo_oapi::{OpenApi, SecurityScheme};
@@ -88,7 +88,8 @@ pub fn create_router(app_state: AppState) -> Service {
     let cors = Cors::new()
     .allow_origin(AllowOrigin::any())
     .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
-    .allow_headers("authorization").into_handler();
+    // .allow_headers(vec!["authorization","content-type"]).into_handler();
+    .allow_headers(AllowHeaders::any()).into_handler();
     let router=Router::new()
         .hoop(affix_state::inject(app_state))
         .push(Router::with_path("/api/register").post(handlers::auth::register))
