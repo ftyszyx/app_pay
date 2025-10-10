@@ -1,8 +1,7 @@
 # build
 
-
 ## 一些命令
-j
+
 ### build docker
 
 ```
@@ -35,16 +34,17 @@ docker compose up -d
 ### rerun docker
 docker compose -f docker-compose.release.yml up --force-recreate server
 
-## 如何发布
 
-### 构建服务器镜像
+## 如何部署到服务器
 
-### 方法1：git 创建一个tag并推送到github
+### 构建服务器镜像(如果服务器有修改)
+
+#### 方法1：git 创建一个tag并推送到github
 会自动触发github actions发布到docker hub
 
-### 方法2：手动触发github actions
+#### 方法2：手动触发github actions
 
-### 构建web
+### 构建web(如果前端有修改)
 ```
 # python build_web.py --base-url https://appapi.bytefuse.cn/api
 python build_web.py --base-url http://localhost:3000
