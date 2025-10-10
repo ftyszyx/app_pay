@@ -1,8 +1,8 @@
 use crate::types::reg_codes_types::*;
 crate::import_crud_macro!();
 use entity::{apps, reg_codes};
-use salvo::{prelude::*, oapi::extract::JsonBody};
-use salvo_oapi::extract::{PathParam};
+use salvo::{oapi::extract::JsonBody, prelude::*};
+use salvo_oapi::extract::PathParam;
 
 // Create RegCode
 #[handler]
@@ -11,7 +11,7 @@ pub async fn add(
     req: &mut Request,
 ) -> Result<ApiResponse<RegCodeInfo>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let json=req.parse_json::<CreateRegCodeReq>().await?;
+    let json = req.parse_json::<CreateRegCodeReq>().await?;
     let entity = add_impl(&state, json).await?;
     Ok(ApiResponse::success(entity))
 }
@@ -104,10 +104,7 @@ pub async fn update_impl(
 
 // Delete RegCode
 #[handler]
-pub async fn delete(
-    depot: &mut Depot,
-    id: PathParam<i32>,
-) -> Result<ApiResponse<()>, AppError> {
+pub async fn delete(depot: &mut Depot, id: PathParam<i32>) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     delete_impl(&state, id.into_inner()).await?;
     Ok(ApiResponse::success(()))
@@ -148,7 +145,12 @@ pub async fn get_list_impl(
     crate::filter_if_some!(query, reg_codes::Column::Code, params.code, contains);
     crate::filter_if_some!(query, reg_codes::Column::AppId, params.app_id, eq);
     crate::filter_if_some!(query, reg_codes::Column::Status, params.status, eq);
-    crate::filter_if_some!(query, reg_codes::Column::CodeType, params.code_type.map(|v| i16::from(v)), eq);
+    crate::filter_if_some!(
+        query,
+        reg_codes::Column::CodeType,
+        params.code_type.map(|v| i16::from(v)),
+        eq
+    );
 
     let paginator = query.paginate(&state.db, page_size);
     let total = paginator.num_items().await.unwrap_or(0);
@@ -190,7 +192,8 @@ pub async fn get_by_id_impl(state: &AppState, id: i32) -> Result<RegCodeInfo, Ap
 }
 
 /// Validate registration code for device
-#[handler]
+// #[handler]
+#[endpoint(tags("reg_codes"))]
 pub async fn validate_code(
     depot: &mut Depot,
     req: JsonBody<RegCodeValidateReq>,
@@ -201,13 +204,20 @@ pub async fn validate_code(
 }
 
 /// Validate registration code for device (GET)
-#[handler]
+// #[handler]
+#[endpoint(
+    tags( "reg_codes" ),
+    parameters(
+        ("code"=String,Query, description = "注册码"),
+    ("app_key"=String, Query, description = "应用校验Key"),
+    ("device_id"=String, Query, description = "设备ID")
+))]
 pub async fn validate_code_get(
     depot: &mut Depot,
     req: &mut Request,
 ) -> Result<ApiResponse<RegCodeValidateResp>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    let json=req.parse_queries::<RegCodeValidateReq>()?;
+    let json = req.parse_queries::<RegCodeValidateReq>()?;
     let resp = validate_code_impl(&state, json).await?;
     Ok(ApiResponse::success(resp))
 }
@@ -223,32 +233,63 @@ pub async fn validate_code_impl(
         .await?;
     let app = app.ok_or(AppError::not_found("apps".to_string(), None))?;
     // find reg code
-    let rc = reg_codes::Entity::find().filter(reg_codes::Column::Code.eq(req.code.clone()).and(reg_codes::Column::AppId.eq(app.id)))
-        .one(&state.db).await?;
+    let rc = reg_codes::Entity::find()
+        .filter(
+            reg_codes::Column::Code
+                .eq(req.code.clone())
+                .and(reg_codes::Column::AppId.eq(app.id)),
+        )
+        .one(&state.db)
+        .await?;
     let rc = rc.ok_or(AppError::not_found("reg_code".to_string(), None))?;
     // logic by type
     let mut active = rc.clone().into_active_model();
-    match rc.code_type {
-        0 => { // time-based
-            // compute expire by created_at + valid_days if not set
-            let created = rc.created_at;
-            let expire = rc.expire_time.or_else(|| Some(created + chrono::Duration::days(rc.valid_days as i64)));
+    match rc.code_type.into() {
+        CodeType::Time => {
+            // time-based
             let now = chrono::Utc::now();
-            if let Some(exp) = expire { if now > exp { return Err(AppError::Message("code expired".into())); } }
+            let expire = rc
+                .expire_time
+                .or_else(|| Some(now+ chrono::Duration::days(rc.valid_days as i64)));
+            if let Some(exp) = expire {
+                if now > exp {
+                    active.status = Set(RegCodeStatus::Expired.into());
+                    active.update(&state.db).await?;
+                    return Err(AppError::Message("code expired".into()));
+                }
+            }
             // bind device id
-            if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id)); active.status = Set(1); active.update(&state.db).await?; }
-            Ok(RegCodeValidateResp { code_type: CodeType::Time, expire_time: expire, remaining_count: None })
+            if rc.device_id.is_none() {
+                active.device_id = Set(Some(req.device_id));
+                active.status = Set(RegCodeStatus::Used.into());
+                active.binding_time = Set(Some(Utc::now()));
+                active.expire_time = Set(expire);
+                active.update(&state.db).await?;
+            }
+            Ok(RegCodeValidateResp {
+                code_type: CodeType::Time,
+                expire_time: expire,
+                remaining_count: None,
+            })
         }
-        1 => { // count-based
+        CodeType::Count => {
+            // count-based
             let total = rc.total_count.unwrap_or(0);
             let used = rc.use_count;
-            if used >= total { return Err(AppError::Message("code used up".into())); }
+            if used >= total {
+                return Err(AppError::Message("code used up".into()));
+            }
             active.use_count = Set(used + 1);
-            if rc.device_id.is_none() { active.device_id = Set(Some(req.device_id.clone())); }
+            if rc.device_id.is_none() {
+                active.device_id = Set(Some(req.device_id.clone()));
+            }
             active.status = Set(1);
             active.update(&state.db).await?;
-            Ok(RegCodeValidateResp { code_type: CodeType::Count, expire_time: None, remaining_count: Some(total - used - 1) })
+            Ok(RegCodeValidateResp {
+                code_type: CodeType::Count,
+                expire_time: None,
+                remaining_count: Some(total - used - 1),
+            })
         }
-        _ => Err(AppError::Message("invalid code type".into())),
     }
 }

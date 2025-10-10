@@ -87,7 +87,11 @@
     "created": "Created",
     "quantity": "Quantity",
     "type": "Type",
-    "type_count": "Count"
+    "type_count": "Count",
+    "status_unused": "Unused",
+    "status_used": "Used",
+    "status_expired": "Expired",
+    "device_id": ""
   },
   "products": {
     "input_name": "Enter name",

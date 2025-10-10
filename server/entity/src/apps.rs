@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use salvo_oapi::ToSchema;
+// use utoipa::ToSchema;
 
 #[derive(Deserialize, Clone, Debug, PartialEq, DeriveEntityModel, Serialize, ToSchema)]
 #[sea_orm(table_name = "apps")]

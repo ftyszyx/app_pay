@@ -2,8 +2,10 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 use chrono::{DateTime, Utc};
 use crate::types::common::ListParamsReq;
+// use utoipa::ToSchema;
+use salvo_oapi::ToSchema;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize,ToSchema)]
 #[repr(i16)]
 #[serde(from = "i16", into = "i16")]
 pub enum CodeType {
@@ -31,7 +33,7 @@ impl From<CodeType> for i16 {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq,Serialize, Deserialize,ToSchema)]
 #[repr(i16)]
 #[serde(from = "i16", into = "i16")]
 pub enum RegCodeStatus {
@@ -61,7 +63,7 @@ impl From<RegCodeStatus> for i16 {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate,Default)]
+#[derive(Serialize, Deserialize, Debug, Validate,Default,ToSchema)]
 pub struct CreateRegCodeReq {
     pub code: String,
     pub app_id: i32,
@@ -74,21 +76,21 @@ pub struct CreateRegCodeReq {
     pub total_count: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate,ToSchema)]
 pub struct RegCodeValidateReq {
     pub code: String,
     pub app_key: String,
     pub device_id: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug,ToSchema)]
 pub struct RegCodeValidateResp {
     pub code_type: CodeType,
     pub expire_time: Option<DateTime<Utc>>,
     pub remaining_count: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate,ToSchema)]
 pub struct UpdateRegCodeReq {
     pub code: Option<String>,
     pub app_id: Option<i32>,
@@ -120,7 +122,7 @@ pub struct SearchRegCodesParams {
     pub code_type: Option<CodeType>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Validate)]
+#[derive(Serialize, Deserialize, Debug, Validate,ToSchema)]
 pub struct RegCodeInfo {
     pub id: i32,
     pub code: String,

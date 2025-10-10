@@ -7,9 +7,9 @@ export interface RegCodeModel {
   bind_device_info?: any | null
   valid_days: number
   max_devices: number
-  status: number
+  status: RegCodeStatus
   binding_time?: string | null
-  code_type: number
+  code_type: RegCodeType
   expire_time?: string | null
   total_count?: number | null
   use_count: number
@@ -19,18 +19,29 @@ export interface RegCodeModel {
   app_name?: string | null
 }
 
+export enum RegCodeType {
+  Time = 0,
+  Count = 1,
+}
+
+export enum RegCodeStatus {
+  Unused = 0,
+  Used = 1,
+  Expired = 2,
+}
+
 export type ListRegCodesParams = {
   id?: number
   code?: string
   app_id?: number
-  status?: number
-  code_type?: number
+  status?: RegCodeStatus
+  code_type?: RegCodeType
 } & ListParamsReq
 
 export interface BatchCreateRegCodesReq {
   app_id: number
   quantity: number
-  code_type: number // 0 time, 1 count
+  code_type: RegCodeType
   valid_days?: number | null
   total_count?: number | null
 }

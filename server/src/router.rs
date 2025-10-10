@@ -3,6 +3,8 @@ use salvo::prelude::*;
 use salvo::cors::{Cors, AllowOrigin};
 use salvo::http::Method;
 use crate::types::common::AppState;
+use salvo_oapi::{OpenApi, SecurityScheme};
+use salvo_oapi::security::{Http, HttpAuthScheme};
 
 
 pub fn create_router(app_state: AppState) -> Service {
@@ -97,7 +99,9 @@ pub fn create_router(app_state: AppState) -> Service {
         .push( admin_routes)
         .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list));
     //添加swagger-ui
-    let doc=OpenApi::new("app_server_api", "1.0.0").merge_router(&router);
+    let doc=OpenApi::new("app_server_api", "1.0.0")
+        .add_security_scheme("bearer", SecurityScheme::Http(Http::new(HttpAuthScheme::Bearer).bearer_format("JWT")))
+        .merge_router(&router);
     let router=router.unshift(doc.into_router("/api-doc/openapi.json"))
     .unshift(SwaggerUi::new("/api-doc/openapi.json").into_router("/swagger-ui"));
     let service=Service::new(router).hoop(cors).hoop(Logger::new());

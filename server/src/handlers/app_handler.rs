@@ -11,7 +11,8 @@ use sea_orm::{
     QueryOrder, Set, IntoActiveModel,
 };
 // Create App
-#[endpoint]
+#[endpoint(security(["bearer" = []]))]
+// #[handler]
 pub async fn add(
     depot:&mut Depot,
     req: JsonBody<AddAppReq>,

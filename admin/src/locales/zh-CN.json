@@ -166,6 +166,10 @@
     "total_count": "总次数",
     "binding_time": "绑定时间",
     "expire_time": "过期时间",
-    "used_count": "已使用次数"
+    "used_count": "已使用次数",
+    "status_unused": "未使用",
+    "status_used": "已使用",
+    "status_expired": "已过期",
+    "device_id": "设备ID"
   }
 }
