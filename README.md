@@ -49,6 +49,13 @@ pub: 服务器部署相关
 数据库文件在pub/deploy/postgres/init.sql
 初始账号密码：admin/admin
 
+#### 先配置环境变量
+
+修改.env.example为.env
+配置其中的参数
+
+#### 启动
+
 ```
 cd server
 cargo run
@@ -64,7 +71,14 @@ npm run dev
 
 ## 服务器部署
 
+切到pub目录下
+
 需要有docker 环境
+
+### 修改环境变量
+
+修改.env.example为.env
+配置其中的参数
 
 ### 启动服务器
 
