@@ -8,6 +8,7 @@ pub struct Config {
     pub jwt: JwtConfig,
     pub server: ServerConfig,
     pub oss: OssConfig,
+    pub register_open: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -56,6 +57,10 @@ impl Config {
             jwt: JwtConfig::from_env()?,
             server: ServerConfig::from_env()?,
             oss: OssConfig::from_env()?,
+            register_open: env::var("REGISTER_OPEN")
+                .unwrap_or_else(|_| "false".to_string())
+                .parse()
+                .map_err(|_| AppError::Message("Invalid REGISTER_OPEN value".to_string()))?,
         })
     }
 }

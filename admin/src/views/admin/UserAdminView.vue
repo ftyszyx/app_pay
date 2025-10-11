@@ -3,41 +3,46 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { formatTime } from '@/utils'
 import { fetchUsers, createUser, updateUser, deleteUser } from '@/apis/users'
+import { fetchRoles } from '@/apis/roles'
 import { useI18n } from 'vue-i18n'
 import type { UserInfo } from '@/types/user'
+import type { RoleInfo } from '@/types'
 const rows = ref<UserInfo[]>([])
+const roles = ref<RoleInfo[]>([])
 const selectedIds = ref<number[]>([])
 const page = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 const { t } = useI18n()
-
 const query = reactive({ username: '' as string | undefined })
-
-async function reload() { const data = await fetchUsers({ page: page.value, page_size: pageSize.value, username: query.username || undefined }); rows.value = data.list; total.value = data.total }
+async function reload() {
+  const data = await fetchUsers({ page: page.value, page_size: pageSize.value, username: query.username || undefined });
+  rows.value = data.list;
+  total.value = data.total
+}
+async function reloadRoles() {
+  const data = await fetchRoles({ page: 1, page_size: 1000 });
+  roles.value = data.list
+}
 function resetFilters() { query.username = ''; page.value = 1; reload() }
 function onSelChange(arr: UserInfo[]) { selectedIds.value = arr.map(it => it.id) }
 function handlePageChange(p: number) { page.value = p; reload() }
 function handleSizeChange(s: number) { pageSize.value = s; page.value = 1; reload() }
-
 const dialog = reactive({ visible: false, mode: 'create' as 'create' | 'edit', editingId: undefined as number | undefined })
 const formRef = ref<FormInstance>()
-const form = reactive<{ username: string; password?: string }>({ username: '', password: '' })
+const form = reactive<{ username: string; password?: string; role_id?: number }>({ username: '', password: '', role_id: undefined })
 const rules = reactive<FormRules>({ username: [{ required: true, message: 'Username required' }] })
-
-function openCreate() { dialog.mode = 'create'; dialog.editingId = undefined; form.username = ''; form.password = ''; dialog.visible = true }
-function openEdit(row: UserInfo) { dialog.mode = 'edit'; dialog.editingId = row.id; form.username = row.username; form.password = ''; dialog.visible = true }
-
+function openCreate() { dialog.mode = 'create'; dialog.editingId = undefined; form.username = ''; form.password = ''; form.role_id = undefined; dialog.visible = true }
+function openEdit(row: UserInfo) { dialog.mode = 'edit'; dialog.editingId = row.id; form.username = row.username; form.password = ''; form.role_id = row.role_id; dialog.visible = true }
 async function submit() {
-  const valid = await formRef.value?.validate(); if (!valid) { ElMessage.error(t('common.please_check_form') as string); return }
-  if (dialog.mode === 'create') { await createUser({ username: form.username, password: form.password || '' }); ElMessage.success(t('common.created') as string) }
-  else if (dialog.editingId != null) { await updateUser(dialog.editingId, { username: form.username }); ElMessage.success(t('common.save') as string) }
+  const valid = await formRef.value?.validate();
+  if (!valid) { ElMessage.error(t('common.please_check_form') as string); return }
+  if (dialog.mode === 'create') { await createUser({ username: form.username, password: form.password || '', role_id: form.role_id }); ElMessage.success(t('common.created') as string) }
+  else if (dialog.editingId != null) { await updateUser(dialog.editingId, { username: form.username, role_id: form.role_id }); ElMessage.success(t('common.save') as string) }
   dialog.visible = false; await reload()
 }
-
 async function del(id: number) { await ElMessageBox.confirm(t('common.delete_confirm', { name: rows.value.find(it => it.id === id)?.username || '' }), t('common.confirm'), { type: 'warning' }); await deleteUser(id); ElMessage.success(t('common.deleted') as string); reload() }
-
-onMounted(reload)
+onMounted(() => { reload(); reloadRoles() })
 </script>
 
 <template>
@@ -62,6 +67,9 @@ onMounted(reload)
             </div>
           </template>
         </el-table-column>
+        <el-table-column :label="$t('menu.roles')" min-width="140">
+          <template #default="{ row }">{{ row.role_name }}</template>
+        </el-table-column>
         <el-table-column :label="$t('orders.created')" min-width="180">
           <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
         </el-table-column>
@@ -83,6 +91,11 @@ onMounted(reload)
       width="520px">
       <el-form label-width="140px" ref="formRef" :model="form" :rules="rules">
         <el-form-item :label="$t('auth.username')" prop="username"><el-input v-model="form.username" /></el-form-item>
+        <el-form-item :label="$t('menu.roles')" prop="role_id">
+          <el-select v-model="form.role_id" class="w-full">
+            <el-option v-for="r in roles" :key="r.id" :label="r.name" :value="r.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item v-if="dialog.mode === 'create'" :label="$t('auth.password')" prop="password"><el-input
             v-model="form.password" type="password" /></el-form-item>
       </el-form>

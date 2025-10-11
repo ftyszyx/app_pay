@@ -11,6 +11,7 @@ pub fn create_router(app_state: AppState) -> Service {
     let admin_routes = Router::with_path("/api/admin")
         .hoop(middleware::auth)
         .hoop(middleware::error_handler)
+        .hoop(casbin_middleware::casbin_auth)
         .push(Router::with_path("me").get(handlers::auth::get_current_user))
         //users
         .push(Router::with_path("me/password").post(handlers::auth::change_password))
@@ -92,15 +93,18 @@ pub fn create_router(app_state: AppState) -> Service {
     .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
     // .allow_headers(vec!["authorization","content-type"]).into_handler();
     .allow_headers(AllowHeaders::any()).into_handler();
-    let router=Router::new()
+    let register_open = app_state.config.register_open;
+    let mut router=Router::new()
         .hoop(affix_state::inject(app_state))
-        // .push(Router::with_path("/api/register").post(handlers::auth::register))
         .push(Router::with_path("/api/login").post(handlers::auth::login))
         .push  (Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
         .push(Router::with_path("/api/reg/validate").post(handlers::reg_codes_handler::validate_code))
         .push(Router::with_path("/api/reg/validate").get(handlers::reg_codes_handler::validate_code_get))
         .push( admin_routes)
         .push(Router::with_path("/api/vuefinder/list").get(handlers::vuefinder_handler::list));
+    if register_open {
+        router=router.push(Router::with_path("/api/register").post(handlers::auth::register));
+    }
     //添加swagger-ui
     let doc=OpenApi::new("app_server_api", "1.0.0")
         .add_security_scheme("bearer", SecurityScheme::Http(Http::new(HttpAuthScheme::Bearer).bearer_format("JWT")))

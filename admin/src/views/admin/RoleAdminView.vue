@@ -55,17 +55,17 @@ onMounted(reload)
       <el-table :data="rows" stripe size="large" style="width: 100%" @selection-change="onSelChange">
         <el-table-column type="selection" width="50" />
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="Name" min-width="160">
+        <el-table-column :label="$t('common.name')" min-width="160">
           <template #default="{ row }">
             <div class="flex items-center gap-2">
               <span class="text-gray-800 break-all">{{ row.name }}</span>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="Remark" min-width="200">
+        <el-table-column :label="$t('common.remark')" min-width="200">
           <template #default="{ row }">{{ row.remark }}</template>
         </el-table-column>
-        <el-table-column :label="$t('orders.created')" min-width="180">
+        <el-table-column :label="$t('common.created')" min-width="180">
           <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
         </el-table-column>
         <el-table-column :label="$t('common.actions')" width="200" fixed="right">
@@ -84,8 +84,8 @@ onMounted(reload)
 
     <el-dialog v-model="dialog.visible" :title="dialog.mode === 'create' ? $t('common.create') : $t('common.edit')" width="520px">
       <el-form label-width="140px" ref="formRef" :model="form" :rules="rules">
-        <el-form-item label="Name" prop="name"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item label="Remark" prop="remark"><el-input v-model="form.remark" /></el-form-item>
+        <el-form-item :label="$t('common.name')" prop="name"><el-input v-model="form.name" /></el-form-item>
+        <el-form-item :label="$t('common.remark')" prop="remark"><el-input v-model="form.remark" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialog.visible = false">{{ $t('common.cancel') }}</el-button>

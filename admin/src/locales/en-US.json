@@ -34,7 +34,10 @@
     "new": "New",
     "generate": "Generate",
     "settings": "Settings",
-    "delete_confirm": ""
+    "delete_confirm": "",
+    "name": "",
+    "remark": "",
+    "id": ""
   },
   "auth": {
     "password_mismatch": "Passwords do not match",
@@ -64,9 +67,9 @@
     "orders": "Orders",
     "users": "Users",
     "resources": "Resources",
-    "roles": "",
-    "devices": "",
-    "permissions": ""
+    "roles": "Roles",
+    "devices": "Devices",
+    "permissions": "Permissions"
   },
   "users": {
     "title": "User Management",
@@ -169,6 +172,32 @@
     "version_code": "Version code",
     "download_url": "Download URL",
     "resource_url": "Resource URL",
-    "sort_order": "Sort order"
+    "sort_order": "Sort order",
+    "input_valid_key": ""
+  },
+  "permissions": {
+    "policy_add": "",
+    "add_role_for_user": "",
+    "check_permission": "",
+    "reload_policies": "",
+    "policies": "",
+    "subject": "",
+    "object": "",
+    "action": "",
+    "role_links": "",
+    "user": "",
+    "role": "",
+    "add_policy": "",
+    "remove_policy": "",
+    "remove_role_for_user": "",
+    "user_id": "",
+    "resource": "",
+    "result": ""
+  },
+  "devices": {
+    "device_id": "",
+    "binding_time": "",
+    "expire_time": "",
+    "apptitle": ""
   }
 }

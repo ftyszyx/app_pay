@@ -2,8 +2,8 @@
   <div class="space-y-4">
     <el-card shadow="hover">
       <div class="flex items-center gap-2">
-        <el-input v-model="query.device_id" placeholder="Device ID" clearable class="w-56" />
-        <el-input v-model.number="query.app_id" placeholder="App ID" clearable class="w-40" />
+        <el-input v-model="query.device_id" :placeholder="$t('devices.device_id')" clearable class="w-56" />
+        <el-input v-model.number="query.app_id" :placeholder="$t('apps.app_id')" clearable class="w-40" />
         <el-button type="primary" @click="reload">{{ $t('common.search') }}</el-button>
         <el-button @click="resetFilters">{{ $t('common.reset') }}</el-button>
       </div>
@@ -11,15 +11,15 @@
 
     <el-card shadow="never">
       <el-table :data="rows" stripe size="large" style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column :label="$t('apps.name')" min-width="160">
+        <el-table-column prop="id" :label="$t('common.id')" width="80" />
+        <el-table-column :label="$t('devices.apptitle')" min-width="160">
           <template #default="{ row }">{{ row.app_name }} ({{ row.app_id }})</template>
         </el-table-column>
-        <el-table-column prop="device_id" label="Device ID" min-width="200" />
-        <el-table-column :label="$t('reg_codes.binding_time')" min-width="180">
+        <el-table-column prop="device_id" :label="$t('devices.device_id')" min-width="200" />
+        <el-table-column :label="$t('devices.binding_time')" min-width="180">
           <template #default="{ row }">{{ formatTime(row.bind_time) }}</template>
         </el-table-column>
-        <el-table-column :label="$t('reg_codes.expire_time')" min-width="180">
+        <el-table-column :label="$t('devices.expire_time')" min-width="180">
           <template #default="{ row }">{{ formatTime(row.expire_time) }}</template>
         </el-table-column>
       </el-table>

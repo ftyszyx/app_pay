@@ -1,4 +1,4 @@
-use crate::types::common::{AppState, PagingResponse};
+use crate::types::common::{AppState, Claims, PagingResponse};
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
 use crate::types::user_types::*;
@@ -71,12 +71,22 @@ pub async fn delete(
     id: PathParam<i32>,
 ) -> Result<ApiResponse<()>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
-    delete_impl(&state, id.into_inner()).await?;
+    let claim = depot.obtain::<Claims>().unwrap();
+    let id = id.into_inner();
+    //cant delete self
+    if id == claim.sub {
+        return Err(AppError::Message("cannot delete self".to_string()));
+    }
+    delete_impl(&state, id).await?;
     Ok(ApiResponse::success(()))
 }
 
 pub async fn delete_impl(state: &AppState, id: i32) -> Result<(), AppError> {
     let user = users::Entity::find_by_id(id).one(&state.db).await?;
+    //cant delete admin user
+    if user.is_some() && user.as_ref().unwrap().role_id == crate::constants::ADMIN_ROLE_ID {
+        return Err(AppError::Message("admin user cannot be deleted".to_string()));
+    }
     let user = user.ok_or_else(|| AppError::not_found("users".to_string(), Some(id)))?;
     let mut user = user.into_active_model();
     user.deleted_at = Set(Some(Utc::now()));

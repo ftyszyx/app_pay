@@ -16,14 +16,14 @@ pub struct RemovePolicyReq {
 
 #[derive(Deserialize, Debug)]
 pub struct AddRoleReq {
-    pub user: String, // 用户ID
-    pub role: String, // 角色名
+    pub user_id: i32, // 用户ID
+    pub role_id: i32, // 角色名
 }
 
 #[derive(Deserialize, Debug)]
 pub struct RemoveRoleReq {
-    pub user: String,
-    pub role: String,
+    pub user_id: i32,
+    pub role_id: i32,
 }
 
 #[derive(Serialize, Debug)]
@@ -35,6 +35,7 @@ pub struct PolicyInfo {
 
 #[derive(Serialize, Debug)]
 pub struct RoleInfo {
+    pub user_id: i32,
     pub user: String,
     pub role: String,
 }

@@ -303,7 +303,11 @@ CREATE TABLE "casbin_rule" (
 
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'read', '', '', '');
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'update', '', '', '');
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'delete', '', '', '');
+INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'admin', '/*', 'create', '', '', '');
 
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'user', '/*', 'read', '', '', '');
 
 INSERT INTO "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('p', 'guest', '/*', 'read', '', '', '');
+
+Insert into "casbin_rule" ("ptype", "v0", "v1", "v2", "v3", "v4", "v5") VALUES ('g', '1', 'admin', '', '', '', '');

@@ -1,4 +1,5 @@
-use crate::types::casbin_types::*;
+use crate::handlers::role_handler;
+use crate::{handlers::user_handler, types::casbin_types::*};
 use crate::types::common::AppState;
 use crate::types::error::AppError;
 use crate::types::response::ApiResponse;
@@ -42,7 +43,12 @@ pub async fn add_role_for_user(
 ) -> Result<ApiResponse<bool>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let req = req.into_inner();
-    let result = state.casbin.add_role_for_user(&req.user, &req.role).await?;
+    //get userinfo from database
+    let userinfo = user_handler::get_by_id_impl(&state, req.user_id).await?;
+    //get roleinfo from database
+    let roleinfo = role_handler::get_by_id_impl(&state, req.role_id).await?;
+    let role_str = roleinfo.name;
+    let result = state.casbin.add_role_for_user(&userinfo.id.to_string(), &role_str).await?;
     Ok(ApiResponse::success(result))
 }
 
@@ -54,9 +60,14 @@ pub async fn remove_role_for_user(
 ) -> Result<ApiResponse<bool>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let req = req.into_inner();
+    //get userinfo from database
+    let userinfo = user_handler::get_by_id_impl(&state, req.user_id).await?;
+    //get roleinfo from database
+    let roleinfo = role_handler::get_by_id_impl(&state, req.role_id).await?;
+    let role_str = roleinfo.name;
     let result = state
         .casbin
-        .delete_role_for_user(&req.user, &req.role)
+        .delete_role_for_user(&userinfo.id.to_string(), &role_str)
         .await?;
     Ok(ApiResponse::success(result))
 }
@@ -87,14 +98,19 @@ pub async fn get_roles(
 ) -> Result<ApiResponse<Vec<RoleInfo>>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let roles = state.casbin.get_grouping_policy().await?;
-    let role_infos: Vec<RoleInfo> = roles
-        .into_iter()
-        .filter(|r| r.len() >= 2)
-        .map(|r| RoleInfo {
-            user: r[0].clone(),
+    let roleinfos=roles.into_iter().filter(|r| r.len() >= 2);
+    let mut role_infos: Vec<RoleInfo> = Vec::new();
+    for r in roleinfos {
+        let user_id = r[0].clone();
+        //can return error
+        let user_id = user_id.parse::<i32>().map_err(|e| AppError::Message(e.to_string()))?;
+        let user = user_handler::get_by_id_impl(&state, user_id).await?;
+        role_infos.push(RoleInfo {
+            user_id: user.id,
+            user: user.username,
             role: r[1].clone(),
-        })
-        .collect();
+        });
+    }
     Ok(ApiResponse::success(role_infos))
 }
 
@@ -106,7 +122,9 @@ pub async fn check_permission(
 ) -> Result<ApiResponse<bool>, AppError> {
     let state = depot.obtain::<AppState>().unwrap();
     let req = req.into_inner();
-    let user_str = req.user_id.to_string();
+    //get userinfo from database
+    let userinfo = user_handler::get_by_id_impl(&state, req.user_id).await?;
+    let user_str = userinfo.username;
     let result = state
         .casbin
         .enforce(&user_str, &req.resource, &req.action)

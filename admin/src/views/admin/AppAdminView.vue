@@ -221,6 +221,7 @@ const rules = reactive<FormRules<AddAppReq>>({
   name: [{ required: true, message: t("apps.input_name") }],
   app_id: [{ required: true, message: t("apps.input_app_id") }],
   app_vername: [{ required: true, message: t("apps.input_version_name") }],
+  app_valid_key: [{ required: true, message: t("apps.input_valid_key") }],
   app_vercode: [{ required: true, message: t("apps.input_version_code") }],
 });
 
