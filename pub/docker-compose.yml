@@ -14,6 +14,7 @@ services:
       - "3000:3000"
     volumes:
       - ./deploy/server/logs:/app/logs
+      - ./deploy/server/casbin_model.conf:/usr/src/app/casbin_model.conf
     restart: unless-stopped
 
   db:

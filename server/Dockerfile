@@ -25,7 +25,7 @@ RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debia
  && apt-get install -y --no-install-recommends pkg-config libssl-dev libpq-dev nodejs npm curl \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/out/app_server .
-COPY casbin_model.conf .
+# COPY casbin_model.conf .
 EXPOSE 3000
 CMD ["./app_server"]
 # CMD ["/bin/bash"]
