@@ -46,6 +46,8 @@ pub: 服务器部署相关
 
 ### 启动服务器
 需要有redis和postgres环境
+数据库文件在pub/deploy/postgres/init.sql
+初始账号密码：admin/admin
 
 ```
 cd server
@@ -60,7 +62,7 @@ cd admin
 npm run dev
 ```
 
-### 服务器部署
+## 服务器部署
 
 需要有docker 环境
 
