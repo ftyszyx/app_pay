@@ -1,78 +1,99 @@
 # LicenseHub
 
-pay for app
+## 系统说明
 
-# 系统说明
+一个提供注册码生成和验证的系统
 
 ## 背景：
 
-我做了一个软件，想为这个软件做一个付费系统
+最近写了一个pc端的程序，考虑如何通过软件获取收益呢？
 
-需求如下：
+一般的方案通过软件注册码的方式。
 
-用户可以在这个系统上买注册码，在我的软件输入后，就会绑定软件安装的设备。
+1. 用户下载软件无门槛
+2. 软件有一定的试用期，在试用期内可以免费使用
+3. 如果超过试用期，打开软件时需要填写注册码。
+4. 注册码需要软件开发者提供，每个注册码会有时间限制，也可以是不限时间。
 
-1. 注册码需要有有效期
-2. 注册码需要有设备绑定限制
-3. 需要提供接口给客户端验证注册码是否有效
+搜索了一些目前开源的方案：
 
+1. kamiFaka：https://github.com/Baiyuetribe/kamiFaka (注册码生成方式不满足需求)
+1. dujiaoka: https://github.com/assimon/dujiaoka (注册码生成方式不满足需求)
+1. xxgkamiexe: https://github.com/xiaoxiaoguai-yyds/xxgkamiexe (基本满足需求，可是无试用期)
 
-## 参考：
+其中xxgkamiexe大部分满足，但是没有实现试用期的功能
+所以自己实现了一个。
 
-1. 展示页：https://tech.baiyue.one/#/byfaka
-2. 前台：http://8.134.209.8:3232/
-3. 后台：http://8.134.209.8:3232/admin#/
-4. 说明文档：http://8.134.209.8:3200/
-1. https://github.com/Baiyuetribe/kamiFaka
+## 技术方案
 
-
-1. https://github.com/xiaoxiaoguai-yyds/xxgkami
-
-相当于是一个商城：
-
-https://github.com/macrozheng/mall
-
-## 系统：
-
-1. 用户可以购买系统的商品，这个商品对应的是一个注册码，
-1. 注册码有有效期、不同有效期的价格不一样。
-1. 购买完后，系统会自动生成一个注册码
-1. 用户使用此注册码绑定设备后，系统会有记录
-1. 注册码会限制绑定设备数量，默认是一个设备。
+整个系统采用前后端分离设计。
+1. 前端就是一个管理员后台，使用vue3.
+2. 后端：最近在学 rust，想拿一个项目练手，所以就用 rust了。 web框架使用salvo：
+https://github.com/salvo-rs/salvo
+3. 先不加入支付，只用实现注册码生成和验证接口即可。
 
 
-## todo
+## 项目结构
 
-1. 增加 权限管理 使用- **权限**: Casbin
-2. 支付功能:支付宝和微信 
-1. 图片上传功能
+admin: 前端代码
+
+server: 后端rust代码
+
+pub: 服务器部署相关
+
+## 本地测试
 
 
-1.  不需要支付
-1. apps 增加app_valid_key字段，可以通过app_valid_key来验证注册码是否有效
-1. apps 增加试用期时长字段，表示试用期时长
-2. reg_code增加 类型字段code_type 0: 时间类型  1：次数类型
-3. 如果是时间 类型，reg_code增加 expire_time字段，表示过期时间,还有使用时间 use_time字段，表示使用时间
-4. 如果是次数类型，reg_code增加 total_count字段，表示总次数，还有使用次数 use_count字段，表示使用次数
-5. reg_code增加device_id字段，表示绑定的设备id
-1. 增加一个api 接口，可以查询注册码是否有效,
-    {
-        "code": "123456",
-        "app_key": "123456",
-        "device_id": "123456"
+### 启动服务器
+需要有redis和postgres环境
+
+```
+cd server
+cargo run
+```
+
+### 启动前端
+需要有node.js环境
+
+```
+cd admin
+npm run dev
+```
+
+### 服务器部署
+
+需要有docker 环境
+
+### 启动服务器
+
+```
+cd  pub
+update_server.sh
+
+```
+### 启动前端
+
+需要nginx配置
+
+```
+location / {
+        try_files $uri $uri/ /index.html;
     }
-    返回 ：
-    成功:返回过期时间或者还有多少次
-    失败：返回错误信息
+```
 
+编译生成对应的前端资源
+```
+python build_web.py --base-url {your server_url}
+```
 
+将目录下的资源同步到网站目录即可
 
-2. 增加app_valid_key的验证api 接口，
-
-LicenseHub - 许可证中心，突出软件许可管理的核心功能
-
+```
+rsync -avz web/ /opt/1panel/www/sites/index/ 
+```
 
 ## todos
+
 1. 角色权限管理
 
 
