@@ -4,6 +4,9 @@
 
 一个提供注册码生成和验证的系统
 
+文档介绍：https://ftyszyx.github.io/feishu-vitepress/Az6dd7PeSomasjxtphxchUqxnOg
+
+
 ## 背景：
 
 最近写了一个pc端的程序，考虑如何通过软件获取收益呢？
@@ -108,9 +111,83 @@ python build_web.py --base-url {your server_url}
 rsync -avz web/ /opt/1panel/www/sites/index/ 
 ```
 
+## 效果展示
+### 3.4.1 创建一个应用 
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/Nohdbg42JoE3tLx2BBBcJ4Qenil.png)
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/E1STbOR0ToUzFrxPJmkckFbOnJd.png)
+
+### 3.4.2 批量生成注册码
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/FDNTbvVFTolOwfxqTNzcUiOjnOd.png)
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/VJAqbckdzohgwMxrWltc7SYynSh.png)
+
+生成的注册码
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/IHaMbSnesov0dBxGb8nczoQynrc.png)
+
+### 3.4.3 验证注册码接口
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/J7qbbVWFloPGj3xU1Mbc2xbRncb.png)
+
+#### 3.4.3.1 试用
+
+如果是试用用户，可以不填注册码
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/X5SFb9cSiotk2sx2bRtcJkHen3P.png)
+
+返回内容
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "code_type": 0,
+    "expire_time": "2025-10-21T07:37:54.307715500Z",
+    "remaining_count": null
+  },
+  "success": true
+}
+```
+
+此时后台可以查到用户的试用信息
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/NoMjbDlEIoUXGKxuvGccYguZn04.png)
+
+#### 3.4.3.2 正式用户
+
+填注册码
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/E4A9byFIhoVuC7xVBYPcZc2knZb.png)
+
+返回 
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "code_type": 0,
+    "expire_time": "2026-06-21T07:39:51.714245400Z",
+    "remaining_count": null
+  },
+  "success": true
+}
+```
+
+后台可以查询到注册码已经使用
+
+![](https://ftyszyx.github.io/feishu-vitepress/assets/VoQQbdDswockkzxa8F7cWpShnEt.png)
+
+
+
 ## todos
 
 1. 角色权限管理
+
 
 
 
