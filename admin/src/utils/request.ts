@@ -1,6 +1,7 @@
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { consoleError, consoleLog } from './log'
 import { ElMessage } from 'element-plus'
+import router from '@/router'
 
 console.log("request", import.meta.env.VITE_BASE_URL || '/api')
 const instance = axios.create({
@@ -38,7 +39,14 @@ instance.interceptors.response.use(
 
   },
   (error: any) => {
-    consoleError(`[error] ${error.config?.method} ${error.config?.baseURL}${error.config?.url}`)
+    var status = error.response?.status
+    if(status === 401) {
+      localStorage.removeItem('token')
+      router.push('/login')
+      ElMessage.error('登录过期，请重新登录')
+      return Promise.reject(error)
+    }
+    consoleError(`[error] ${error.config?.method} ${error.config?.baseURL}${error.config?.url} status: ${error.response?.status}`)
     ElMessage.error(`${error.code}:${error.message}`)
     return Promise.reject(error)
   }
