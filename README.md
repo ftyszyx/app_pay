@@ -112,13 +112,13 @@ rsync -avz web/ /opt/1panel/www/sites/index/
 ```
 
 ## 效果展示
-### 3.4.1 创建一个应用 
+### 创建一个应用 
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/Nohdbg42JoE3tLx2BBBcJ4Qenil.png)
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/E1STbOR0ToUzFrxPJmkckFbOnJd.png)
 
-### 3.4.2 批量生成注册码
+### 批量生成注册码
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/FDNTbvVFTolOwfxqTNzcUiOjnOd.png)
 
@@ -128,11 +128,11 @@ rsync -avz web/ /opt/1panel/www/sites/index/
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/IHaMbSnesov0dBxGb8nczoQynrc.png)
 
-### 3.4.3 验证注册码接口
+###  验证注册码接口
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/J7qbbVWFloPGj3xU1Mbc2xbRncb.png)
 
-#### 3.4.3.1 试用
+#### 试用
 
 如果是试用用户，可以不填注册码
 
@@ -157,7 +157,7 @@ rsync -avz web/ /opt/1panel/www/sites/index/
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/NoMjbDlEIoUXGKxuvGccYguZn04.png)
 
-#### 3.4.3.2 正式用户
+#### 正式用户
 
 填注册码
 
@@ -182,11 +182,22 @@ rsync -avz web/ /opt/1panel/www/sites/index/
 
 ![](https://ftyszyx.github.io/feishu-vitepress/assets/VoQQbdDswockkzxa8F7cWpShnEt.png)
 
+## 问题反馈
 
+邮箱：whyzi@qq.com
+
+qq: 2246855973
+
+qq群： 572194495
+
+公众号
+
+![qrcode_for_gh_ece64bbdb799_258](https://github.com/user-attachments/assets/c8e715dd-4d7f-4b8d-884d-67a2c29961b9)
 
 ## todos
 
 1. 角色权限管理
+
 
 
 
