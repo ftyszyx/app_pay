@@ -233,7 +233,8 @@ pub async fn validate_code_impl(
     let app = app.ok_or(AppError::not_found("apps".to_string(), None))?;
     let now = chrono::Utc::now();
     // let app_expire = now + chrono::Duration::days(app.trial_days as i64);
-    if req.code.is_none() {
+    let code = req.code.clone();
+    if code.is_none() || code.unwrap().is_empty() {
         let dev = app_devices::Entity::find()
             .filter(
                 app_devices::Column::AppId
