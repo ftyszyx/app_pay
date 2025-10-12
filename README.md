@@ -5,6 +5,7 @@
 一个提供注册码生成和验证的系统
 
 文档介绍：https://ftyszyx.github.io/feishu-vitepress/Az6dd7PeSomasjxtphxchUqxnOg
+https://blog.bytefuse.cn/Az6dd7PeSomasjxtphxchUqxnOg
 
 
 ## 背景：
@@ -197,6 +198,7 @@ qq群： 572194495
 ## todos
 
 1. 角色权限管理
+
 
 
 
