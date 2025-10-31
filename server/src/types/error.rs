@@ -1,7 +1,10 @@
-use sea_orm::DbErr;
 use crate::types::response::ApiResponse;
+use salvo::{
+    http::{ParseError, StatusCode},
+    prelude::*,
+};
+use sea_orm::DbErr;
 use std::{convert::Infallible, fmt};
-use salvo::{http::{StatusCode, ParseError}, prelude::*};
 
 /// 改进的错误处理系统
 #[derive(Debug)]
@@ -160,7 +163,7 @@ impl From<Infallible> for AppError {
     }
 }
 
-impl  From<ParseError> for AppError {
+impl From<ParseError> for AppError {
     fn from(err: ParseError) -> Self {
         tracing::error!("Parse error: {:?}", err);
         Self::Message("Parse error".to_string())
@@ -171,7 +174,11 @@ impl  From<ParseError> for AppError {
 impl Writer for AppError {
     async fn write(self, _req: &mut Request, _depot: &mut Depot, res: &mut Response) {
         res.status_code = Some(StatusCode::OK);
-        res.render(Json(ApiResponse::<String>::error_with_message_and_code(self.to_string(), self.error_code())));
+        tracing::error!("AppError: {:?}", self);
+        res.render(Json(ApiResponse::<String>::error_with_message_and_code(
+            self.to_string(),
+            self.error_code(),
+        )));
     }
 }
 
